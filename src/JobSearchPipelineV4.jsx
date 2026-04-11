@@ -1948,8 +1948,6 @@ function TailorPhase({ approvedJobs, profileText, onComplete }) {
     onComplete(results);
   };
 
-  const doneCount = approvedJobs.filter(job => { const s = getJobState(job); return s.resume && s.coverLetter; }).length;
-
   if (approvedJobs.length === 0) {
     return (
       <div className="content">
@@ -2030,8 +2028,6 @@ function TailorPhase({ approvedJobs, profileText, onComplete }) {
           </div>
         );
       })}
-
-      <div className="progress-bar">{"\u23F3"} {doneCount} of {approvedJobs.length} complete {doneCount < approvedJobs.length ? "- generating documents..." : "- all done!"}</div>
 
       <button className="btn glow-btn full mt-16" disabled={!anyComplete} onClick={handleAdvance}>Advance to Complete</button>
       {!anyComplete && <p className="text-hint mt-4">Generate at least one resume and one cover letter to advance.</p>}
