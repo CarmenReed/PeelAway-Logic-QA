@@ -28,7 +28,7 @@ describe("JobSearchPipelineV4", () => {
     const user = userEvent.setup();
     render(<JobSearchPipelineV4 />);
     await user.click(screen.getByText("Start as Guest", { exact: false }));
-    expect(screen.getByText("Job Search Pipeline")).toBeInTheDocument();
+    expect(screen.getByText("PeelAway Logic")).toBeInTheDocument();
     expect(screen.getByText("Upload Resume (PDF or TXT)")).toBeInTheDocument();
   });
 

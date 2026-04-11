@@ -1,4 +1,4 @@
-# PeelAway Logic Job Search Pipeline: Post-Reskin Decomposition Plan
+# PeelAway Logic: Post-Reskin Decomposition Plan
 
 **For: Claude Code / Cowork execution**
 **Version: 1.0 | April 2026**

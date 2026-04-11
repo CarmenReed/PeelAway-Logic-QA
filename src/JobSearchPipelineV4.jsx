@@ -1138,7 +1138,7 @@ function Header() {
       <img src={`${process.env.PUBLIC_URL}/PeelAwayLogicLogo.png`} alt="PeelAway Logic" className="header-logo" />
       <div>
         <div className="header-brand">PeelAway Logic</div>
-        <div className="header-title">Job Search Pipeline</div>
+        <div className="header-title">PeelAway Logic</div>
       </div>
     </div>
   );
