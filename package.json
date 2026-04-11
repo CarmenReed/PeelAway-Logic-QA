@@ -1,14 +1,15 @@
 {
-  "name": "job-search-pipeline",
+  "name": "peelaway-logic",
   "version": "4.0.0",
   "description": "AI-powered job search pipeline: Scout, Review, Tailor",
-  "homepage": "https://carmenreed.github.io/AI-Agentic-Solutions-Architecture",
+  "homepage": "https://carmenreed.github.io/PeelAway-Logic",
   "private": true,
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "core-js-pure": "^3.37.1",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1"
+    "@testing-library/user-event": "^14.6.1",
+    "gh-pages": "^6.3.0"
   }
 }

@@ -6,7 +6,7 @@ A developer guide for using Claude Code with this repository. Read this first be
 
 ## 1. Project Overview
 
-**PeelAway Logic** is a UAT (User Acceptance Testing) environment for an AI-powered job search automation pipeline. It reduces executive function friction for neurodivergent job seekers by automating the scout-to-apply workflow.
+**PeelAway Logic** is a QA environment for an AI-powered job search automation pipeline. It reduces executive function friction for neurodivergent job seekers by automating the scout-to-apply workflow.
 
 The app is a React 18 single-page application. It calls the Anthropic API directly from the browser (no backend server). Job data is persisted in localStorage between sessions.
 
