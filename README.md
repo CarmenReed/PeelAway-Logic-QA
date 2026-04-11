@@ -1,10 +1,10 @@
-# PeelAway Logic - UAT Environment
+# PeelAway Logic - QA Environment
 
-**User Acceptance Testing (UAT)** environment for the PeelAway Logic application. This is where new features are developed, bugs are fixed, and changes are validated before being promoted to production.
+**Quality Assurance (QA)** environment for the PeelAway Logic application. This is where new features are developed, bugs are fixed, and changes are validated before being promoted to production.
 
 ## Purpose
 
-This folder serves as the staging ground for all iterative work on PeelAway Logic. Each development cycle, new features and bug fixes are implemented and tested here first. Changes are only promoted to `PeelAway Logic` after passing UAT validation.
+This folder serves as the staging ground for all iterative work on PeelAway Logic. Each development cycle, new features and bug fixes are implemented and tested here first. Changes are only promoted to `PeelAway Logic` after passing QA validation.
 
 ### What Gets Tracked Here
 
@@ -24,7 +24,7 @@ This folder serves as the staging ground for all iterative work on PeelAway Logi
 
 ## What It Does
 
-This is the UAT copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in five phases:
+This is the QA copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in five phases:
 
 1. **Scout** - Upload your resume, then run three independent search layers with individual controls:
    - **Layer 1:** Job boards (Adzuna + JSearch) - aggregator APIs searched in parallel
@@ -53,7 +53,7 @@ This is the UAT copy of the AI-powered job search automation tool built with Rea
 
 - 3 independent search layers with per-layer abort controllers and status tracking
 - Cross-source duplicate detection using normalized company+title matching (catches "Sr. Software Eng" at "Acme Inc" and "Senior Software Engineer" at "Acme" as the same listing)
-- Manual job URL/paste scorer for evaluating specific postings outside the automated search
+- Manual job URL/paste scorer for evalQAing specific postings outside the automated search
 - Full job description fetch and re-score after initial discovery
 - 7-day freshness enforcement with date-posted sorting
 - Anti-hallucination resume generation: only draws from your actual profile, enforced at the prompt layer
@@ -91,7 +91,7 @@ npm start
 
 ### Running Tests
 
-All tests live in the UAT environment only. Tests are not included in the production folder.
+All tests live in the QA environment only. Tests are not included in the production folder.
 
 ```bash
 npm test
