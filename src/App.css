@@ -1,0 +1,593 @@
+/* ============================================================
+   PEELAWAY LOGIC - JOB SEARCH PIPELINE
+   Design system from peelaway-mockups-v2
+   ============================================================ */
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+
+:root {
+  --yellow: #FFD700;
+  --yellow-pale: #FFF3B0;
+  --brown: #3F2B20;
+  --brown-mid: #5C3D2E;
+  --brown-light: #8B6F5E;
+  --cream: #FFF9E6;
+  --cream-dark: #F0E8D0;
+  --gray: #A8A8A8;
+  --gray-light: #E8E4DC;
+  --white: #FFFFFF;
+  --success: #2E8B57;
+  --success-bg: #E8F5EE;
+  --warn: #D4A017;
+  --warn-bg: #FFF8E1;
+  --danger: #C0392B;
+  --danger-bg: #FDEDEC;
+  --grad: linear-gradient(135deg, #FFD700 0%, #FFB300 100%);
+  --iri: linear-gradient(135deg, #00CED1 0%, #C77DFF 50%, #FF69B4 100%);
+  --iri-soft: linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 50%, #FFEEB5 100%);
+  --ff: 'Quicksand', sans-serif;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--ff);
+  font-size: 15px;
+  line-height: 1.5;
+  background: var(--cream);
+  color: var(--brown);
+  min-height: 100vh;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.jsp-app {
+  max-width: 880px;
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0 auto;
+  padding: 0 0 60px;
+  font-family: var(--ff);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--brown);
+}
+
+/* ============================================================
+   LANDING SCREEN
+   ============================================================ */
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.landing-logo { width: 280px; margin-bottom: 16px; }
+
+.landing-tagline {
+  font-size: 15px;
+  color: var(--brown-mid);
+  max-width: 280px;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+.landing-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 300px;
+  align-items: center;
+}
+
+.landing-buttons .btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 16px;
+  padding: 16px 24px;
+}
+
+.landing-privacy {
+  font-size: 13px;
+  color: var(--brown-light);
+  margin-top: 28px;
+  text-align: center;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.header {
+  background: var(--cream);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  height: 42px;
+  width: 42px;
+  border-radius: 10px;
+  padding: 4px;
+  background: var(--white);
+  object-fit: contain;
+}
+
+.header-brand {
+  color: var(--brown);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+
+.header-title {
+  color: var(--brown-mid);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   PROGRESS STEPPER
+   ============================================================ */
+
+.progress { padding: 16px 24px 10px; background: var(--cream); }
+.progress-track { display: flex; align-items: center; }
+
+.step-dot {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; flex-shrink: 0; cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.step-dot.current {
+  background: var(--iri);
+  color: var(--brown);
+  box-shadow: 0 0 16px rgba(0,206,209,0.35);
+}
+
+.step-dot.done { background: var(--yellow); color: var(--brown); }
+.step-dot.future { background: var(--cream-dark); color: var(--gray); }
+.step-dot.no-click { cursor: default; }
+
+.step-line { flex: 1; height: 3px; margin: 0 8px; border-radius: 2px; }
+.step-line.done { background: var(--yellow); }
+.step-line.future { background: var(--cream-dark); }
+
+.step-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 8px; padding: 0 4px;
+}
+
+.step-label {
+  font-size: 11px; width: 38px; text-align: center;
+  font-weight: 600; color: var(--brown-light);
+}
+
+.step-label.current-label { font-weight: 700; color: var(--brown); }
+
+.progress-mobile {
+  display: block; padding: 10px 14px;
+  font-size: 14px; font-weight: 700; color: var(--brown);
+  background: var(--yellow-pale); border: 1px solid var(--cream-dark);
+  border-radius: 12px; margin: 0 16px 16px;
+}
+
+/* ============================================================
+   CONTENT WRAPPER
+   ============================================================ */
+
+.content { padding: 12px 20px 20px; }
+
+/* ============================================================
+   GUIDE BANNERS
+   ============================================================ */
+
+.guide {
+  padding: 14px 16px;
+  background: var(--iri-soft);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.guide-emoji { font-size: 22px; line-height: 1; }
+
+.guide-text {
+  font-size: 14px; font-weight: 600;
+  color: var(--brown); line-height: 1.6;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+
+.card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(63,43,32,0.05);
+}
+
+.card.glow { box-shadow: 0 0 20px rgba(255,215,0,0.12), 0 2px 12px rgba(63,43,32,0.06); }
+.card.a-success { border-left: 4px solid var(--success); }
+.card.a-warn { border-left: 4px solid var(--warn); }
+.card.a-yellow { border-left: 4px solid var(--yellow); }
+.card.a-gray { border-left: 4px solid var(--gray-light); }
+.card.selected { border: 2px solid var(--yellow); background: var(--yellow-pale); }
+
+/* ============================================================
+   SECTION TITLES + STEP NUMBERS
+   ============================================================ */
+
+.section-title {
+  font-weight: 700; font-size: 17px; color: var(--brown);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--grad);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: var(--brown); flex-shrink: 0;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+  font-family: var(--ff); font-weight: 700; font-size: 15px;
+  padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer;
+  min-height: 44px; display: inline-flex; align-items: center;
+  justify-content: center; gap: 6px; text-align: center;
+  transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.btn.primary {
+  background: var(--grad); color: var(--brown);
+  box-shadow: 0 3px 10px rgba(255,215,0,0.25);
+}
+.btn.primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(255,215,0,0.4); }
+
+.btn.glow-btn {
+  background: var(--iri); color: var(--white);
+  box-shadow: 0 0 14px rgba(0,206,209,0.25);
+}
+.btn.glow-btn:hover:not(:disabled) { box-shadow: 0 0 20px rgba(0,206,209,0.4); }
+
+.btn.ghost {
+  background: transparent; border: 2px solid var(--brown); color: var(--brown);
+}
+.btn.ghost:hover:not(:disabled) { background: var(--cream-dark); }
+
+.btn.default {
+  background: var(--white); color: var(--brown);
+  box-shadow: 0 1px 4px rgba(63,43,32,0.08);
+}
+.btn.default:hover:not(:disabled) { background: var(--cream); }
+
+.btn.danger-btn {
+  background: var(--danger-bg); color: var(--danger);
+}
+.btn.danger-btn:hover:not(:disabled) { background: #f9d0cd; }
+
+.btn.sm { font-size: 13px; padding: 8px 14px; }
+.btn.full { width: 100%; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+
+@keyframes jsp-spin { to { transform: rotate(360deg); } }
+
+.jsp-spinner {
+  display: inline-block; width: 13px; height: 13px;
+  border: 2px solid var(--cream-dark); border-top-color: var(--brown);
+  border-radius: 50%; animation: jsp-spin 0.7s linear infinite;
+  margin-right: 7px; vertical-align: middle;
+}
+
+/* ============================================================
+   DASHED UPLOAD BOX
+   ============================================================ */
+
+.dashed-box {
+  border: 2px dashed var(--yellow); border-radius: 12px;
+  padding: 28px; text-align: center; background: var(--cream);
+  margin-bottom: 14px; transition: border-color 0.2s;
+}
+.dashed-box:hover { border-color: var(--brown-light); }
+
+/* ============================================================
+   SEARCH LAYER BUTTONS
+   ============================================================ */
+
+.search-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 14px 16px; margin-bottom: 8px;
+  background: var(--cream); border-radius: 10px; border: none;
+  cursor: pointer; font-family: var(--ff); min-height: 44px;
+  box-shadow: 0 1px 4px rgba(63,43,32,0.08); text-align: left;
+  transition: background 0.15s;
+}
+.search-btn:hover:not(:disabled) { background: var(--cream-dark); }
+.search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.search-btn .icon { font-size: 22px; }
+.search-btn .info { flex: 1; }
+.search-btn .label { font-weight: 700; font-size: 14px; color: var(--brown); }
+.search-btn .sub { font-size: 12px; color: var(--gray); }
+.search-btn .arrow { font-size: 11px; font-weight: 700; color: var(--brown-light); }
+.search-btn .running-label { font-weight: 700; font-size: 14px; color: var(--brown-mid); }
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+
+.form-input {
+  width: 100%; padding: 11px 14px; border-radius: 10px;
+  border: 1.5px solid var(--cream-dark); font-family: var(--ff);
+  font-size: 14px; background: var(--cream); color: var(--brown);
+}
+.form-input:focus { outline: none; border-color: var(--yellow); }
+.form-input::placeholder { color: var(--gray); }
+
+.form-textarea {
+  width: 100%; padding: 11px 14px; border-radius: 10px;
+  border: 1.5px solid var(--cream-dark); font-family: var(--ff);
+  font-size: 14px; background: var(--cream); color: var(--brown);
+  resize: vertical;
+}
+.form-textarea:focus { outline: none; border-color: var(--yellow); }
+.form-textarea::placeholder { color: var(--gray); }
+
+.form-select {
+  padding: 8px 12px; font-size: 13px; font-family: var(--ff);
+  font-weight: 600; border: 1.5px solid var(--cream-dark);
+  border-radius: 10px; background: var(--cream); color: var(--brown);
+}
+
+/* ============================================================
+   TIER TABS (Review)
+   ============================================================ */
+
+.tier-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+
+.tier-tab {
+  flex: 1; padding: 10px 4px; border-radius: 10px;
+  font-family: var(--ff); font-weight: 700; font-size: 12px;
+  cursor: pointer; border: none; min-height: 44px; text-align: center;
+}
+.tier-tab.active { color: var(--white); }
+.tier-tab:not(.active) {
+  background: var(--white); color: var(--brown);
+  box-shadow: 0 1px 4px rgba(63,43,32,0.06);
+}
+.tier-tab.strong-tab.active { background: var(--success); }
+.tier-tab.possible-tab.active { background: var(--warn); }
+.tier-tab.weak-tab.active { background: var(--gray); }
+
+/* ============================================================
+   JOB ROWS (Review)
+   ============================================================ */
+
+.job-row {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+}
+.job-check { width: 22px; height: 22px; accent-color: var(--yellow); flex-shrink: 0; cursor: pointer; }
+.job-info { flex: 1; min-width: 0; }
+.job-title { font-weight: 700; font-size: 15px; color: var(--brown); }
+.job-title a { color: var(--brown); text-decoration: underline; }
+.job-title a:hover { color: var(--brown-mid); }
+.job-meta { font-size: 12px; color: var(--brown-light); }
+.job-date { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.job-date a { color: var(--brown-mid); font-size: 11px; }
+
+.score-badge {
+  background: var(--grad); border-radius: 8px;
+  padding: 5px 14px; font-weight: 700; font-size: 15px;
+  color: var(--brown); box-shadow: 0 2px 8px rgba(255,215,0,0.3);
+  flex-shrink: 0; white-space: nowrap;
+}
+
+/* ============================================================
+   STATUS CHIPS (Tailor)
+   ============================================================ */
+
+.status-chip { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 8px; }
+.status-ready { background: var(--success-bg); color: var(--success); }
+.status-gen { background: var(--warn-bg); color: var(--warn); }
+.status-pending { background: var(--gray-light); color: var(--gray); }
+.applied-chip {
+  font-size: 11px; font-weight: 700; color: var(--success);
+  background: var(--success-bg); padding: 4px 10px; border-radius: 8px;
+}
+
+/* ============================================================
+   PROGRESS BAR (Tailor)
+   ============================================================ */
+
+.progress-bar {
+  border-radius: 12px; background: var(--iri-soft);
+  font-size: 13px; font-weight: 600; color: var(--brown);
+  text-align: center; padding: 12px 14px; margin-top: 14px;
+}
+
+/* ============================================================
+   TRACKER (Complete)
+   ============================================================ */
+
+.tracker-card {
+  background: var(--cream); border-radius: 14px; padding: 18px;
+  margin-bottom: 14px; box-shadow: 0 2px 12px rgba(63,43,32,0.05);
+}
+
+.tracker-header {
+  font-weight: 700; font-size: 14px; color: var(--brown-light);
+  margin-bottom: 10px; display: flex; align-items: center;
+  justify-content: space-between; cursor: pointer; user-select: none;
+}
+
+.tracker-row {
+  padding: 10px 14px; background: var(--white); border-radius: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; margin-bottom: 6px;
+}
+
+.tracker-check { width: 20px; height: 20px; accent-color: var(--success); flex-shrink: 0; }
+.tracker-label { font-weight: 600; font-size: 14px; flex: 1; }
+.tracker-date { font-size: 12px; color: var(--gray); flex-shrink: 0; }
+.tracker-remove {
+  font-size: 11px; color: var(--danger); background: none; border: none;
+  cursor: pointer; font-family: var(--ff); font-weight: 600; padding: 2px 6px;
+}
+.tracker-remove:hover { text-decoration: underline; }
+
+/* ============================================================
+   TAB BAR (Quick Score)
+   ============================================================ */
+
+.tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+
+.tab-btn {
+  padding: 8px 16px; font-size: 13px; font-family: var(--ff);
+  font-weight: 600; border: 1.5px solid var(--cream-dark);
+  border-radius: 10px; background: var(--white); color: var(--brown);
+  cursor: pointer; white-space: nowrap;
+}
+.tab-btn:hover { border-color: var(--yellow); }
+.tab-btn.active { border-color: var(--yellow); background: var(--grad); color: var(--brown); }
+
+/* ============================================================
+   SORT ROW
+   ============================================================ */
+
+.sort-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px; font-size: 13px; color: var(--brown-mid);
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+.tech-stack { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+.badge {
+  font-size: 11px; background: var(--yellow-pale); color: var(--brown);
+  border: 1px solid var(--yellow); border-radius: 24px;
+  padding: 2px 8px; font-weight: 600;
+}
+
+/* ============================================================
+   TYPOGRAPHY HELPERS
+   ============================================================ */
+
+.text-error { color: var(--danger); font-weight: 600; margin-bottom: 12px; font-size: 13px; }
+.text-hint { font-size: 13px; color: var(--brown-light); margin-top: 4px; }
+.text-success { font-size: 13px; color: var(--success); }
+.text-stale { font-size: 12px; color: var(--warn); }
+.text-p { color: var(--brown-mid); margin-bottom: 12px; font-size: 14px; }
+.text-link { font-size: 13px; color: var(--brown); text-decoration: none; font-weight: 600; }
+.text-link:hover { text-decoration: underline; }
+
+/* ============================================================
+   RUN SUMMARY
+   ============================================================ */
+
+.run-summary {
+  background: var(--success-bg); border: 1px solid var(--success);
+  border-radius: 12px; padding: 16px; margin-bottom: 16px;
+}
+.run-summary-title { font-weight: 700; margin-bottom: 6px; color: var(--brown); }
+.run-summary-line { font-size: 13px; color: var(--brown); margin: 2px 0; }
+.run-summary-line.bold { font-weight: 600; }
+.run-summary-line.muted { color: var(--brown-mid); }
+
+/* ============================================================
+   SAVED RESULTS NOTICE
+   ============================================================ */
+
+.saved-notice {
+  background: var(--warn-bg); border: 1px solid var(--warn);
+  border-radius: 12px; padding: 16px; margin: 0 20px 16px;
+}
+.saved-notice-text { font-weight: 600; color: var(--brown-mid); margin-bottom: 12px; font-size: 14px; }
+
+/* ============================================================
+   FORMAT ROW
+   ============================================================ */
+
+.format-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.format-label { font-size: 13px; font-weight: 600; color: var(--brown); }
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.flex-end { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.flex-gap { display: flex; gap: 8px; flex-wrap: wrap; }
+.flex-center { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-6 { margin-bottom: 6px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-14 { margin-bottom: 14px; }
+.mb-16 { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.cursor-pointer { cursor: pointer; }
+.text-sm { font-size: 12px; color: var(--gray); }
+.hidden { display: none; }
+.start-over-row { display: flex; justify-content: flex-end; margin-bottom: 8px; padding: 0 20px; }
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .jsp-app { max-width: 100%; }
+  .content { padding: 12px 12px 20px; }
+  .header { padding: 12px; }
+  .progress { padding: 12px 12px 8px; }
+  .card { padding: 14px; border-radius: 12px; }
+  .btn { padding: 12px 18px; min-height: 44px; font-size: 15px; }
+  .btn.full-mobile { display: block; width: 100%; }
+  .form-input { font-size: 16px; }
+  .form-textarea { font-size: 16px; }
+  .tier-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .job-row { padding: 10px; }
+  .dashed-box { padding: 20px; }
+  .search-btn { padding: 12px 14px; }
+  .tracker-row { flex-wrap: wrap; }
+}

@@ -1,0 +1,10 @@
+# dependencies
+node_modules/
+
+# production build
+build/
+
+# environment variables (contains API key)
+.env
+.env.local
+.env.*.local
