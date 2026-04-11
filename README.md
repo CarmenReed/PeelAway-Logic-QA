@@ -1,6 +1,6 @@
-# Job Search Pipeline V4 - UAT Environment
+# PeelAway Logic - UAT Environment
 
-**User Acceptance Testing (UAT)** environment for the Job Search Pipeline V4 application. This is where new features are developed, bugs are fixed, and changes are validated before being promoted to production.
+**User Acceptance Testing (UAT)** environment for the PeelAway Logic application. This is where new features are developed, bugs are fixed, and changes are validated before being promoted to production.
 
 ## Purpose
 
@@ -24,7 +24,7 @@ This folder serves as the staging ground for all iterative work on PeelAway Logi
 
 ## What It Does
 
-This is the UAT copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full job search pipeline in five phases:
+This is the UAT copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in five phases:
 
 1. **Scout** - Upload your resume, then run three independent search layers with individual controls:
    - **Layer 1:** Job boards (Adzuna + JSearch) - aggregator APIs searched in parallel
