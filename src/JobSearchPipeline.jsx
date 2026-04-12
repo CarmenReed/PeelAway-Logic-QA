@@ -6,7 +6,7 @@ import { STORAGE_KEY, SCOUT_STORAGE_KEY } from "./constants";
 import { isAppliedMatch } from "./utils";
 import { loadAppliedJobs, saveAppliedJobs, loadTailorResults, clearTailorResults } from "./storage";
 import { getCloudConnection, gatherSyncData } from "./cloudSync";
-import { saveSyncDataToDropbox, isDropboxConfigured } from "./cloudStorage";
+import { saveSyncDataToDropbox, hasDropboxToken } from "./cloudStorage";
 import LandingScreen from "./components/LandingScreen";
 import Header from "./components/Header";
 import ProgressStepper from "./components/ProgressStepper";
@@ -22,7 +22,7 @@ import CompletePhase from "./phases/CompletePhase";
 let syncTimer = null;
 function scheduleCloudSync() {
   const conn = getCloudConnection();
-  if (!conn?.connected || !isDropboxConfigured()) return;
+  if (!conn?.connected || !hasDropboxToken()) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => {
     const data = gatherSyncData();

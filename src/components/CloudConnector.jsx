@@ -2,7 +2,7 @@
 // Connection UI for Dropbox workspace integration
 
 import { useState } from "react";
-import { isDropboxConfigured, loadDropboxSdk } from "../cloudStorage";
+import { isDropboxConfigured, authenticateDropbox, setDropboxToken } from "../cloudStorage";
 import { getCloudConnection, setCloudConnection } from "../cloudSync";
 
 export default function CloudConnector({ show, onClose, onConnectionChange }) {
@@ -17,21 +17,22 @@ export default function CloudConnector({ show, onClose, onConnectionChange }) {
     setSyncing(true);
     setSyncError("");
     try {
-      await loadDropboxSdk();
-      setCloudConnection({ provider: "dropbox", connected: true, connectedAt: new Date().toISOString() });
-      onConnectionChange?.({ provider: "dropbox", connected: true });
-    } catch (err) {
-      if (err.message?.includes("Failed to load")) {
-        setSyncError("Could not load Dropbox. Check your popup blocker settings.");
+      const token = await authenticateDropbox();
+      if (token) {
+        setCloudConnection({ provider: "dropbox", connected: true, connectedAt: new Date().toISOString() });
+        onConnectionChange?.({ provider: "dropbox", connected: true });
       } else {
-        setSyncError("Connection failed. Please try again.");
+        setSyncError("Authorization was cancelled. Please try again.");
       }
+    } catch {
+      setSyncError("Could not connect to Dropbox. Check your popup blocker settings.");
     } finally {
       setSyncing(false);
     }
   };
 
   const handleDisconnect = () => {
+    setDropboxToken(null);
     setCloudConnection(null);
     onConnectionChange?.(null);
     setSyncError("");
