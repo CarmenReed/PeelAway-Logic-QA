@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { saveToDropbox, isDropboxConfigured } from "../cloudStorage";
 import AppliedTracker from "../components/AppliedTracker";
 import GuideBar from "../components/GuideBar";
 
-function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain }) {
+function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain, cloudConnected }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [copiedType, setCopiedType] = useState(null);
   const [downloadFormat, setDownloadFormat] = useState("txt");
@@ -81,6 +82,14 @@ function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveAppli
                 <div className="flex-gap mt-12">
                   <button className="btn primary sm" onClick={() => download(r.resume, `${r.company}_resume`, "resume")}>{"\uD83D\uDCE5"} Resume</button>
                   <button className="btn primary sm" onClick={() => download(r.cover_letter, `${r.company}_cover_letter`, "cover")}>{"\uD83D\uDCE5"} Cover Letter</button>
+                  {cloudConnected && isDropboxConfigured() && (
+                    <button className="btn default sm" onClick={async () => {
+                      try {
+                        if (r.resume) await saveToDropbox(r.resume, `${r.company}_resume.txt`);
+                        if (r.cover_letter) await saveToDropbox(r.cover_letter, `${r.company}_cover_letter.txt`);
+                      } catch { /* user cancelled or error */ }
+                    }}>{"\u2601\uFE0F"} Dropbox</button>
+                  )}
                   {!applied && (
                     <button className="btn glow-btn sm" onClick={() => onAddApplied({
                       title: r.job_title, company: r.company, url: r.url || "",

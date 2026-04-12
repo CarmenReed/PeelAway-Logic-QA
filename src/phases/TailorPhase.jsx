@@ -4,10 +4,11 @@ import { companyTitleKey, jobKey, extractTextFromBlocks, extractJson } from "../
 import { loadTailorResults, saveTailorResult } from "../storage";
 import { TAILOR_SYSTEM, buildResumeOnlyPrompt, buildCoverLetterOnlyPrompt } from "../prompts";
 import { withRetry, callAnthropic } from "../api";
+import { saveToDropbox, isDropboxConfigured } from "../cloudStorage";
 import Spinner from "../components/Spinner";
 import GuideBar from "../components/GuideBar";
 
-function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete }) {
+function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete, cloudConnected }) {
   const [downloadFormat, setDownloadFormat] = useState("txt");
   // Per-job generation state: { [jobKey]: { resumeStatus, coverStatus, resume, coverLetter, error } }
   const [jobState, setJobState] = useState(() => {
@@ -238,6 +239,14 @@ function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete }
 
               {isReady && (
                 <button className="btn default sm" onClick={() => { download(s.resume, `${job.company}_resume`, "resume"); download(s.coverLetter, `${job.company}_cover_letter`, "cover"); }}>{"\u2B07\uFE0F"} Download</button>
+              )}
+              {isReady && cloudConnected && isDropboxConfigured() && (
+                <button className="btn default sm" onClick={async () => {
+                  try {
+                    await saveToDropbox(s.resume, `${job.company}_resume.txt`);
+                    await saveToDropbox(s.coverLetter, `${job.company}_cover_letter.txt`);
+                  } catch { /* user cancelled or error */ }
+                }}>{"\u2601\uFE0F"} Dropbox</button>
               )}
             </div>
             {s.resumeError && <p className="text-error mt-4">{s.resumeError}</p>}

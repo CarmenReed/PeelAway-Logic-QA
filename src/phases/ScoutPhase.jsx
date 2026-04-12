@@ -1,9 +1,12 @@
 import { useState, useRef } from "react";
 import { extractTextFromPdf } from "../api";
 import { extractProfile } from "../profileExtractor";
+import { openDropboxChooser, downloadDropboxFile, isDropboxConfigured } from "../cloudStorage";
+import { getCloudConnection } from "../cloudSync";
 import GuideBar from "../components/GuideBar";
 
 function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtractedProfile, locked, onAdvance }) {
+  const cloudConnected = getCloudConnection()?.connected;
   const [fileName, setFileName] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [fileError, setFileError] = useState(null);
@@ -57,6 +60,9 @@ function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtracte
           <div className="tab-bar mb-10">
             <button className={`tab-btn${inputMode === "upload" ? " active" : ""}`} onClick={() => setInputMode("upload")}>Upload PDF/TXT</button>
             <button className={`tab-btn${inputMode === "paste" ? " active" : ""}`} onClick={() => setInputMode("paste")}>Paste Resume Text</button>
+            {cloudConnected && isDropboxConfigured() && (
+              <button className={`tab-btn${inputMode === "dropbox" ? " active" : ""}`} onClick={() => setInputMode("dropbox")}>Import from Dropbox</button>
+            )}
           </div>
         )}
         {!locked && inputMode === "upload" && (
@@ -73,6 +79,36 @@ function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtracte
           <div className="mb-16">
             <textarea className="form-textarea" placeholder="Paste your resume text here..." value={profileText} onChange={(e) => { setProfileText(e.target.value); if (e.target.value.trim().length > 50) setExtractedProfile(extractProfile(e.target.value)); }} rows={12} />
             {profileText.trim().length > 50 && <p className="text-success mt-4">{profileText.length} characters</p>}
+          </div>
+        )}
+        {!locked && inputMode === "dropbox" && (
+          <div className="dashed-box">
+            <button type="button" className="btn primary" onClick={async () => {
+              setFileError(null);
+              setExtracting(true);
+              try {
+                const file = await openDropboxChooser({ extensions: [".pdf", ".txt"] });
+                if (!file) { setExtracting(false); return; }
+                setFileName(file.name);
+                const text = await downloadDropboxFile(file.link);
+                if (text && text.length > 30) {
+                  setProfileText(text);
+                  setExtractedProfile(extractProfile(text));
+                } else {
+                  setFileError("File appears empty or unreadable. Try a different file.");
+                }
+              } catch (err) {
+                setFileError(`Dropbox import failed: ${err.message}`);
+              } finally {
+                setExtracting(false);
+              }
+            }} disabled={extracting}>
+              {extracting ? "Importing..." : "Pick Resume from Dropbox"}
+            </button>
+            {fileName && <p className="text-hint mt-8">{fileName}</p>}
+            {extracting && <p className="text-hint">Importing from Dropbox...</p>}
+            {hasProfile && !extracting && <p className="text-success mt-4">{profileText.length} characters extracted</p>}
+            {fileError && <p className="text-error">{fileError}</p>}
           </div>
         )}
         {locked && hasProfile && (

@@ -605,6 +605,109 @@ body {
 .start-over-row { display: flex; justify-content: flex-end; margin-bottom: 8px; padding: 0 20px; }
 
 /* ============================================================
+   CLOUD CONNECTOR
+   ============================================================ */
+
+.cloud-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(63,43,32,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.cloud-modal {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(63,43,32,0.2);
+}
+
+.cloud-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cloud-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brown);
+}
+
+.cloud-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--brown-light);
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+.cloud-close-btn:hover { color: var(--brown); }
+
+.cloud-provider-card {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--cream-dark);
+}
+
+.cloud-provider-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cloud-provider-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  border-radius: 10px;
+  border: 1px solid var(--cream-dark);
+}
+
+.cloud-provider-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brown);
+}
+
+.cloud-provider-desc {
+  font-size: 13px;
+  color: var(--brown-light);
+  margin-top: 2px;
+}
+
+.cloud-connected-badge {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success);
+  background: var(--success-bg);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.cloud-actions {
+  margin-top: 12px;
+}
+
+.cloud-info {
+  margin-top: 16px;
+}
+
+/* ============================================================
    MOBILE
    ============================================================ */
 

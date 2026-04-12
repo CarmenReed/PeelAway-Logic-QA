@@ -21,3 +21,4 @@ export const MOBILE_BP = 640;
 export const ADZUNA_APP_ID = process.env.REACT_APP_ADZUNA_APP_ID || "";
 export const ADZUNA_APP_KEY = process.env.REACT_APP_ADZUNA_APP_KEY || "";
 export const RAPIDAPI_KEY = process.env.REACT_APP_RAPIDAPI_KEY || "";
+export const DROPBOX_APP_KEY = process.env.REACT_APP_DROPBOX_APP_KEY || "";

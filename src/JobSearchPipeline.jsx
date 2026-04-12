@@ -5,6 +5,8 @@ import { useState, useCallback, useEffect } from "react";
 import { STORAGE_KEY, SCOUT_STORAGE_KEY } from "./constants";
 import { isAppliedMatch } from "./utils";
 import { loadAppliedJobs, saveAppliedJobs, loadTailorResults, clearTailorResults } from "./storage";
+import { getCloudConnection, gatherSyncData } from "./cloudSync";
+import { saveSyncDataToDropbox, isDropboxConfigured } from "./cloudStorage";
 import LandingScreen from "./components/LandingScreen";
 import Header from "./components/Header";
 import ProgressStepper from "./components/ProgressStepper";
@@ -15,6 +17,18 @@ import TailorPhase from "./phases/TailorPhase";
 import CompletePhase from "./phases/CompletePhase";
 
 // Phase indices: 0=Scout, 1=Search, 2=Review, 3=Tailor, 4=Complete
+
+// Debounced cloud sync: saves to Dropbox after data changes settle
+let syncTimer = null;
+function scheduleCloudSync() {
+  const conn = getCloudConnection();
+  if (!conn?.connected || !isDropboxConfigured()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    const data = gatherSyncData();
+    saveSyncDataToDropbox(data).catch(() => {});
+  }, 5000);
+}
 
 export default function JobSearchPipeline() {
   const [started, setStarted] = useState(false);
@@ -28,13 +42,14 @@ export default function JobSearchPipeline() {
   const [tailorResults, setTailorResults] = useState(() => loadTailorResults());
   const [appliedJobs, setAppliedJobs] = useState(loadAppliedJobs);
   const [maxVisited, setMaxVisited] = useState(0);
+  const [cloudConn, setCloudConn] = useState(() => getCloudConnection());
 
   const advanceTo = useCallback((n) => {
     setPhase(n);
     setMaxVisited(prev => Math.max(prev, n));
   }, []);
 
-  useEffect(() => { saveAppliedJobs(appliedJobs); }, [appliedJobs]);
+  useEffect(() => { saveAppliedJobs(appliedJobs); scheduleCloudSync(); }, [appliedJobs]);
 
   const addAppliedJob = useCallback((job) => {
     setAppliedJobs(prev => {
@@ -56,6 +71,7 @@ export default function JobSearchPipeline() {
   const handleTailorComplete = useCallback((results) => {
     setTailorResults(results);
     advanceTo(4);
+    scheduleCloudSync();
   }, [advanceTo]);
 
   const handleRunAgain = useCallback(() => {
@@ -151,6 +167,7 @@ export default function JobSearchPipeline() {
           profileText={profileText}
           extractedProfile={extractedProfile}
           onComplete={handleTailorComplete}
+          cloudConnected={cloudConn?.connected}
         />
       )}
 
@@ -162,6 +179,7 @@ export default function JobSearchPipeline() {
           onRemoveApplied={removeAppliedJob}
           onClearApplied={clearAppliedJobs}
           onRunAgain={handleRunAgain}
+          cloudConnected={cloudConn?.connected}
         />
       )}
     </div>
