@@ -702,7 +702,22 @@ body {
 
 .cloud-actions {
   margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
+
+.cloud-disconnect-link {
+  background: none;
+  border: none;
+  color: var(--brown-light);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-weight: 500;
+}
+.cloud-disconnect-link:hover { color: var(--danger); }
 
 .cloud-info {
   margin-top: 16px;
