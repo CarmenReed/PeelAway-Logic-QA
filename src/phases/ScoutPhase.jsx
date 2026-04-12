@@ -9,24 +9,24 @@ import {
 } from "../utils";
 import { saveLastScoutResults, loadDismissedJobs, isDismissed } from "../storage";
 import { withRetry, callAnthropic, callAnthropicWithLoop, extractTextFromPdf } from "../api";
+import { extractProfile } from "../profileExtractor";
 import Spinner from "../components/Spinner";
 import GuideBar from "../components/GuideBar";
 import ManualJobInput from "../components/ManualJobInput";
 
-async function fetchAdzunaJobs(profileText, signal) {
-  const queries = [
-    "Senior Solutions Architect",
-    "Principal Software Architect",
-    "Staff Engineer AI",
-    "Lead AI Engineer",
-    "Senior AI Architect",
-    "AI Integration Architect",
-    "Senior .NET Architect",
-  ];
+async function fetchAdzunaJobs(queries, filters, signal) {
+  const workType = filters?.workType || "remote";
+  const empType = filters?.employmentType || "full_time";
+  const zipCode = filters?.zipCode || "";
+  const radius = filters?.radius || "25";
   const results = [];
   for (const q of queries) {
     try {
-      const url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(q)}&where=remote&full_time=1&sort_by=date`;
+      let url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${encodeURIComponent(q)}&sort_by=date`;
+      if (workType === "remote") url += "&where=remote";
+      else if (zipCode) url += `&where=${encodeURIComponent(zipCode)}&distance=${radius}`;
+      if (empType === "full_time") url += "&full_time=1";
+      else if (empType === "part_time") url += "&part_time=1";
       const res = await fetch(url, { signal });
       if (!res.ok) continue;
       const data = await res.json();
@@ -47,20 +47,18 @@ async function fetchAdzunaJobs(profileText, signal) {
   return results;
 }
 
-async function fetchJSearchJobs(signal) {
-  const queries = [
-    "Senior Solutions Architect remote",
-    "Principal AI Engineer remote",
-    "Staff Software Architect Azure remote",
-    "Lead AI Engineer .NET remote",
-    "Agentic AI Architect remote",
-    "Senior AI Integration Engineer remote",
-    "LLM Solutions Architect remote",
-  ];
+async function fetchJSearchJobs(queries, filters, signal) {
+  const datePosted = filters?.datePosted || "week";
+  const workType = filters?.workType || "remote";
+  const zipCode = filters?.zipCode || "";
+  const radius = filters?.radius || "25";
   const results = [];
   for (const q of queries) {
     try {
-      const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(q)}&page=1&num_pages=1&date_posted=week`;
+      let queryStr = q;
+      if (workType !== "remote" && zipCode) queryStr += ` near ${zipCode}`;
+      let url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(queryStr)}&page=1&num_pages=1&date_posted=${datePosted}&country=us`;
+      if (workType !== "remote" && zipCode) url += `&radius=${radius}`;
       const res = await fetch(url, {
         signal,
         headers: {
@@ -204,9 +202,12 @@ async function fetchRssJobs(signal, onProgress) {
   return results;
 }
 
-async function fetchAtsJobs(apiKey, profileText, signal) {
-  const system = "You are a job search assistant. Use web_search to find currently open senior-level job postings on Greenhouse, Lever, and Workday career pages only. Return valid JSON only. No preamble, no markdown fences.";
-  const message = `Find 5 to 10 currently open senior/principal/architect/staff level remote roles matching this profile. Search Greenhouse, Lever, and Workday only.
+async function fetchAtsJobs(apiKey, profileText, targetLevels, filters, signal) {
+  const levelStr = (targetLevels || ["Senior", "Lead"]).join("/").toLowerCase();
+  const workType = filters?.workType || "remote";
+  const workTypeStr = workType === "any" ? "" : ` ${workType}`;
+  const system = "You are a job search assistant. Use web_search to find currently open job postings on Greenhouse, Lever, and Workday career pages only. Return valid JSON only. No preamble, no markdown fences.";
+  const message = `Find 5 to 10 currently open ${levelStr} level${workTypeStr} roles in the United States matching this profile. Search Greenhouse, Lever, and Workday only.
 
 PROFILE SUMMARY:
 ${profileText.slice(0, 800)}
@@ -235,7 +236,7 @@ Return this JSON:
   } catch { return []; }
 }
 
-async function scoreRawJobs(apiKey, profileText, rawJobs, signal, onStatus) {
+async function scoreRawJobs(apiKey, profileText, extractedProfile, rawJobs, signal, onStatus) {
   const scored = [];
 
   for (let i = 0; i < rawJobs.length; i += SCORING_BATCH_SIZE) {
@@ -250,20 +251,18 @@ async function scoreRawJobs(apiKey, profileText, rawJobs, signal, onStatus) {
     onStatus(`Scoring jobs ${i + 1} to ${Math.min(i + SCORING_BATCH_SIZE, rawJobs.length)} of ${rawJobs.length}...`);
 
     try {
-      const data = await withRetry(() => callAnthropic({
-        apiKey,
-        model: SCORING_MODEL,
-        system: "You are a job scoring AI. Return valid JSON only. No preamble, no markdown fences.",
-        messages: [{
-          role: "user",
-          content: `Score each job against this candidate profile.
+      const skillsStr = extractedProfile?.skills?.join(", ") || "not specified";
+      const yearsStr = extractedProfile?.yearsExperience ? `, ${extractedProfile.yearsExperience} years experience` : "";
+      const levelStr = extractedProfile?.targetLevel?.join(", ") || "Senior, Lead";
+      const locationStr = extractedProfile?.location?.join(" or ") || "remote";
+      const scoringPrompt = `Score each job against this candidate profile.
 
 CANDIDATE PROFILE (condensed):
 ${profileText.slice(0, 400)}
 
-KEY SKILLS: Agentic AI, RAG, LLM Integration, Azure, C#, .NET Core, SQL Server, Solutions Architecture, REST APIs, PCI Compliance, 28 years experience.
-TARGET LEVEL: Senior, Lead, Principal, Architect, Staff only.
-LOCATION: Remote US or Tampa Bay Florida only.
+KEY SKILLS: ${skillsStr}${yearsStr}.
+TARGET LEVEL: ${levelStr} only.
+LOCATION: ${locationStr} only.
 
 JOBS TO SCORE:
 ${JSON.stringify(batch.map((j, idx) => ({
@@ -276,15 +275,20 @@ ${JSON.stringify(batch.map((j, idx) => ({
 
 SCORING RUBRIC:
 - skills_fit (0-5): 5=4+ core skills match, 3-4=2-3 skills, 1-2=minimal, 0=none
-- level_fit (0-5): 5=Senior/Lead/Principal/Architect/Staff, 2-3=ambiguous scope, 0=junior or management only
+- level_fit (0-5): 5=exact level match, 2-3=ambiguous scope, 0=wrong level or management only
 - total_score: skills_fit + level_fit
 - date_posted: Use the date_posted value already on the job object if present. If not present, set to null.
 - freshness_flag: "fresh" if date_posted is within 14 days of today, "stale" otherwise.
 
-HARD EXCLUSIONS -- set total_score to 0 for: government/defense/clearance, Junior/Mid/Associate, on-site non-FL.
+HARD EXCLUSIONS -- set total_score to 0 for: government/defense/clearance, level mismatch (too junior or too senior for target), location mismatch.
 
-Return JSON only: { "scores": [ { "idx": 0, "skills_fit": 3, "level_fit": 4, "total_score": 7, "reasoning": "1 sentence", "key_tech_stack": ["C#", "Azure"], "date_posted": "2025-04-06 or null", "freshness_flag": "fresh or stale" } ] }`
-        }],
+Return JSON only: { "scores": [ { "idx": 0, "skills_fit": 3, "level_fit": 4, "total_score": 7, "reasoning": "1 sentence", "key_tech_stack": ["C#", "Azure"], "date_posted": "2025-04-06 or null", "freshness_flag": "fresh or stale" } ] }`;
+
+      const data = await withRetry(() => callAnthropic({
+        apiKey,
+        model: SCORING_MODEL,
+        system: "You are a job scoring AI. Return valid JSON only. No preamble, no markdown fences.",
+        messages: [{ role: "user", content: scoringPrompt }],
         maxTokens: 1200,
         signal,
       }));
@@ -502,7 +506,7 @@ async function runJdFetchAndRescore(apiKey, profileText, results, signal, onStat
   return { ...results };
 }
 
-function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
+function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtractedProfile, appliedList, onComplete }) {
   const [status, setStatus] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState(null);
@@ -513,6 +517,15 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
   const [extracting, setExtracting] = useState(false);
   const [fileError, setFileError] = useState(null);
   const [inputMode, setInputMode] = useState("upload"); // "upload" | "paste"
+  const [newSkill, setNewSkill] = useState("");
+  const [newQuery, setNewQuery] = useState("");
+  const [searchFilters, setSearchFilters] = useState({
+    workType: "remote",        // "remote" | "hybrid" | "on-site" | "any"
+    datePosted: "week",        // "all" | "today" | "3days" | "week" | "month"
+    employmentType: "full_time", // "full_time" | "part_time" | "contract" | "any"
+    zipCode: "",               // US zip code (active when workType !== "remote")
+    radius: "25",              // search radius in miles
+  });
   const abortRef = useRef(null);
   const timerRef = useRef(null);
   const fileRef = useRef(null);
@@ -551,14 +564,18 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
     setFileError(null);
     try {
       if (file.name.toLowerCase().endsWith(".txt")) {
-        setProfileText(await file.text());
+        const text = await file.text();
+        setProfileText(text);
+        setExtractedProfile(extractProfile(text));
       } else if (file.name.toLowerCase().endsWith(".pdf")) {
         const text = await extractTextFromPdf(file);
         if (!text || text.length < 30) {
           setFileError("PDF appears image-based or unreadable. Paste your resume text below instead.");
           setProfileText("");
+          setExtractedProfile(null);
         } else {
           setProfileText(text);
+          setExtractedProfile(extractProfile(text));
         }
       } else {
         setFileError("Unsupported file type. Use .pdf or .txt.");
@@ -584,9 +601,11 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
     setLayer1Status("running");
     setLayer1Msg("Searching Adzuna and JSearch...");
     try {
+      const adzunaQueries = extractedProfile?.searchQueries?.adzuna || ["Software Engineer"];
+      const jsearchQueries = extractedProfile?.searchQueries?.jsearch || ["Software Engineer remote"];
       const [adzuna, jsearch] = await Promise.allSettled([
-        fetchAdzunaJobs(profileText.trim(), abort1Ref.current.signal),
-        fetchJSearchJobs(abort1Ref.current.signal),
+        fetchAdzunaJobs(adzunaQueries, searchFilters, abort1Ref.current.signal),
+        fetchJSearchJobs(jsearchQueries, searchFilters, abort1Ref.current.signal),
       ]).then(r => r.map(x => x.status === "fulfilled" ? x.value : []));
       const combined = [...adzuna, ...jsearch].map(j => ({ ...j, source_layer: "job_boards" }));
       setAccumulatedRaw(prev => mergeRawJobs(prev, combined));
@@ -627,7 +646,7 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
     setLayer3Status("running");
     setLayer3Msg("Searching ATS boards (Greenhouse, Lever, Workday)...");
     try {
-      const ats = await fetchAtsJobs(ANTHROPIC_API_KEY, profileText.trim(), abort3Ref.current.signal);
+      const ats = await fetchAtsJobs(ANTHROPIC_API_KEY, profileText.trim(), extractedProfile?.targetLevel, searchFilters, abort3Ref.current.signal);
       const combined = ats.map(j => ({ ...j, source_layer: "ats" }));
       setAccumulatedRaw(prev => mergeRawJobs(prev, combined));
       setLayer3Msg(`Done. Found ${combined.length} listings from ATS boards.`);
@@ -660,11 +679,11 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
         return true;
       });
       setProgressMsg(`Pre-filtering ${deduped.length} listings (${accumulatedRaw.length - deduped.length} duplicates removed)...`);
-      const { passed, rejected: preRejected } = keywordPreFilter(deduped);
+      const { passed, rejected: preRejected } = keywordPreFilter(deduped, extractedProfile);
       setProgressMsg(`${passed.length} passed pre-filter. Scoring with Haiku...`);
 
       const scored = await scoreRawJobs(
-        ANTHROPIC_API_KEY, profileText.trim(), passed, abortRef.current.signal,
+        ANTHROPIC_API_KEY, profileText.trim(), extractedProfile, passed, abortRef.current.signal,
         (msg) => setProgressMsg(msg)
       );
       const allScored = [...scored, ...preRejected];
@@ -743,14 +762,68 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
         )}
         {inputMode === "paste" && (
           <div className="mb-16">
-            <textarea className="form-textarea" placeholder="Paste your resume text here..." value={profileText} onChange={(e) => setProfileText(e.target.value)} rows={12} disabled={status === "running"} />
+            <textarea className="form-textarea" placeholder="Paste your resume text here..." value={profileText} onChange={(e) => { setProfileText(e.target.value); if (e.target.value.trim().length > 50) setExtractedProfile(extractProfile(e.target.value)); }} rows={12} disabled={status === "running"} />
             {profileText.trim().length > 50 && <p className="text-success mt-4">{profileText.length} characters</p>}
           </div>
         )}
-        {hasProfile && status !== "running" && inputMode === "upload" && (
-          <details className="mt-8">
-            <summary className="text-hint mb-6 cursor-pointer">Review extracted profile</summary>
-            <textarea className="form-textarea" value={profileText} onChange={(e) => setProfileText(e.target.value)} rows={10} />
+        {hasProfile && extractedProfile && status !== "running" && (
+          <details className="mt-8" open>
+            <summary className="text-hint mb-6 cursor-pointer">Review Extracted Skills and Keywords</summary>
+            <div className="extracted-profile">
+              <div className="ep-row">
+                <label className="ep-label">Name</label>
+                <input className="form-input ep-input" value={extractedProfile.name || ""} onChange={(e) => setExtractedProfile(p => ({ ...p, name: e.target.value }))} />
+              </div>
+              <div className="ep-row">
+                <label className="ep-label">Years Experience</label>
+                <input className="form-input ep-input ep-narrow" type="number" min="0" max="50" value={extractedProfile.yearsExperience || ""} onChange={(e) => setExtractedProfile(p => ({ ...p, yearsExperience: parseInt(e.target.value, 10) || null }))} />
+              </div>
+              <div className="ep-row">
+                <label className="ep-label">Skills & Keywords</label>
+                <div className="ep-tags">
+                  {(extractedProfile.skills || []).map((skill, i) => (
+                    <span key={i} className="ep-tag">{skill}<button className="ep-tag-x" onClick={() => setExtractedProfile(p => ({ ...p, skills: p.skills.filter((_, idx) => idx !== i) }))}>x</button></span>
+                  ))}
+                  <span className="ep-add-row">
+                    <input className="form-input ep-add-input" placeholder="Add skill..." value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && newSkill.trim()) { setExtractedProfile(p => ({ ...p, skills: [...(p.skills || []), newSkill.trim()] })); setNewSkill(""); }}} />
+                  </span>
+                </div>
+              </div>
+              <div className="ep-row">
+                <label className="ep-label">Target Level</label>
+                <div className="ep-checks">
+                  {["Junior", "Mid", "Senior", "Lead", "Principal", "Architect", "Staff", "Director"].map(level => (
+                    <label key={level} className="ep-check">
+                      <input type="checkbox" checked={(extractedProfile.targetLevel || []).includes(level)} onChange={(e) => { setExtractedProfile(p => ({ ...p, targetLevel: e.target.checked ? [...(p.targetLevel || []), level] : (p.targetLevel || []).filter(l => l !== level) })); }} />
+                      {level}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="ep-row">
+                <label className="ep-label">Location</label>
+                <div className="ep-tags">
+                  {(extractedProfile.location || []).map((loc, i) => (
+                    <span key={i} className="ep-tag">{loc}<button className="ep-tag-x" onClick={() => setExtractedProfile(p => ({ ...p, location: p.location.filter((_, idx) => idx !== i) }))}>x</button></span>
+                  ))}
+                  <input className="form-input ep-add-input" placeholder="Add location..." onKeyDown={(e) => { if (e.key === "Enter" && e.target.value.trim()) { setExtractedProfile(p => ({ ...p, location: [...(p.location || []), e.target.value.trim()] })); e.target.value = ""; }}} />
+                </div>
+              </div>
+              <div className="ep-row">
+                <label className="ep-label">Search Queries</label>
+                <div className="ep-query-list">
+                  {(extractedProfile.searchQueries?.jsearch || []).map((q, i) => (
+                    <div key={i} className="ep-query-row">
+                      <input className="form-input ep-query-input" value={q} onChange={(e) => { setExtractedProfile(p => { const jsearch = [...(p.searchQueries?.jsearch || [])]; const adzuna = [...(p.searchQueries?.adzuna || [])]; jsearch[i] = e.target.value; adzuna[i] = e.target.value.replace(/\s+remote$/i, ""); return { ...p, searchQueries: { jsearch, adzuna } }; }); }} />
+                      <button className="ep-tag-x" onClick={() => { setExtractedProfile(p => { const jsearch = (p.searchQueries?.jsearch || []).filter((_, idx) => idx !== i); const adzuna = (p.searchQueries?.adzuna || []).filter((_, idx) => idx !== i); return { ...p, searchQueries: { jsearch, adzuna } }; }); }}>x</button>
+                    </div>
+                  ))}
+                  <div className="ep-query-row">
+                    <input className="form-input ep-query-input" placeholder="Add search query..." value={newQuery} onChange={(e) => setNewQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && newQuery.trim()) { setExtractedProfile(p => ({ ...p, searchQueries: { jsearch: [...(p.searchQueries?.jsearch || []), newQuery.trim()], adzuna: [...(p.searchQueries?.adzuna || []), newQuery.trim().replace(/\s+remote$/i, "")] } })); setNewQuery(""); }}} />
+                  </div>
+                </div>
+              </div>
+            </div>
           </details>
         )}
       </div>
@@ -761,28 +834,74 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
       {status !== "running" && (
         <div className="card mb-14">
           <div className="section-title"><span className="step-num">2</span> Search for Jobs</div>
-          <button className="search-btn" disabled={!hasProfile || layer1Status === "running"} onClick={handleLayer1}>
+
+          {/* Search Filters */}
+          <div className="search-filters mb-12">
+            <div className="sf-row">
+              <label className="sf-label">Work Type</label>
+              <select className="form-input sf-select" value={searchFilters.workType} onChange={(e) => setSearchFilters(f => ({ ...f, workType: e.target.value }))}>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="on-site">On-Site</option>
+                <option value="any">Any</option>
+              </select>
+            </div>
+            <div className="sf-row">
+              <label className="sf-label">Posted Within</label>
+              <select className="form-input sf-select" value={searchFilters.datePosted} onChange={(e) => setSearchFilters(f => ({ ...f, datePosted: e.target.value }))}>
+                <option value="today">Today</option>
+                <option value="3days">Last 3 Days</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+                <option value="all">Any Time</option>
+              </select>
+            </div>
+            <div className="sf-row">
+              <label className="sf-label">Employment</label>
+              <select className="form-input sf-select" value={searchFilters.employmentType} onChange={(e) => setSearchFilters(f => ({ ...f, employmentType: e.target.value }))}>
+                <option value="full_time">Full-Time</option>
+                <option value="part_time">Part-Time</option>
+                <option value="contract">Contract</option>
+                <option value="any">Any</option>
+              </select>
+            </div>
+            <div className="sf-row">
+              <label className="sf-label">Zip Code</label>
+              <input type="text" className="form-input sf-select" placeholder="e.g. 33602" maxLength={5} value={searchFilters.zipCode} onChange={(e) => setSearchFilters(f => ({ ...f, zipCode: e.target.value.replace(/\D/g, "").slice(0, 5) }))} disabled={searchFilters.workType === "remote"} />
+            </div>
+            <div className="sf-row">
+              <label className="sf-label">Radius</label>
+              <select className="form-input sf-select" value={searchFilters.radius} onChange={(e) => setSearchFilters(f => ({ ...f, radius: e.target.value }))} disabled={searchFilters.workType === "remote"}>
+                <option value="10">10 miles</option>
+                <option value="25">25 miles</option>
+                <option value="50">50 miles</option>
+                <option value="100">100 miles</option>
+              </select>
+            </div>
+          </div>
+
+          <button className="search-btn" disabled={!hasProfile || layer1Status === "done" || layer1Status === "running" || layer2Status === "running" || layer3Status === "running"} onClick={handleLayer1}>
             <span className="icon">{"\uD83D\uDCBC"}</span>
             <span className="info">
-              {layer1Status === "running" ? <span className="running-label"><Spinner />Searching job boards...</span> : <><span className="label">Job Boards</span><span className="sub">Adzuna + JSearch</span></>}
+              {layer1Status === "running" ? <span className="running-label"><Spinner />Searching job boards...</span> : <><span className="label">Job Boards</span><br /><span className="sub">Adzuna + JSearch</span></>}
             </span>
             {layer1Status === "running" ? <span className="arrow" onClick={(e) => { e.stopPropagation(); abort1Ref.current?.abort(); setLayer1Status("idle"); setLayer1Msg(""); }}>Cancel</span> : <span className="arrow">{"\u203A"}</span>}
           </button>
           {layer1Msg && <p className={layer1Status === "error" ? "text-error" : "text-hint mb-8"}>{layer1Msg}</p>}
 
-          <button className="search-btn" disabled={!hasProfile || layer2Status === "running"} onClick={handleLayer2}>
+          <button className="search-btn" disabled={!hasProfile || layer2Status === "done" || layer1Status === "running" || layer2Status === "running" || layer3Status === "running"} onClick={handleLayer2}>
             <span className="icon">{"\uD83D\uDCE1"}</span>
             <span className="info">
-              {layer2Status === "running" ? <span className="running-label"><Spinner />Scouting RSS feeds...</span> : <><span className="label">RSS Feeds</span><span className="sub">WeWorkRemotely, Remotive, RemoteOK</span></>}
+              {layer2Status === "running" ? <span className="running-label"><Spinner />Scouting RSS feeds...</span> : <><span className="label">RSS Feeds</span><br /><span className="sub">WeWorkRemotely, Remotive, RemoteOK</span></>}
             </span>
             {layer2Status === "running" ? <span className="arrow" onClick={(e) => { e.stopPropagation(); abort2Ref.current?.abort(); setLayer2Status("idle"); setLayer2Msg(""); }}>Cancel</span> : <span className="arrow">{"\u203A"}</span>}
           </button>
           {layer2Msg && <p className={layer2Status === "error" ? "text-error" : "text-hint mb-8"}>{layer2Msg}</p>}
 
-          <button className="search-btn" disabled={!hasProfile || layer3Status === "running"} onClick={handleLayer3}>
+          <button className="search-btn" disabled={!hasProfile || layer3Status === "done" || layer1Status === "running" || layer2Status === "running" || layer3Status === "running"} onClick={handleLayer3}>
             <span className="icon">{"\uD83C\uDFE2"}</span>
             <span className="info">
-              {layer3Status === "running" ? <span className="running-label"><Spinner />Scouting ATS boards...</span> : <><span className="label">ATS Boards</span><span className="sub">Greenhouse, Lever, Workday</span></>}
+              {layer3Status === "running" ? <span className="running-label"><Spinner />Scouting ATS boards...</span> : <><span className="label">ATS Boards</span><br /><span className="sub">Greenhouse, Lever, Workday</span></>}
             </span>
             {layer3Status === "running" ? <span className="arrow" onClick={(e) => { e.stopPropagation(); abort3Ref.current?.abort(); setLayer3Status("idle"); setLayer3Msg(""); }}>Cancel</span> : <span className="arrow">{"\u203A"}</span>}
           </button>
@@ -792,12 +911,13 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
         </div>
       )}
 
-      {/* Step 3: Score Results */}
+      {/* Step 3: Score Results + Quick Score */}
       {status !== "running" && (
         <div className="card mb-14">
           <div className="section-title"><span className="step-num">3</span> Score Results</div>
           <button className="btn primary full" disabled={!scoutReady} onClick={handleScoreAndAdvance}>Score & Review ({accumulatedRaw.length} listings)</button>
-          {!scoutReady && <p className="text-hint mt-4">Run at least one search layer before scoring.</p>}
+          {!scoutReady && <p className="text-hint mt-4">Run at least one search layer or add a job manually below.</p>}
+          <ManualJobInput profileText={profileText} extractedProfile={extractedProfile} apiKey={ANTHROPIC_API_KEY} scoreRawJobs={scoreRawJobs} onJobScored={(job) => { setAccumulatedRaw(prev => mergeRawJobs(prev, [job])); setScoutReady(true); }} />
         </div>
       )}
 
@@ -825,9 +945,6 @@ function ScoutPhase({ profileText, setProfileText, appliedList, onComplete }) {
           <button className="btn default" onClick={() => setStatus("idle")}>Retry</button>
         </div>
       )}
-
-      {/* Quick Score */}
-      <ManualJobInput profileText={profileText} apiKey={ANTHROPIC_API_KEY} scoreRawJobs={scoreRawJobs} onJobScored={(job) => setAccumulatedRaw(prev => mergeRawJobs(prev, [job]))} />
     </div>
   );
 }

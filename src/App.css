@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap');
+
 /* ============================================================
    PEELAWAY LOGIC
    Design system from peelaway-mockups-v2
@@ -134,16 +136,17 @@ body {
 
 .header-brand {
   color: var(--brown);
-  font-size: 17px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .header-title {
   color: var(--brown-mid);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
+  font-style: italic;
 }
 
 /* ============================================================
@@ -472,16 +475,46 @@ body {
    TAB BAR (Quick Score)
    ============================================================ */
 
-.tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+.tab-bar { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 2px solid var(--cream-dark); }
 
 .tab-btn {
   padding: 8px 16px; font-size: 13px; font-family: var(--ff);
-  font-weight: 600; border: 1.5px solid var(--cream-dark);
-  border-radius: 10px; background: var(--white); color: var(--brown);
+  font-weight: 600; border: none; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; border-radius: 0; background: transparent; color: var(--brown-mid);
   cursor: pointer; white-space: nowrap;
 }
-.tab-btn:hover { border-color: var(--yellow); }
-.tab-btn.active { border-color: var(--yellow); background: var(--grad); color: var(--brown); }
+.tab-btn:hover { color: var(--brown); border-bottom-color: var(--brown-mid); }
+.tab-btn.active { border-bottom-color: var(--yellow); color: var(--brown); background: transparent; }
+
+/* ============================================================
+   EXTRACTED PROFILE
+   ============================================================ */
+
+.extracted-profile { display: flex; flex-direction: column; gap: 12px; }
+.ep-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
+.ep-label { font-size: 12px; font-weight: 700; color: var(--brown-mid); min-width: 120px; padding-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ep-input { flex: 1; min-width: 180px; }
+.ep-narrow { max-width: 80px; flex: 0; }
+.ep-tags { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; align-items: center; }
+.ep-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--cream-dark); border-radius: 14px; font-size: 12px; color: var(--brown); font-weight: 600; }
+.ep-tag-x { background: none; border: none; cursor: pointer; color: var(--brown-mid); font-size: 12px; padding: 0 2px; line-height: 1; }
+.ep-tag-x:hover { color: var(--danger); }
+.ep-add-input { font-size: 12px; padding: 4px 8px; width: 140px; border-radius: 14px; }
+.ep-checks { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+.ep-check { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--brown); cursor: pointer; }
+.ep-check input { cursor: pointer; }
+.ep-query-list { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.ep-query-row { display: flex; gap: 4px; align-items: center; }
+.ep-query-input { flex: 1; font-size: 12px; padding: 4px 8px; }
+
+/* ============================================================
+   SEARCH FILTERS
+   ============================================================ */
+
+.search-filters { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; background: var(--cream); border-radius: 10px; }
+.sf-row { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 90px; }
+.sf-label { font-size: 11px; font-weight: 700; color: var(--brown-mid); text-transform: uppercase; letter-spacing: 0.5px; }
+.sf-select { font-size: 12px; padding: 6px 8px; border-radius: 8px; }
 
 /* ============================================================
    SORT ROW

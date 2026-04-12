@@ -7,7 +7,7 @@ import { withRetry, callAnthropic } from "../api";
 import Spinner from "../components/Spinner";
 import GuideBar from "../components/GuideBar";
 
-function TailorPhase({ approvedJobs, profileText, onComplete }) {
+function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete }) {
   const [downloadFormat, setDownloadFormat] = useState("txt");
   // Per-job generation state: { [jobKey]: { resumeStatus, coverStatus, resume, coverLetter, error } }
   const [jobState, setJobState] = useState(() => {
@@ -96,7 +96,7 @@ function TailorPhase({ approvedJobs, profileText, onComplete }) {
       const data = await withRetry(() => callAnthropic({
         apiKey: ANTHROPIC_API_KEY,
         system: TAILOR_SYSTEM,
-        messages: [{ role: "user", content: buildCoverLetterOnlyPrompt(profileText, job) }],
+        messages: [{ role: "user", content: buildCoverLetterOnlyPrompt(profileText, job, extractedProfile?.name) }],
         maxTokens: 2000,
         signal: abortRefs.current[key + "_cover"].signal,
       }));

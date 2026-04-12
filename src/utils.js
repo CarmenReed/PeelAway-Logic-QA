@@ -164,25 +164,37 @@ export function filterAppliedFromTiers(tiers, appliedList) {
   return { tiers: out, filtered };
 }
 
-export function keywordPreFilter(jobs) {
-  const TITLE_HARD_REJECT = [
-    /\bjunior\b/i, /\bassociate\b/i, /\bmid.?level\b/i, /\bentry.?level\b/i,
+export function keywordPreFilter(jobs, profile) {
+  // Universal non-tech role rejections (always applied)
+  const ROLE_HARD_REJECT = [
     /\bintern\b/i, /\bapprentice\b/i, /\bstaff accountant\b/i,
     /\bdata entry\b/i, /\bsupport engineer\b/i, /\bhelp desk\b/i,
-    /\bdevops engineer\b/i, /\bsre\b/i, /\bsite reliability\b/i,
-    /\bquality assurance\b/i, /\bqa engineer\b/i,
     /\brecruiter\b/i, /\bhuman resources\b/i, /\baccountant\b/i,
-    /\bmarketing\b/i, /\bsales engineer\b/i, /\bcustomer success\b/i,
+    /\bmarketing\b/i, /\bcustomer success\b/i,
   ];
+
+  // Build level-based reject list dynamically from profile
+  const targetLevels = (profile?.targetLevel || []).map(l => l.toLowerCase());
+  const levelReject = [];
+  if (!targetLevels.includes("junior")) levelReject.push(/\bjunior\b/i);
+  if (!targetLevels.includes("associate")) levelReject.push(/\bassociate\b/i);
+  if (!targetLevels.includes("mid")) levelReject.push(/\bmid.?level\b/i);
+  if (!targetLevels.includes("junior") && !targetLevels.includes("mid")) levelReject.push(/\bentry.?level\b/i);
+
+  const TITLE_HARD_REJECT = [...ROLE_HARD_REJECT, ...levelReject];
 
   const TITLE_SOFT_REJECT = [
     /\bmanager\b/i, /\bdirector\b/i, /\bvp\b/i, /\bchief\b/i,
   ];
 
-  const LOCATION_PASS = [
-    /remote/i, /florida/i, /tampa/i, /st\.?\s*pete/i, /clearwater/i,
-    /sarasota/i, /brandon/i, /riverview/i, /orlando/i,
-  ];
+  // Build location filter dynamically from profile
+  const LOCATION_PASS = [/remote/i];
+  for (const loc of (profile?.location || [])) {
+    if (loc.toLowerCase() !== "remote") {
+      const escaped = loc.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      LOCATION_PASS.push(new RegExp(escaped, "i"));
+    }
+  }
 
   const passed = [];
   const rejected = [];
@@ -211,7 +223,7 @@ export function keywordPreFilter(jobs) {
 
     const locationOk = LOCATION_PASS.some(r => r.test(location)) || location === "" || location === "remote";
     if (!locationOk) {
-      rejected.push({ ...job, filter_reason: "location not remote or Tampa Bay", total_score: 0, skills_fit: 0, level_fit: 0, reasoning: `Pre-filter: location rejected (${job.location})`, key_tech_stack: [], status: "open" });
+      rejected.push({ ...job, filter_reason: "location mismatch", total_score: 0, skills_fit: 0, level_fit: 0, reasoning: `Pre-filter: location rejected (${job.location})`, key_tech_stack: [], status: "open" });
       continue;
     }
 

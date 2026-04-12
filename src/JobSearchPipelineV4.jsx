@@ -452,7 +452,7 @@ COVER LETTER STRUCTURE:
 Paragraph 1: Why this role, brief connection to the company or mission.
 Paragraph 2: 1-2 specific examples from the candidate's actual background matching role requirements.
 Paragraph 3: Why the candidate's tech stack and domain experience fit this role.
-Paragraph 4: Professional call to action and sign-off as Carmen Reed.
+Paragraph 4: Professional call to action and sign-off.
 
 Return this exact JSON with no other text:
 {
@@ -863,10 +863,6 @@ async function scoreRawJobs(apiKey, profileText, rawJobs, signal, onStatus) {
 CANDIDATE PROFILE (condensed):
 ${profileText.slice(0, 400)}
 
-KEY SKILLS: Agentic AI, RAG, LLM Integration, Azure, C#, .NET Core, SQL Server, Solutions Architecture, REST APIs, PCI Compliance, 28 years experience.
-TARGET LEVEL: Senior, Lead, Principal, Architect, Staff only.
-LOCATION: Remote US or Tampa Bay Florida only.
-
 JOBS TO SCORE:
 ${JSON.stringify(batch.map((j, idx) => ({
   idx,
@@ -878,12 +874,12 @@ ${JSON.stringify(batch.map((j, idx) => ({
 
 SCORING RUBRIC:
 - skills_fit (0-5): 5=4+ core skills match, 3-4=2-3 skills, 1-2=minimal, 0=none
-- level_fit (0-5): 5=Senior/Lead/Principal/Architect/Staff, 2-3=ambiguous scope, 0=junior or management only
+- level_fit (0-5): 5=exact level match, 2-3=ambiguous scope, 0=wrong level or management only
 - total_score: skills_fit + level_fit
 - date_posted: Use the date_posted value already on the job object if present. If not present, set to null.
 - freshness_flag: "fresh" if date_posted is within 14 days of today, "stale" otherwise.
 
-HARD EXCLUSIONS -- set total_score to 0 for: government/defense/clearance, Junior/Mid/Associate, on-site non-FL.
+HARD EXCLUSIONS -- set total_score to 0 for: government/defense/clearance, level mismatch, location mismatch.
 
 Return JSON only: { "scores": [ { "idx": 0, "skills_fit": 3, "level_fit": 4, "total_score": 7, "reasoning": "1 sentence", "key_tech_stack": ["C#", "Azure"], "date_posted": "2025-04-06 or null", "freshness_flag": "fresh or stale" } ] }`
         }],
@@ -2189,6 +2185,8 @@ export default function JobSearchPipelineV4() {
   const [profileText, setProfileText] = useState("");
   const [phase, setPhase] = useState(0);
   const [scoutResults, setScoutResults] = useState(null);
+  const [scoutKey, setScoutKey] = useState(0);
+  const [extractedProfile, setExtractedProfile] = useState(null);
   const [approvedJobs, setApprovedJobs] = useState([]);
   const [tailorResults, setTailorResults] = useState(() => loadTailorResults());
   const [appliedJobs, setAppliedJobs] = useState(loadAppliedJobs);
@@ -2239,6 +2237,7 @@ export default function JobSearchPipelineV4() {
     setApprovedJobs([]);
     setPhase(0);
     setMaxVisited(0);
+    setScoutKey(k => k + 1);
   }, [tailorResults]);
 
   if (!started) {
@@ -2272,8 +2271,11 @@ export default function JobSearchPipelineV4() {
 
       {phase === 0 && (
         <ScoutPhase
+          key={scoutKey}
           profileText={profileText}
           setProfileText={setProfileText}
+          extractedProfile={extractedProfile}
+          setExtractedProfile={setExtractedProfile}
           appliedList={appliedJobs}
           onComplete={(data) => { setScoutResults(data); advanceTo(1); }}
         />
@@ -2291,6 +2293,7 @@ export default function JobSearchPipelineV4() {
         <TailorPhase
           approvedJobs={approvedJobs}
           profileText={profileText}
+          extractedProfile={extractedProfile}
           onComplete={handleTailorComplete}
         />
       )}

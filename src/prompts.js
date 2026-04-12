@@ -20,7 +20,7 @@ OUTPUT RULES:
 - One page maximum for the resume
 - Human-engineer tone: direct, factual, specific`;
 
-export function buildTailorPrompt(profileText, job) {
+export function buildTailorPrompt(profileText, job, candidateName) {
   return `Generate a tailored resume and cover letter for the candidate below, targeting the specified role.
 
 CANDIDATE PROFILE (extracted from uploaded resume):
@@ -45,7 +45,7 @@ COVER LETTER STRUCTURE:
 Paragraph 1: Why this role, brief connection to the company.
 Paragraph 2: 1-2 specific examples from the candidate's actual background matching role requirements.
 Paragraph 3: Why the candidate's tech stack and domain experience fit this role.
-Paragraph 4: Professional call to action and sign-off.
+Paragraph 4: Professional call to action and sign-off${candidateName ? ` as ${candidateName}` : ""}.
 
 Return this exact JSON with no other text:
 {
@@ -85,7 +85,7 @@ Return this exact JSON with no other text:
 }`;
 }
 
-export function buildCoverLetterOnlyPrompt(profileText, job) {
+export function buildCoverLetterOnlyPrompt(profileText, job, candidateName) {
   return `Generate a tailored cover letter for the candidate below targeting the specified role.
 
 CANDIDATE PROFILE:
@@ -104,7 +104,7 @@ COVER LETTER STRUCTURE:
 Paragraph 1: Why this role, brief connection to the company or mission.
 Paragraph 2: 1-2 specific examples from the candidate's actual background matching role requirements.
 Paragraph 3: Why the candidate's tech stack and domain experience fit this role.
-Paragraph 4: Professional call to action and sign-off as Carmen Reed.
+Paragraph 4: Professional call to action and sign-off${candidateName ? ` as ${candidateName}` : ""}.
 
 Return this exact JSON with no other text:
 {

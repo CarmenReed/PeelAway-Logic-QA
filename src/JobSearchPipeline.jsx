@@ -18,6 +18,8 @@ export default function JobSearchPipeline() {
   const [profileText, setProfileText] = useState("");
   const [phase, setPhase] = useState(0);
   const [scoutResults, setScoutResults] = useState(null);
+  const [scoutKey, setScoutKey] = useState(0);
+  const [extractedProfile, setExtractedProfile] = useState(null);
   const [approvedJobs, setApprovedJobs] = useState([]);
   const [tailorResults, setTailorResults] = useState(() => loadTailorResults());
   const [appliedJobs, setAppliedJobs] = useState(loadAppliedJobs);
@@ -68,6 +70,7 @@ export default function JobSearchPipeline() {
     setApprovedJobs([]);
     setPhase(0);
     setMaxVisited(0);
+    setScoutKey(k => k + 1);
   }, [tailorResults]);
 
   if (!started) {
@@ -101,8 +104,11 @@ export default function JobSearchPipeline() {
 
       {phase === 0 && (
         <ScoutPhase
+          key={scoutKey}
           profileText={profileText}
           setProfileText={setProfileText}
+          extractedProfile={extractedProfile}
+          setExtractedProfile={setExtractedProfile}
           appliedList={appliedJobs}
           onComplete={(data) => { setScoutResults(data); advanceTo(1); }}
         />
@@ -120,6 +126,7 @@ export default function JobSearchPipeline() {
         <TailorPhase
           approvedJobs={approvedJobs}
           profileText={profileText}
+          extractedProfile={extractedProfile}
           onComplete={handleTailorComplete}
         />
       )}

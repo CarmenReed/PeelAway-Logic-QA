@@ -35,11 +35,13 @@ beforeEach(() => {
 
 const LONG_PROFILE = "A".repeat(60); // > 50 chars
 
-function renderScout({ profileText = "", setProfileText = jest.fn(), appliedList = [], onComplete = jest.fn() } = {}) {
+function renderScout({ profileText = "", setProfileText = jest.fn(), extractedProfile = null, setExtractedProfile = jest.fn(), appliedList = [], onComplete = jest.fn() } = {}) {
   return render(
     <ScoutPhase
       profileText={profileText}
       setProfileText={setProfileText}
+      extractedProfile={extractedProfile}
+      setExtractedProfile={setExtractedProfile}
       appliedList={appliedList}
       onComplete={onComplete}
     />
@@ -68,9 +70,9 @@ describe("ScoutPhase — initial render", () => {
     expect(screen.getByText("ATS Boards")).toBeInTheDocument();
   });
 
-  it("renders the Quick Score section", () => {
+  it("renders the Quick Score section inside Step 3", () => {
     renderScout();
-    expect(screen.getByText(/Quick Score/i)).toBeInTheDocument();
+    expect(screen.getByText(/Quick Score a Job/i)).toBeInTheDocument();
   });
 
   it("renders Score & Review button", () => {
@@ -135,7 +137,7 @@ describe("ScoutPhase — Score & Review button", () => {
 
   it("shows hint text when no layers have run", () => {
     renderScout();
-    expect(screen.getByText(/Run at least one search layer before scoring/i)).toBeInTheDocument();
+    expect(screen.getByText(/Run at least one search layer/i)).toBeInTheDocument();
   });
 });
 
@@ -152,5 +154,101 @@ describe("ScoutPhase — resume input tabs", () => {
   it("shows Paste Resume Text tab", () => {
     renderScout();
     expect(screen.getByText("Paste Resume Text")).toBeInTheDocument();
+  });
+});
+
+// ============================================================
+// Search filters
+// ============================================================
+
+describe("ScoutPhase — search filters", () => {
+  it("renders Work Type filter with default 'Remote'", () => {
+    renderScout();
+    const select = screen.getByDisplayValue("Remote");
+    expect(select).toBeInTheDocument();
+  });
+
+  it("renders Posted Within filter with default 'Last Week'", () => {
+    renderScout();
+    const select = screen.getByDisplayValue("Last Week");
+    expect(select).toBeInTheDocument();
+  });
+
+  it("renders Employment filter with default 'Full-Time'", () => {
+    renderScout();
+    const select = screen.getByDisplayValue("Full-Time");
+    expect(select).toBeInTheDocument();
+  });
+
+  it("renders Zip Code input", () => {
+    renderScout();
+    expect(screen.getByPlaceholderText("e.g. 33602")).toBeInTheDocument();
+  });
+
+  it("renders Radius filter with default '25 miles'", () => {
+    renderScout();
+    const select = screen.getByDisplayValue("25 miles");
+    expect(select).toBeInTheDocument();
+  });
+
+  it("disables Zip Code and Radius when work type is Remote", () => {
+    renderScout();
+    expect(screen.getByPlaceholderText("e.g. 33602")).toBeDisabled();
+    expect(screen.getByDisplayValue("25 miles")).toBeDisabled();
+  });
+});
+
+// ============================================================
+// Extracted profile display
+// ============================================================
+
+describe("ScoutPhase — extracted profile", () => {
+  const mockProfile = {
+    name: "Jane Doe",
+    skills: ["React", "Node.js", "Python"],
+    yearsExperience: 10,
+    targetLevel: ["Senior", "Lead"],
+    location: ["remote"],
+    searchQueries: {
+      adzuna: ["Senior React Developer"],
+      jsearch: ["Senior React Developer remote"],
+    },
+  };
+
+  it("does not show extracted profile when no profile is set", () => {
+    renderScout({ profileText: LONG_PROFILE });
+    expect(screen.queryByText(/Review Extracted Skills/i)).not.toBeInTheDocument();
+  });
+
+  it("shows extracted profile when profile is set and has profile text", () => {
+    renderScout({ profileText: LONG_PROFILE, extractedProfile: mockProfile });
+    expect(screen.getByText(/Review Extracted Skills and Keywords/i)).toBeInTheDocument();
+  });
+
+  it("displays extracted name", () => {
+    renderScout({ profileText: LONG_PROFILE, extractedProfile: mockProfile });
+    expect(screen.getByDisplayValue("Jane Doe")).toBeInTheDocument();
+  });
+
+  it("displays extracted skills as tags", () => {
+    renderScout({ profileText: LONG_PROFILE, extractedProfile: mockProfile });
+    expect(screen.getByText("React")).toBeInTheDocument();
+    expect(screen.getByText("Node.js")).toBeInTheDocument();
+    expect(screen.getByText("Python")).toBeInTheDocument();
+  });
+
+  it("displays target level checkboxes with correct checked state", () => {
+    renderScout({ profileText: LONG_PROFILE, extractedProfile: mockProfile });
+    const seniorCheckbox = screen.getByRole("checkbox", { name: "Senior" });
+    const leadCheckbox = screen.getByRole("checkbox", { name: "Lead" });
+    const juniorCheckbox = screen.getByRole("checkbox", { name: "Junior" });
+    expect(seniorCheckbox).toBeChecked();
+    expect(leadCheckbox).toBeChecked();
+    expect(juniorCheckbox).not.toBeChecked();
+  });
+
+  it("displays search queries", () => {
+    renderScout({ profileText: LONG_PROFILE, extractedProfile: mockProfile });
+    expect(screen.getByDisplayValue("Senior React Developer remote")).toBeInTheDocument();
   });
 });

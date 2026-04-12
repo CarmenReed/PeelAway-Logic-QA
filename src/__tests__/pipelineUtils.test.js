@@ -785,9 +785,9 @@ describe("buildCoverLetterOnlyPrompt", () => {
     expect(result).toContain("Paragraph 4");
   });
 
-  it("includes sign-off as Carmen Reed", () => {
+  it("includes sign-off instruction", () => {
     const result = buildCoverLetterOnlyPrompt("profile", job);
-    expect(result).toContain("Carmen Reed");
+    expect(result).toContain("sign-off");
   });
 
   it("includes job metadata", () => {

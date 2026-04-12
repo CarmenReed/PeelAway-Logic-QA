@@ -26,10 +26,20 @@ const MOCK_SCORE_RESULT = [{
 const mockScoreRawJobs = jest.fn();
 const mockOnJobScored = jest.fn();
 
-function renderComponent({ apiKey = "test-key", profileText = MOCK_PROFILE } = {}) {
+const MOCK_EXTRACTED_PROFILE = {
+  name: "Test User",
+  skills: ["React", "Node.js"],
+  yearsExperience: 5,
+  targetLevel: ["Senior"],
+  location: ["remote"],
+  searchQueries: { adzuna: ["Senior React Developer"], jsearch: ["Senior React Developer remote"] },
+};
+
+function renderComponent({ apiKey = "test-key", profileText = MOCK_PROFILE, extractedProfile = MOCK_EXTRACTED_PROFILE } = {}) {
   return render(
     <ManualJobInput
       profileText={profileText}
+      extractedProfile={extractedProfile}
       apiKey={apiKey}
       onJobScored={mockOnJobScored}
       scoreRawJobs={mockScoreRawJobs}

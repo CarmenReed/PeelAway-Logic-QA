@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { callAnthropicWithLoop } from "../api";
 import Spinner from "./Spinner";
 
-function ManualJobInput({ profileText, apiKey, onJobScored, scoreRawJobs }) {
+function ManualJobInput({ profileText, extractedProfile, apiKey, onJobScored, scoreRawJobs }) {
   const [mode, setMode] = useState("url"); // "url" | "paste"
   const [inputVal, setInputVal] = useState("");
   const [status, setStatus] = useState("idle"); // "idle" | "running" | "done" | "error"
@@ -55,7 +55,7 @@ function ManualJobInput({ profileText, apiKey, onJobScored, scoreRawJobs }) {
         description: jdText.slice(0, 400),
         source: "manual",
       }];
-      const scored = await scoreRawJobs(apiKey, profileText, raw, abortRef.current.signal, () => {});
+      const scored = await scoreRawJobs(apiKey, profileText, extractedProfile, raw, abortRef.current.signal, () => {});
       const job = scored[0] ? { ...scored[0], jd_text: jdText, source_layer: "manual" } : null;
 
       if (!job) { setError("Scoring returned no result."); setStatus("error"); return; }
@@ -79,8 +79,8 @@ function ManualJobInput({ profileText, apiKey, onJobScored, scoreRawJobs }) {
 
   const scorePercent = result ? Math.round(result.total_score * 10) : 0;
   return (
-    <div className="card mt-16">
-      <div className="section-title"><span className="step-num">4</span> Quick Score</div>
+    <div className="mt-12">
+      <div className="ep-label mb-6">QUICK SCORE A JOB</div>
       <div className="tab-bar">
         <button className={`tab-btn${mode === "url" ? " active" : ""}`} onClick={() => { setMode("url"); setInputVal(""); setResult(null); setError(null); }}>Paste URL</button>
         <button className={`tab-btn${mode === "paste" ? " active" : ""}`} onClick={() => { setMode("paste"); setInputVal(""); setResult(null); setError(null); }}>Paste JD Text</button>
