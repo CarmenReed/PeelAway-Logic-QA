@@ -33,7 +33,9 @@ export function setDropboxToken(token) {
  */
 export function authenticateDropbox() {
   return new Promise((resolve) => {
-    const redirectUri = window.location.origin + window.location.pathname;
+    // Use origin-only redirect so it matches Dropbox's domain-level config.
+    // Dropbox app settings only accept domains, not paths.
+    const redirectUri = window.location.origin + "/";
     const authUrl =
       `https://www.dropbox.com/oauth2/authorize` +
       `?client_id=${encodeURIComponent(DROPBOX_APP_KEY)}` +
@@ -53,11 +55,11 @@ export function authenticateDropbox() {
           resolve(null);
           return;
         }
-        const popupUrl = popup.location.href;
-        if (popupUrl && popupUrl.startsWith(redirectUri)) {
+        // Check if popup has redirected back to our origin
+        if (popup.location.origin === window.location.origin) {
           clearInterval(interval);
-          popup.close();
           const hash = popup.location.hash.substring(1);
+          popup.close();
           const params = new URLSearchParams(hash);
           const token = params.get("access_token");
           if (token) {
