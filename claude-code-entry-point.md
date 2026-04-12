@@ -28,8 +28,8 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | LLM (tailoring, ATS search) | `claude-sonnet-4-6` |
 | PDF extraction | pdf.js 3.11.174 (loaded from CDN at runtime) |
 | Persistence | localStorage (4 keys, all prefixed `jsp-`) |
-| Styling | Plain CSS in `src/App.css`, Google Fonts (Quicksand) |
-| Testing | @testing-library/react, 132 tests across 4 suites |
+| Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
+| Testing | @testing-library/react, 425 tests across 15 suites |
 
 ### One Rule That Applies Everywhere
 
@@ -149,9 +149,9 @@ Also contains:
 Three exported functions:
 
 ```js
-buildTailorPrompt(profileText, job)       // Returns both resume + cover letter
-buildResumeOnlyPrompt(profileText, job)   // Resume only (used for regen)
-buildCoverLetterOnlyPrompt(profileText, job) // Cover letter only (used for regen)
+buildTailorPrompt(profileText, job, candidateName)       // Returns both resume + cover letter
+buildResumeOnlyPrompt(profileText, job)                  // Resume only (used for regen)
+buildCoverLetterOnlyPrompt(profileText, job, candidateName) // Cover letter only (used for regen)
 ```
 
 These are the only place to edit tailor prompt content. The system prompt (anti-hallucination rules) lives in `TAILOR_SYSTEM` in `constants.js`.
@@ -164,7 +164,7 @@ Pure utility functions with no side effects. Fully unit-tested. Key functions:
 extractJson(text)                // Tries 3 strategies to parse JSON from LLM response
 deduplicateJobs(jobs)            // URL-based + normalized company|title dedup
 mergeRawJobs(existing, incoming) // Merge new jobs into accumulated list, deduplicated
-keywordPreFilter(job)            // Reject juniors, interns, wrong locations before scoring
+keywordPreFilter(jobs, profile)  // Dynamic pre-filter using profile's targetLevel and location
 reTierJobs(jobs)                 // Sort jobs into tier buckets by score
 normalizeTitle(title)            // Lowercase, expand abbreviations, collapse spaces
 ```
@@ -180,14 +180,18 @@ loadTailorResults() / saveTailorResult(entry)
 loadDismissedJobs() / saveDismissedJob(job) / isDismissed(job)
 ```
 
-### 7. `src/phases/ScoutPhase.jsx`
+### 7. `src/profileExtractor.js`
 
-Most complex file. Contains three independent search layers plus manual input, deduplication, pre-filtering, batch scoring, JD fetching, and re-scoring. Two inline prompts live here:
+Regex-based resume parser with no dependencies. Contains a ~200-entry `SKILLS_DICTIONARY` across 9 categories. Exports `extractProfile(resumeText)` which returns `{ name, skills, yearsExperience, targetLevel, location, titles, searchQueries: { adzuna, jsearch } }`. Used by ScoutPhase to auto-populate the editable extracted profile UI.
+
+### 8. `src/phases/ScoutPhase.jsx`
+
+Most complex file. Contains three independent search layers plus Quick Score (ManualJobInput), deduplication, pre-filtering, batch scoring, JD fetching, and re-scoring. Features user-configurable search filters (work type, date posted, employment type, US zip code + radius) and an editable extracted profile section. All searches are hard-coded to US only. Two inline prompts live here:
 
 - Search for `"You are a job scoring AI"` to find the Haiku scoring prompt
 - Search for `web_search_20250305` to find the ATS web search prompt
 
-### 8. `src/phases/TailorPhase.jsx`
+### 9. `src/phases/TailorPhase.jsx`
 
 Per-job document generation. Key behaviors:
 - `jobState` object keyed by `job_title|company` stores status and generated text per job
@@ -195,11 +199,11 @@ Per-job document generation. Key behaviors:
 - `lastCallTime` useRef enforces the 8-second delay between API calls
 - Restored from `jsp-tailor-results` on mount, so reloading the page preserves all work
 
-### 9. `src/phases/ReviewPhase.jsx`
+### 10. `src/phases/ReviewPhase.jsx`
 
 Tier tabs (Strong, Possible, Weak) plus job selection. Weak tab is read-only. Selecting jobs and clicking Approve writes to `approvedJobs` state in the parent and writes dismissed jobs to localStorage.
 
-### 10. `src/phases/CompletePhase.jsx`
+### 11. `src/phases/CompletePhase.jsx`
 
 Downloads, Mark Applied, Applied Tracker. "Clear All" wipes `jsp-applied-jobs` and `jsp-last-scout` but intentionally leaves `jsp-tailor-results` so generated documents survive a new search.
 
@@ -257,7 +261,7 @@ npm install
 # Start dev server (hot reload, localhost:3000)
 npm start
 
-# Run all 132 tests
+# Run all 425 tests
 npm test
 
 # Build production bundle (output to build/)
@@ -507,31 +511,43 @@ After a tailor run, download the resume as a `.txt` file and scan for:
 src/
   constants.js          All config: models, delays, storage keys, API URL
   api.js                withRetry, callAnthropic, callAnthropicWithLoop, pdf extraction
-  prompts.js            Tailor prompt builders (resume, cover letter)
-  utils.js              extractJson, deduplicateJobs, keywordPreFilter, reTierJobs
+  prompts.js            Tailor prompt builders (resume, cover letter, candidateName param)
+  utils.js              extractJson, deduplicateJobs, keywordPreFilter(jobs, profile), reTierJobs
+  profileExtractor.js   Regex-based resume parser (~200 skills, name/level/location extraction)
   storage.js            localStorage load/save wrappers
   JobSearchPipeline.jsx Root component, all top-level state, phase router
   phases/
-    ScoutPhase.jsx      3 search layers + scoring + JD fetch + re-score (most complex)
+    ScoutPhase.jsx      3 search layers + filters + profile extraction + scoring (most complex)
     ReviewPhase.jsx     Tier tabs, sort, job selection, Human Gate
     TailorPhase.jsx     Per-job doc generation, rate limiting, abort refs, persistence
     CompletePhase.jsx   Downloads, Mark Applied, Applied Tracker, Clear All
   components/
     JobCard.jsx         Single job display, tech stack chips, score badge
-    ManualJobInput.jsx  Quick Score: paste URL or JD, score without full pipeline
+    ManualJobInput.jsx  Quick Score: paste URL or JD, integrated into Step 3
     AppliedTracker.jsx  Collapsible applied jobs list
     LandingScreen.jsx   Guest entry, "Get Started" button
-    Header.jsx          Sticky logo bar
+    Header.jsx          Brand logo bar (Fredoka font + italic tagline)
     ProgressStepper.jsx Phase nav tabs (unlocked up to maxVisited)
     GuideBar.jsx        Emoji + instruction banner above each phase
     Spinner.jsx         Loading animation
   hooks/
     useWindowWidth.js   Responsive breakpoint hook (MOBILE_BP = 640)
-  __tests__/
-    pipelineUtils.test.js    132 utility function tests
-    components.test.jsx      Component render tests
-    tailorPhase.test.js      Tailor phase behavior tests
-    tailorPersistence.test.js localStorage persistence tests
+  __tests__/            425 tests across 15 suites
+    pipelineUtils.test.js       Utility function tests (JSON, dedup, titles, prompts)
+    utilsKeywordPreFilter.test.js Dynamic pre-filter tests (profile-driven)
+    profileExtractor.test.js    Resume parser tests (skills, name, levels, queries)
+    scoutPhase.test.jsx         Scout phase render + filter + profile display tests
+    componentUnits.test.jsx     Individual component render tests
+    components.test.jsx         Pipeline layout and integration tests
+    manualJobInput.test.jsx     Quick Score component tests
+    reviewPhase.test.jsx        Review phase tier and selection tests
+    completePhase.test.jsx      Complete phase tests
+    progressStepper.test.jsx    Phase nav stepper tests
+    tailorPhase.test.js         Tailor phase behavior tests
+    tailorPersistence.test.js   localStorage persistence tests
+    api.test.js                 API wrapper and retry logic tests
+    storage.test.js             localStorage wrapper tests
+    hooks.test.js               Custom hook tests
 ```
 
 ### localStorage Quick Reference

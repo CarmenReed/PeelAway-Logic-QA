@@ -26,13 +26,13 @@ This folder serves as the staging ground for all iterative work on PeelAway Logi
 
 This is the QA copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in five phases:
 
-1. **Scout** - Upload your resume, then run three independent search layers with individual controls:
-   - **Layer 1:** Job boards (Adzuna + JSearch) - aggregator APIs searched in parallel
-   - **Layer 2:** RSS feeds (WeWorkRemotely, Remotive, RemoteOK, Stack Overflow)
-   - **Layer 3:** ATS boards (Greenhouse, Lever, Workday) via AI-driven web search
-   - **Manual input:** Score a specific job by pasting a URL or job description text
-   - Each layer runs independently. Run one, two, or all three. Cancel any layer without affecting others.
-   - When ready, click "Score and Review Results" to deduplicate, pre-filter, score, fetch full JDs, and re-score.
+1. **Scout** - Upload your resume (PDF or TXT) or paste text. The app extracts skills, experience level, location, and generates search queries automatically via regex-based profile extraction. Configure search filters (work type, date posted, employment type, US zip code + radius) then run three independent search layers:
+   - **Layer 1:** Job boards (Adzuna + JSearch) - aggregator APIs searched in parallel, US-only
+   - **Layer 2:** RSS feeds (WeWorkRemotely, Remotive, RemoteOK, Himalayas, Jobicy)
+   - **Layer 3:** ATS boards (Greenhouse, Lever, Workday) via AI-driven web search, US-only
+   - **Quick Score:** Score a specific job by pasting a URL or job description text (integrated into Step 3)
+   - Each layer runs independently with disable flow (one at a time, completed layers stay disabled until Start Over).
+   - When ready, click "Score & Review" to deduplicate, pre-filter, score, fetch full JDs, and re-score.
 
 2. **Review** - Discovered roles organized into tiers (Strong Match 8-10, Possible 6-7, Weak 3-5, Rejected 0-2). Sort by score, date posted (newest first), or company. Fresh postings (within 7 days) display a green date badge; stale or unverifiable dates show an orange warning.
 
@@ -47,13 +47,20 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 - React 18 (Create React App)
 - Anthropic Claude API (`claude-sonnet-4-6` for tailoring, `claude-haiku-4-5` for scoring) with `web_search_20250305` tool
 - PDF.js v3.11.174 (CDN, pinned) for resume text extraction
+- Google Fonts (Fredoka for brand header)
 - localStorage for applied job tracking across sessions
 
 ## Features
 
-- 3 independent search layers with per-layer abort controllers and status tracking
+- Regex-based profile extraction from uploaded resume (skills, experience level, titles, location, search queries)
+- Editable extracted profile UI (add/remove skills, toggle target levels, edit search queries)
+- User-configurable search filters (work type, date posted, employment type, US zip code + radius)
+- Zip code + radius filter active only for hybrid/on-site/any work types
+- All searches hard-coded to United States only
+- 3 independent search layers with per-layer abort controllers, disable flow, and status tracking
 - Cross-source duplicate detection using normalized company+title matching (catches "Sr. Software Eng" at "Acme Inc" and "Senior Software Engineer" at "Acme" as the same listing)
-- Manual job URL/paste scorer for evalQAing specific postings outside the automated search
+- Quick Score (paste URL or JD text) integrated into Step 3 for scoring individual jobs
+- Dynamic keyword pre-filter driven by extracted profile (level-based and location-based)
 - Full job description fetch and re-score after initial discovery
 - 7-day freshness enforcement with date-posted sorting
 - Anti-hallucination resume generation: only draws from your actual profile, enforced at the prompt layer
@@ -62,7 +69,7 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 - Applied jobs tracker with persistent storage
 - Mobile-responsive layout
 - Graceful cancellation at any phase
-- 132 unit and component tests
+- 425 unit and component tests across 15 suites
 
 ## Setup
 
@@ -97,17 +104,31 @@ All tests live in the QA environment only. Tests are not included in the product
 npm test
 ```
 
-132 tests across four suites:
-- **pipelineUtils.test.js** - Unit tests for all pure utility functions (JSON extraction, job deduplication, title normalization, keyword pre-filtering, prompt builders)
-- **components.test.jsx** - React component render tests (pipeline layout, scout phase layer buttons, manual job input)
+425 tests across 15 suites:
+- **pipelineUtils.test.js** - Unit tests for pure utility functions (JSON extraction, deduplication, title normalization, pre-filtering, prompt builders)
+- **utilsKeywordPreFilter.test.js** - Dynamic keyword pre-filter tests with profile-driven level and location filtering
+- **profileExtractor.test.js** - Resume parsing tests (name, skills, experience, levels, location, search queries)
+- **scoutPhase.test.jsx** - Scout phase render tests (filters, buttons, extracted profile display)
+- **componentUnits.test.jsx** - Individual component render tests (Header, GuideBar, Spinner, JobCard, ProgressStepper)
+- **components.test.jsx** - Pipeline layout and integration tests
+- **manualJobInput.test.jsx** - Quick Score component tests (tab switching, scoring flow, add to queue)
+- **reviewPhase.test.jsx** - Review phase tier display and selection tests
+- **completePhase.test.jsx** - Complete phase download and apply tracking tests
+- **progressStepper.test.jsx** - Phase navigation stepper tests
 - **tailorPhase.test.js** - Tailor phase component tests
 - **tailorPersistence.test.js** - Persistence layer tests for tailor phase data
+- **api.test.js** - API wrapper and retry logic tests
+- **storage.test.js** - localStorage wrapper tests
+- **hooks.test.js** - Custom hook tests
 
 ## Usage Notes
 
-- Upload your resume as a PDF or TXT, or paste text directly
-- Run any combination of search layers. Each layer takes 30 seconds to 2 minutes depending on API response times.
-- "Score and Review Results" handles deduplication, pre-filtering, scoring, JD fetching, and re-scoring in one pass
+- Upload your resume as a PDF or TXT, or paste text directly. The app auto-extracts skills, experience, and generates search queries.
+- Review and edit extracted profile (skills, target levels, search queries) before searching
+- Configure search filters: work type (remote/hybrid/on-site/any), date posted, employment type, and zip code + radius for non-remote searches
+- Run search layers one at a time. Each layer takes 30 seconds to 2 minutes depending on API response times.
+- Use Quick Score (Step 3) to paste a specific job URL or description for immediate scoring
+- "Score & Review" handles deduplication, pre-filtering, scoring, JD fetching, and re-scoring in one pass
 - Only Strong Match (8-10) and Possible (6-7) roles advance to the Human Gate
 - In the Tailor phase, generate resume and cover letter independently per role
 - Previously applied roles are automatically excluded from future scout runs

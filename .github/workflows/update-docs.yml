@@ -1,0 +1,110 @@
+name: Update Documentation
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'claude-code-entry-point.md'
+      - 'POST_RESKIN_DECOMPOSITION_PLAN.md'
+      - '.github/workflows/update-docs.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-docs
+  cancel-in-progress: true
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Get test counts
+        id: tests
+        run: |
+          RESULT=$(npx react-scripts test --watchAll=false --no-coverage 2>&1 | tail -3)
+          SUITES=$(echo "$RESULT" | grep "Test Suites:" | sed 's/.*: //' | sed 's/ passed.*//')
+          TESTS=$(echo "$RESULT" | grep "Tests:" | sed 's/.*: //' | sed 's/ passed.*//')
+          echo "suites=$SUITES" >> $GITHUB_OUTPUT
+          echo "tests=$TESTS" >> $GITHUB_OUTPUT
+
+      - name: Get changed files
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'src/' | head -30)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check if docs need updating
+        id: check
+        run: |
+          CHANGED="${{ steps.changes.outputs.files }}"
+          CURRENT_TESTS=$(grep -oP '\d+ unit and component tests' README.md | grep -oP '^\d+' || echo "0")
+          NEW_TESTS="${{ steps.tests.outputs.tests }}"
+
+          # Check for significant changes
+          NEEDS_UPDATE=false
+
+          # New or removed source files
+          if echo "$CHANGED" | grep -qE '\.(js|jsx)$'; then
+            # Check if file count in file map matches reality
+            SRC_COUNT=$(find src -maxdepth 1 -name '*.js' -o -name '*.jsx' | wc -l)
+            PHASE_COUNT=$(find src/phases -name '*.jsx' 2>/dev/null | wc -l)
+            COMP_COUNT=$(find src/components -name '*.jsx' 2>/dev/null | wc -l)
+            TEST_COUNT=$(find src/__tests__ -name '*.test.*' | wc -l)
+            echo "Source files: $SRC_COUNT, Phases: $PHASE_COUNT, Components: $COMP_COUNT, Tests: $TEST_COUNT"
+            NEEDS_UPDATE=true
+          fi
+
+          # Test count changed
+          if [ "$CURRENT_TESTS" != "$NEW_TESTS" ]; then
+            echo "Test count changed: $CURRENT_TESTS -> $NEW_TESTS"
+            NEEDS_UPDATE=true
+          fi
+
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+
+      - name: Update test counts in README.md
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          SUITES="${{ steps.tests.outputs.suites }}"
+          TESTS="${{ steps.tests.outputs.tests }}"
+
+          # Update README.md test count
+          sed -i "s/[0-9]\+ unit and component tests across [0-9]\+ suites/$TESTS unit and component tests across $SUITES suites/" README.md
+          sed -i "s/[0-9]\+ tests across [0-9]\+ suites:/$TESTS tests across $SUITES suites:/" README.md
+
+          # Update claude-code-entry-point.md test count
+          sed -i "s/@testing-library\/react, [0-9]\+ tests across [0-9]\+ suites/@testing-library\/react, $TESTS tests across $SUITES suites/" claude-code-entry-point.md
+          sed -i "s/# Run all [0-9]\+ tests/# Run all $TESTS tests/" claude-code-entry-point.md
+          sed -i "s/[0-9]\+ tests across [0-9]\+ suites$/$TESTS tests across $SUITES suites/" claude-code-entry-point.md
+
+      - name: Commit and push if changed
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md claude-code-entry-point.md
+          if git diff --cached --quiet; then
+            echo "No documentation changes needed"
+          else
+            git commit -m "docs: auto-update test counts and documentation
+
+          Updated by GitHub Actions after source changes detected.
+
+          Co-Authored-By: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+            git push
+          fi
