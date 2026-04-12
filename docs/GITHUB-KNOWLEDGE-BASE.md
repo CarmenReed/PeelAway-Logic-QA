@@ -41,37 +41,47 @@
 
 ```
 PeelAway-Logic-QA/
-├── .env                                  ← Local API keys (never committed)
+├── .env                                      ← Local API keys (never committed)
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml                    ← GitHub Actions CI/CD (synced to PROD)
+│       ├── deploy.yml                        ← GitHub Actions CI/CD (synced to PROD)
+│       └── update-docs.yml                   ← Auto-updates README/entry-point with test counts
 ├── .gitignore
-├── _.gitignore                           ← Duplicate / backup gitignore
-├── claude-code-entry-point.md            ← QA-only developer guide for Claude Code
-├── POST_RESKIN_DECOMPOSITION_PLAN.md     ← Refactor roadmap (96K monolith → modules)
+├── .claude/
+│   ├── launch.json                           ← Claude Code session config
+│   ├── settings.local.json                   ← Claude Code local settings
+│   └── commands/
+│       ├── fix-qa-public-references.md       ← Slash command: fix public repo URLs
+│       └── update-docs.md                    ← Slash command: auto-update docs
+├── claude-code-entry-point.md                ← QA-only developer guide for Claude Code
+├── POST_RESKIN_DECOMPOSITION_PLAN.md         ← Refactor roadmap (96K monolith → modules)
 ├── README.md
 ├── package.json
 ├── package-lock.json
-├── peelaway-mockups-v2.html              ← Static UI mockup reference
-├── PeelAway Logic/                       ← Metadata / assets folder
+├── peelaway-mockups-v2.html                  ← Static UI mockup reference
+├── PeelAway Logic/                           ← Metadata / assets folder
 ├── public/
 │   ├── index.html
 │   ├── PeelAwayLogicLogo.png
 │   └── PeelAwayLogicLogoText.png
 └── src/
-    ├── App.css                           ← All styles (plain CSS, no preprocessor)
-    ├── App.jsx                           ← Root component, mounts pipeline
-    ├── index.js                          ← React entry point (ReactDOM.render)
-    ├── setupTests.js                     ← QA-only: imports @testing-library/jest-dom
-    ├── JobSearchPipeline.jsx             ← Active orchestrator (phases router)
-    ├── JobSearchPipelineV4.jsx           ← 96K monolith — target for decomposition
-    ├── api.js                            ← All API wrappers + PDF.js loader
-    ├── constants.js                      ← All magic numbers, keys, model IDs
-    ├── prompts.js                        ← All LLM prompt builder functions
-    ├── storage.js                        ← localStorage read/write helpers
-    ├── utils.js                          ← Pure utility functions (dedup, scoring, etc.)
+    ├── App.css                               ← All styles (plain CSS, no preprocessor)
+    ├── App.jsx                               ← Root component, mounts pipeline
+    ├── index.js                              ← React entry point (ReactDOM.render)
+    ├── setupTests.js                         ← QA-only: imports @testing-library/jest-dom
+    ├── JobSearchPipeline.jsx                 ← Active orchestrator (phases router)
+    ├── JobSearchPipelineV4.jsx               ← 96K monolith — target for decomposition
+    ├── api.js                                ← All API wrappers + PDF.js loader
+    ├── constants.js                          ← All magic numbers, keys, model IDs
+    ├── prompts.js                            ← All LLM prompt builder functions
+    ├── storage.js                            ← localStorage read/write helpers
+    ├── utils.js                              ← Pure utility functions (dedup, scoring, etc.)
+    ├── profileExtractor.js                   ← Regex-based resume text parsing
+    ├── cloudStorage.js                       ← Dropbox SDK loader + Chooser/Saver widgets
+    ├── cloudSync.js                          ← Sync layer: localStorage ↔ Dropbox JSON
     ├── components/
     │   ├── AppliedTracker.jsx
+    │   ├── CloudConnector.jsx                ← Modal UI for Dropbox connection + sync
     │   ├── GuideBar.jsx
     │   ├── Header.jsx
     │   ├── JobCard.jsx
@@ -80,26 +90,28 @@ PeelAway-Logic-QA/
     │   ├── ProgressStepper.jsx
     │   └── Spinner.jsx
     ├── hooks/
-    │   └── useWindowWidth.js             ← Responsive breakpoint hook
+    │   └── useWindowWidth.js                 ← Responsive breakpoint hook
     ├── phases/
-    │   ├── ScoutPhase.jsx                ← 37K — job search, 3-layer search UI
-    │   ├── ReviewPhase.jsx               ← Job tier display + sorting
-    │   ├── TailorPhase.jsx               ← Resume/cover letter generation cards
-    │   └── CompletePhase.jsx             ← Download + applied tracker
-    └── __tests__/                        ← QA-only test suite (346 tests)
-        ├── pipelineUtils.test.js         ← Utility unit tests (dedup, scoring, prompts)
-        ├── components.test.jsx           ← Main pipeline component render tests
-        ├── tailorPhase.test.js           ← Tailor phase behavior tests
-        ├── tailorPersistence.test.js     ← Tailor localStorage persistence tests
-        ├── api.test.js                   ← API layer tests (retry, fetch, loop, web search)
-        ├── storage.test.js               ← ALL localStorage function tests
-        ├── componentUnits.test.jsx       ← Individual component unit tests
-        ├── hooks.test.js                 ← useWindowWidth hook tests
-        ├── manualJobInput.test.jsx       ← ManualJobInput tab, scoring, and queue tests
-        ├── progressStepper.test.jsx      ← ProgressStepper desktop/mobile tests
-        ├── scoutPhase.test.jsx           ← ScoutPhase render and layer button tests
-        ├── reviewPhase.test.jsx          ← ReviewPhase tier tabs, selection, and advance tests
-        └── completePhase.test.jsx        ← CompletePhase download, applied, and tracker tests
+    │   ├── ScoutPhase.jsx                    ← 37K — job search, 3-layer search UI + filters
+    │   ├── ReviewPhase.jsx                   ← Job tier display + sorting
+    │   ├── TailorPhase.jsx                   ← Resume/cover letter generation cards
+    │   └── CompletePhase.jsx                 ← Download + applied tracker
+    └── __tests__/                            ← QA-only test suite (346 tests, 15 suites)
+        ├── pipelineUtils.test.js             ← Utility unit tests (dedup, scoring, prompts)
+        ├── profileExtractor.test.js          ← Resume parsing tests
+        ├── utilsKeywordPreFilter.test.js     ← Dynamic keyword pre-filter tests
+        ├── components.test.jsx               ← Main pipeline component render tests
+        ├── tailorPhase.test.js               ← Tailor phase behavior tests
+        ├── tailorPersistence.test.js         ← Tailor localStorage persistence tests
+        ├── api.test.js                       ← API layer tests (retry, fetch, loop, web search)
+        ├── storage.test.js                   ← ALL localStorage function tests
+        ├── componentUnits.test.jsx           ← Individual component unit tests
+        ├── hooks.test.js                     ← useWindowWidth hook tests
+        ├── manualJobInput.test.jsx           ← ManualJobInput tab, scoring, and queue tests
+        ├── progressStepper.test.jsx          ← ProgressStepper desktop/mobile tests
+        ├── scoutPhase.test.jsx               ← ScoutPhase render and layer button tests
+        ├── reviewPhase.test.jsx              ← ReviewPhase tier tabs, selection, and advance tests
+        └── completePhase.test.jsx            ← CompletePhase download, applied, and tracker tests
 ```
 
 ### 2.2 PROD GitHub Repo
@@ -108,12 +120,13 @@ PROD is structurally identical to QA **except** for the following differences:
 
 | Present in QA | Present in PROD | Notes |
 |---|---|---|
-| `src/__tests__/` (4 files) | No | Test suite lives only in QA |
+| `src/__tests__/` (15 suites) | No | Test suite lives only in QA |
 | `src/setupTests.js` | No | Test setup lives only in QA |
 | `claude-code-entry-point.md` | No | QA-only developer guide |
 | `.env` | No | Secrets stay local; PROD uses GitHub Secrets |
-| — | `.claude/launch.json` | PROD has Claude Code session config |
-| — | `.claude/settings.local.json` | PROD has Claude Code local settings |
+| `.claude/commands/` | No | QA-only Claude Code slash commands |
+| — | `.claude/launch.json` | PROD may have Claude Code session config |
+| — | `.claude/settings.local.json` | PROD may have Claude Code local settings |
 
 > **Note:** The PROD README contains a stale `git clone` URL pointing to `AI-Agentic-Solutions-Architecture` — the original monorepo this project was extracted from. The correct standalone repo is `CarmenReed/PeelAway-Logic`.
 
@@ -148,8 +161,9 @@ PROD is structurally identical to QA **except** for the following differences:
 | **PDF.js** | Resume PDF text extraction | CDN, pinned at v3.11.174 |
 | **Adzuna API** | Job board search (Layer 1) | Optional; `REACT_APP_ADZUNA_APP_ID` + `REACT_APP_ADZUNA_APP_KEY` |
 | **JSearch (RapidAPI)** | Job board search (Layer 1) | Optional; `REACT_APP_RAPIDAPI_KEY` |
-| **RSS feeds** | WeWorkRemotely, Remotive, RemoteOK, Stack Overflow (Layer 2) | No key required |
+| **RSS feeds** | WeWorkRemotely, Remotive, RemoteOK, Himalayas, Jobicy, Stack Overflow (Layer 2) | No key required |
 | **ATS web search** | Greenhouse, Lever, Workday via Claude `web_search_20250305` tool (Layer 3) | Requires Anthropic key with web search enabled |
+| **Dropbox Chooser/Saver** | Cross-device sync of app state (cloud workspace feature) | Optional; `REACT_APP_DROPBOX_APP_KEY` |
 | **Google Fonts** | Quicksand (wght 400–700) | CDN, loaded in `public/index.html` |
 
 ### 3.4 Build Toolchain
@@ -168,7 +182,7 @@ PROD is structurally identical to QA **except** for the following differences:
 |---|---|---|
 | **Run command** | `npm start` (CRA dev server, port 3000) | `npm run build` → deployed artifact |
 | **API keys source** | `.env` file (local, not committed) | GitHub Actions Secrets |
-| **Test suite** | 346 tests in `src/__tests__/` | Not present |
+| **Test suite** | 346 tests in `src/__tests__/` (15 suites) | Not present |
 | **Hot reload** | Yes (CRA HMR) | No (static build) |
 | **Source maps** | Full (dev mode) | Optimized/minified |
 | **Deploy trigger** | Manual (`npm start` locally) | `git push main` → GitHub Actions |
@@ -176,7 +190,7 @@ PROD is structurally identical to QA **except** for the following differences:
 | **Developer guides** | `claude-code-entry-point.md` present | Not present |
 | **Refactor artifacts** | `POST_RESKIN_DECOMPOSITION_PLAN.md`, `peelaway-mockups-v2.html`, `JobSearchPipelineV4.jsx` | Same files present in PROD |
 | **`package.json` version** | Identical (4.0.0) | Identical (4.0.0) |
-| **Workflow file** | `.github/workflows/deploy.yml` (same) | `.github/workflows/deploy.yml` (same) |
+| **Workflow files** | `deploy.yml` + `update-docs.yml` | `deploy.yml` + `update-docs.yml` |
 
 ---
 
@@ -195,6 +209,7 @@ PROD is structurally identical to QA **except** for the following differences:
 | `REACT_APP_ADZUNA_APP_ID` | No | Layer 1 — Adzuna job search | Layer 1 skipped if absent |
 | `REACT_APP_ADZUNA_APP_KEY` | No | Layer 1 — Adzuna job search | Layer 1 skipped if absent |
 | `REACT_APP_RAPIDAPI_KEY` | No | Layer 1 — JSearch job search | Layer 1 skipped if absent |
+| `REACT_APP_DROPBOX_APP_KEY` | No | Cloud workspace sync | Dropbox feature disabled if absent |
 
 ### 5.3 Local `.env` Template (QA)
 
@@ -203,6 +218,7 @@ REACT_APP_ANTHROPIC_API_KEY=sk-ant-api03-yourkey
 REACT_APP_ADZUNA_APP_ID=your_adzuna_app_id
 REACT_APP_ADZUNA_APP_KEY=your_adzuna_app_key
 REACT_APP_RAPIDAPI_KEY=your_rapidapi_key
+REACT_APP_DROPBOX_APP_KEY=your_dropbox_app_key
 ```
 
 > No `.env.example` file exists in the repo. Use the template above when onboarding.
@@ -237,16 +253,19 @@ The app is a single-page React application that walks users through five sequent
 
 ### Phase 1 — Scout (`src/phases/ScoutPhase.jsx`)
 
-User uploads or pastes their resume, then runs up to three independent search layers:
+User uploads or pastes their resume. `profileExtractor.js` performs regex-based parsing to extract skills, target job titles, experience level, location, and auto-generate search queries. The extracted profile is editable in-UI before searching.
+
+User-configurable search filters include: work type (remote/hybrid/on-site), date posted range, employment type, and US ZIP code + radius. Then up to three independent search layers run:
 
 | Layer | Source | API/Method | Key |
 |---|---|---|---|
 | Layer 1 | Job boards | Adzuna + JSearch (RapidAPI) in parallel | Optional |
-| Layer 2 | RSS feeds | WeWorkRemotely, Remotive, RemoteOK, Stack Overflow | None |
+| Layer 2 | RSS feeds | WeWorkRemotely, Remotive, RemoteOK, Himalayas, Jobicy, Stack Overflow | None |
 | Layer 3 | ATS boards | Greenhouse, Lever, Workday via Claude `web_search_20250305` | Anthropic |
 | Manual | URL / paste | User-supplied; scored on demand | Anthropic |
 
 - Each layer has its own abort controller — cancelling one doesn't affect others
+- A dynamic keyword pre-filter (driven by the extracted profile) removes obviously irrelevant results before scoring
 - After all desired layers run, "Score and Review Results" triggers: deduplication → pre-filter → batch scoring (haiku) → full JD fetch → re-score
 
 ### Phase 2 — Review (`src/phases/ReviewPhase.jsx`)
@@ -282,11 +301,15 @@ Anti-hallucination enforcement: prompts (`src/prompts.js`) restrict output to co
 - Mark jobs as applied
 - Applied jobs persist in `localStorage` (`jsp-applied-jobs`) and are excluded from future Scout runs
 
+### Cloud Workspace (in development)
+
+`src/cloudStorage.js`, `src/cloudSync.js`, and `src/components/CloudConnector.jsx` implement optional Dropbox-based cross-device sync. The sync layer mirrors all four `localStorage` keys into a single `peelaway-sync-data.json` file in the user's Dropbox. Smart merge logic handles deduplication on restore (applied jobs, tailor results, dismissed jobs by compound key; scout results: cloud wins). Requires `REACT_APP_DROPBOX_APP_KEY`. Not yet wired into the main app navigation.
+
 ---
 
 ## 7. GitHub Actions CI/CD
 
-**Workflow file:** `.github/workflows/deploy.yml`
+### 7.1 Deploy Workflow (`.github/workflows/deploy.yml`)
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -339,6 +362,20 @@ jobs:
 - No test step in CI — tests run locally in QA only
 - `workflow_dispatch` allows manual re-deploy from the GitHub Actions UI
 
+### 7.2 Auto-Doc Update Workflow (`.github/workflows/update-docs.yml`)
+
+- **Trigger:** Push to `main` (ignores changes to README.md, entry-point.md, and the workflow file itself)
+- **Purpose:** Keeps README.md and `claude-code-entry-point.md` in sync with actual test counts after source changes
+- **Steps:**
+  1. Checkout (fetches last 2 commits for diff detection)
+  2. Install dependencies
+  3. Run tests headlessly and extract pass/fail/suite counts
+  4. Detect changed source files from the push
+  5. Compare test counts against current docs; skip commit if nothing changed
+  6. Update test count lines in README.md and `claude-code-entry-point.md`
+  7. Auto-commit and push changes back to `main`
+- **Runs on:** ubuntu-latest, Node 20
+
 ---
 
 ## 8. Deployment Setup
@@ -386,6 +423,8 @@ import "@testing-library/jest-dom";
 | File | Coverage Area | Tests | Methodology |
 |---|---|---|---|
 | `pipelineUtils.test.js` | Pure utility functions (dedup, scoring, normalization, filtering, prompts) | ~100 | Unit tests, boundary testing, integration chains |
+| `profileExtractor.test.js` | Resume text parsing: name, skills, experience, titles, location, search queries | ~varies | Unit tests with realistic resume fixtures |
+| `utilsKeywordPreFilter.test.js` | Dynamic keyword pre-filter driven by extracted profile | ~varies | Unit tests with profile-generated filter sets |
 | `tailorPhase.test.js` | Tailor phase behavior: session restore, persistence, error handling, cancel, advance | ~10 | Component integration tests with mocked `fetch` |
 | `components.test.jsx` | Main pipeline component rendering, Scout phase UI | ~12 | Component render tests with user interaction |
 | `tailorPersistence.test.js` | localStorage read/write/clear for tailor results | ~8 | Unit tests against localStorage API |
@@ -428,8 +467,9 @@ Uses `jest.useFakeTimers()` + `jest.advanceTimersByTime()` for debounce and dela
 | `prompts.js` | 3 builders + 1 constant | 3 | ~95% |
 | `api.js` | 5 (withRetry, callAnthropic, callAnthropicWithLoop, detectWebSearchSupport, loadPdfJs/extractTextFromPdf) | 4 | ~80% (PDF functions require browser CDN) |
 | `storage.js` | 11 | 11 | 100% |
+| `profileExtractor.js` | regex extractors (name, skills, titles, experience, location, queries) | all | ~100% |
 | `constants.js` | 16 exports | Indirectly tested | N/A (config values) |
-| `components/` | 8 components | 8 | 100% |
+| `components/` | 9 components | 8 | ~90% (CloudConnector not yet tested) |
 | `hooks/` | 1 | 1 | 100% |
 | `phases/` | 4 | 4 | 100% |
 
@@ -491,7 +531,11 @@ CI=true npm test -- --coverage
 | `src/prompts.js` | LLM prompt builders | Resume, cover letter, scoring, ATS search prompts |
 | `src/storage.js` | Persistence helpers | localStorage get/set/clear for all 4 storage keys |
 | `src/utils.js` | Pure utility functions | Deduplication, normalization, date parsing, scoring logic |
-| `src/phases/ScoutPhase.jsx` | Phase 1 UI + logic | 3 search layers, abort controllers, dedup trigger |
+| `src/profileExtractor.js` | Resume text parser | Regex-based extraction of skills, titles, experience, location, search queries |
+| `src/cloudStorage.js` | Dropbox SDK integration | Loads SDK dynamically; exposes Chooser, Saver, upload/download helpers |
+| `src/cloudSync.js` | Cloud sync layer | Mirrors 4 localStorage keys to Dropbox JSON; smart merge on restore |
+| `src/components/CloudConnector.jsx` | Cloud workspace modal | Dropbox connect/save/restore/disconnect UI; reads `REACT_APP_DROPBOX_APP_KEY` |
+| `src/phases/ScoutPhase.jsx` | Phase 1 UI + logic | 3 search layers, search filters, abort controllers, dedup + keyword pre-filter trigger |
 | `src/phases/ReviewPhase.jsx` | Phase 2 UI | Tier buckets, sorting, date badges |
 | `src/phases/TailorPhase.jsx` | Phase 4 UI + logic | Per-role resume/cover letter generation cards |
 | `src/phases/CompletePhase.jsx` | Phase 5 UI | Download, copy, applied job tracking |
