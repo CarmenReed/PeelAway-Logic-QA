@@ -10,7 +10,7 @@ const TIER_CONFIG = [
   { label: "Weak", emoji: "\u26A0\uFE0F", key: "weak", tabClass: "weak-tab" },
 ];
 
-function ReviewPhase({ scoutResults, appliedList, onAdvance }) {
+function ReviewPhase({ scoutResults, appliedList, onAdvance, onStartOver }) {
   const [activeTab, setActiveTab] = useState("strong_match");
   const [sortBy, setSortBy] = useState("score");
   const [selected, setSelected] = useState([]);
@@ -40,7 +40,7 @@ function ReviewPhase({ scoutResults, appliedList, onAdvance }) {
 
   return (
     <div className="content">
-      <GuideBar emoji={"\uD83C\uDFAF"} text="Select jobs for tailored documents, then advance." />
+      <GuideBar emoji={"\uD83C\uDFAF"} text="Select jobs for tailored documents, then advance." onStartOver={onStartOver} />
       <div className="text-p mb-12">{scoutResults?.summary} ({totalJobs} total)</div>
 
       <div className="tier-tabs">

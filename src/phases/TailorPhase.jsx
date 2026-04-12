@@ -8,7 +8,7 @@ import { saveToDropbox, isDropboxConfigured } from "../cloudStorage";
 import Spinner from "../components/Spinner";
 import GuideBar from "../components/GuideBar";
 
-function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete, cloudConnected }) {
+function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete, cloudConnected, onStartOver }) {
   const [downloadFormat, setDownloadFormat] = useState("txt");
   // Per-job generation state: { [jobKey]: { resumeStatus, coverStatus, resume, coverLetter, error } }
   const [jobState, setJobState] = useState(() => {
@@ -169,7 +169,7 @@ function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete, 
   if (approvedJobs.length === 0) {
     return (
       <div className="content">
-        <GuideBar emoji={"\u23F3"} text="Generating tailored resumes and cover letters. This will not take long!" />
+        <GuideBar emoji={"\u23F3"} text="Generating tailored resumes and cover letters. This will not take long!" onStartOver={onStartOver} />
         <p className="text-p">No jobs were approved for tailoring.</p>
       </div>
     );
@@ -177,7 +177,7 @@ function TailorPhase({ approvedJobs, profileText, extractedProfile, onComplete, 
 
   return (
     <div className="content">
-      <GuideBar emoji={"\u23F3"} text="Generating tailored resumes and cover letters. This will not take long!" />
+      <GuideBar emoji={"\u23F3"} text="Generating tailored resumes and cover letters. This will not take long!" onStartOver={onStartOver} />
       <div className="format-row">
         <span className="format-label">Download format:</span>
         <select value={downloadFormat} onChange={e => setDownloadFormat(e.target.value)} className="form-select">

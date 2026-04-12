@@ -212,7 +212,7 @@ body {
   border-radius: 12px;
   margin-bottom: 16px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
 }
 
@@ -221,6 +221,12 @@ body {
 .guide-text {
   font-size: 14px; font-weight: 600;
   color: var(--brown); line-height: 1.6;
+  flex: 1;
+}
+
+.guide-start-over {
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 /* ============================================================

@@ -438,7 +438,7 @@ async function runJdFetchAndRescore(apiKey, profileText, results, signal, onStat
   return { ...results };
 }
 
-function SearchPhase({ profileText, extractedProfile, appliedList, locked, onComplete }) {
+function SearchPhase({ profileText, extractedProfile, appliedList, locked, onComplete, onStartOver }) {
   const [status, setStatus] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState(null);
@@ -634,7 +634,7 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, onCom
 
   return (
     <div className="content">
-      <GuideBar emoji={"\uD83D\uDD0D"} text="Run one or more search layers, then score results to find your best matches." />
+      <GuideBar emoji={"\uD83D\uDD0D"} text="Run one or more search layers, then score results to find your best matches." onStartOver={onStartOver} />
 
       {error && <p className="text-error">{error}</p>}
 

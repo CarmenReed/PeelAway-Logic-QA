@@ -3,7 +3,7 @@ import { saveToDropbox, isDropboxConfigured } from "../cloudStorage";
 import AppliedTracker from "../components/AppliedTracker";
 import GuideBar from "../components/GuideBar";
 
-function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain, cloudConnected }) {
+function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain, cloudConnected, onStartOver }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [copiedType, setCopiedType] = useState(null);
   const [downloadFormat, setDownloadFormat] = useState("txt");
@@ -51,7 +51,7 @@ function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveAppli
 
   return (
     <div className="content">
-      <GuideBar emoji={"\uD83C\uDF89"} text="Your tailored documents are ready! Download, apply, and track." />
+      <GuideBar emoji={"\uD83C\uDF89"} text="Your tailored documents are ready! Download, apply, and track." onStartOver={onStartOver} />
 
       <div className="format-row">
         <span className="format-label">Download format:</span>

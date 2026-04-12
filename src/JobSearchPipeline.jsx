@@ -113,13 +113,6 @@ export default function JobSearchPipeline() {
       <Header />
       <ProgressStepper current={phase} maxVisited={maxVisited} onTabClick={setPhase} />
 
-      {/* Start Over button — on every tab, only after a PDF has been uploaded */}
-      {hasProfile && (
-        <div className="start-over-row">
-          <button className="btn danger-btn sm" onClick={handleStartOver}>Start Over</button>
-        </div>
-      )}
-
       {phase === 0 && tailorResults.length > 0 && (
         <div className="saved-notice">
           <p className="saved-notice-text">You have {tailorResults.length} saved tailor result(s) from a previous session.</p>
@@ -150,6 +143,7 @@ export default function JobSearchPipeline() {
           appliedList={appliedJobs}
           locked={maxVisited > 1 && phase !== maxVisited}
           onComplete={(data) => { setScoutResults(data); advanceTo(2); }}
+          onStartOver={hasProfile ? handleStartOver : undefined}
         />
       )}
 
@@ -158,6 +152,7 @@ export default function JobSearchPipeline() {
           scoutResults={scoutResults}
           appliedList={appliedJobs}
           onAdvance={(jobs) => { setApprovedJobs(jobs); advanceTo(3); }}
+          onStartOver={hasProfile ? handleStartOver : undefined}
         />
       )}
 
@@ -168,6 +163,7 @@ export default function JobSearchPipeline() {
           extractedProfile={extractedProfile}
           onComplete={handleTailorComplete}
           cloudConnected={cloudConn?.connected}
+          onStartOver={hasProfile ? handleStartOver : undefined}
         />
       )}
 
@@ -180,6 +176,7 @@ export default function JobSearchPipeline() {
           onClearApplied={clearAppliedJobs}
           onRunAgain={handleRunAgain}
           cloudConnected={cloudConn?.connected}
+          onStartOver={hasProfile ? handleStartOver : undefined}
         />
       )}
     </div>
