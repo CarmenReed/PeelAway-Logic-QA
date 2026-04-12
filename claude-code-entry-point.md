@@ -29,7 +29,7 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | PDF extraction | pdf.js 3.11.174 (loaded from CDN at runtime) |
 | Persistence | localStorage (4 keys, all prefixed `jsp-`) |
 | Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
-| Testing | @testing-library/react, 425 tests across 15 suites |
+| Testing | @testing-library/react,  tests across  suites |
 
 ### One Rule That Applies Everywhere
 
@@ -261,7 +261,7 @@ npm install
 # Start dev server (hot reload, localhost:3000)
 npm start
 
-# Run all 425 tests
+# Run all  tests
 npm test
 
 # Build production bundle (output to build/)
@@ -532,7 +532,7 @@ src/
     Spinner.jsx         Loading animation
   hooks/
     useWindowWidth.js   Responsive breakpoint hook (MOBILE_BP = 640)
-  __tests__/            425 tests across 15 suites
+  __tests__/             tests across  suites
     pipelineUtils.test.js       Utility function tests (JSON, dedup, titles, prompts)
     utilsKeywordPreFilter.test.js Dynamic pre-filter tests (profile-driven)
     profileExtractor.test.js    Resume parser tests (skills, name, levels, queries)

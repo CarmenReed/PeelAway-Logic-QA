@@ -69,7 +69,7 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 - Applied jobs tracker with persistent storage
 - Mobile-responsive layout
 - Graceful cancellation at any phase
-- 425 unit and component tests across 15 suites
+-  unit and component tests across  suites
 
 ## Setup
 
@@ -104,7 +104,7 @@ All tests live in the QA environment only. Tests are not included in the product
 npm test
 ```
 
-425 tests across 15 suites:
+ tests across  suites:
 - **pipelineUtils.test.js** - Unit tests for pure utility functions (JSON extraction, deduplication, title normalization, pre-filtering, prompt builders)
 - **utilsKeywordPreFilter.test.js** - Dynamic keyword pre-filter tests with profile-driven level and location filtering
 - **profileExtractor.test.js** - Resume parsing tests (name, skills, experience, levels, location, search queries)
