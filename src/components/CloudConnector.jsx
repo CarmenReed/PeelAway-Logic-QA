@@ -2,8 +2,8 @@
 // Connection UI for Dropbox workspace integration
 
 import { useState } from "react";
-import { isDropboxConfigured, loadDropboxSdk, loadSyncDataFromDropbox } from "../cloudStorage";
-import { restoreSyncData, getCloudConnection, setCloudConnection } from "../cloudSync";
+import { isDropboxConfigured, loadDropboxSdk } from "../cloudStorage";
+import { getCloudConnection, setCloudConnection } from "../cloudSync";
 
 export default function CloudConnector({ show, onClose, onConnectionChange }) {
   const [syncing, setSyncing] = useState(false);
@@ -18,13 +18,6 @@ export default function CloudConnector({ show, onClose, onConnectionChange }) {
     setSyncError("");
     try {
       await loadDropboxSdk();
-      // Try to restore existing data silently
-      try {
-        const cloudData = await loadSyncDataFromDropbox();
-        if (cloudData) restoreSyncData(cloudData);
-      } catch {
-        // User cancelled file picker or no file found - that's fine
-      }
       setCloudConnection({ provider: "dropbox", connected: true, connectedAt: new Date().toISOString() });
       onConnectionChange?.({ provider: "dropbox", connected: true });
     } catch (err) {
