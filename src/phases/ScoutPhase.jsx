@@ -205,7 +205,7 @@ async function fetchRssJobs(signal, onProgress) {
 }
 
 async function fetchAtsJobs(apiKey, profileText, signal) {
-  const system = "You are a job scout. Use web_search to find currently open senior-level job postings on Greenhouse, Lever, and Workday career pages only. Return valid JSON only. No preamble, no markdown fences.";
+  const system = "You are a job search assistant. Use web_search to find currently open senior-level job postings on Greenhouse, Lever, and Workday career pages only. Return valid JSON only. No preamble, no markdown fences.";
   const message = `Find 5 to 10 currently open senior/principal/architect/staff level remote roles matching this profile. Search Greenhouse, Lever, and Workday only.
 
 PROFILE SUMMARY:
