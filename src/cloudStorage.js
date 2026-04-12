@@ -95,6 +95,36 @@ async function ensureSyncFolder(token) {
 }
 
 /**
+ * Save a text file to Dropbox silently (no popup).
+ * Returns true on success, false on failure.
+ */
+export async function saveToDropbox(content, fileName) {
+  const token = getDropboxToken();
+  if (!token) return false;
+  try {
+    await ensureSyncFolder(token);
+    const filePath = `/PeelAway Logic/${fileName}`;
+    const resp = await fetch("https://content.dropboxapi.com/2/files/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/octet-stream",
+        "Dropbox-API-Arg": JSON.stringify({
+          path: filePath,
+          mode: "overwrite",
+          autorename: false,
+          mute: true,
+        }),
+      },
+      body: content,
+    });
+    return resp.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Save sync data to Dropbox silently (no popup).
  * Returns true on success, false on failure.
  */
@@ -144,6 +174,73 @@ export async function loadSyncDataFromDropbox() {
   } catch {
     return null;
   }
+}
+
+// -- Dropbox Chooser (for user-initiated file picking) --
+
+const DROPBOX_SDK_URL = "https://www.dropbox.com/static/api/2/dropins.js";
+let sdkLoaded = false;
+let sdkLoading = false;
+let sdkCallbacks = [];
+
+function loadDropboxSdk() {
+  if (sdkLoaded && window.Dropbox) return Promise.resolve();
+  if (sdkLoading) {
+    return new Promise((resolve, reject) => {
+      sdkCallbacks.push({ resolve, reject });
+    });
+  }
+  sdkLoading = true;
+  return new Promise((resolve, reject) => {
+    sdkCallbacks.push({ resolve, reject });
+    const script = document.createElement("script");
+    script.src = DROPBOX_SDK_URL;
+    script.id = "dropboxjs";
+    script.setAttribute("data-app-key", DROPBOX_APP_KEY);
+    script.onload = () => {
+      sdkLoaded = true;
+      sdkLoading = false;
+      sdkCallbacks.forEach(cb => cb.resolve());
+      sdkCallbacks = [];
+    };
+    script.onerror = () => {
+      sdkLoading = false;
+      const err = new Error("Failed to load Dropbox SDK");
+      sdkCallbacks.forEach(cb => cb.reject(err));
+      sdkCallbacks = [];
+    };
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * Open the Dropbox Chooser to let the user pick a file.
+ * Returns { name, link, bytes, icon } or null if cancelled.
+ */
+export function openDropboxChooser({ extensions = [".pdf", ".txt"], multiselect = false } = {}) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await loadDropboxSdk();
+      window.Dropbox.choose({
+        success: (files) => resolve(files[0] || null),
+        cancel: () => resolve(null),
+        linkType: "direct",
+        multiselect,
+        extensions,
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Download file content from a Dropbox direct link.
+ */
+export async function downloadDropboxFile(directLink) {
+  const resp = await fetch(directLink);
+  if (!resp.ok) throw new Error(`Dropbox download failed: ${resp.status}`);
+  return resp.text();
 }
 
 /**
