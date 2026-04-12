@@ -34,8 +34,11 @@ export function setDropboxToken(token) {
 export function authenticateDropbox() {
   return new Promise((resolve) => {
     // Use origin-only redirect so it matches Dropbox's domain-level config.
-    // Dropbox app settings only accept domains, not paths.
-    const redirectUri = window.location.origin + "/";
+    // Dropbox only allows bare "localhost" (no port) in its app settings.
+    const isLocalhost = window.location.hostname === "localhost";
+    const redirectUri = isLocalhost
+      ? `http://localhost/`
+      : window.location.origin + "/";
     const authUrl =
       `https://www.dropbox.com/oauth2/authorize` +
       `?client_id=${encodeURIComponent(DROPBOX_APP_KEY)}` +
@@ -55,8 +58,8 @@ export function authenticateDropbox() {
           resolve(null);
           return;
         }
-        // Check if popup has redirected back to our origin
-        if (popup.location.origin === window.location.origin) {
+        // Check if popup has redirected back to localhost or our origin
+        if (popup.location.hostname === window.location.hostname) {
           clearInterval(interval);
           const hash = popup.location.hash.substring(1);
           popup.close();
