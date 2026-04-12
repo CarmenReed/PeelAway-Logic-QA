@@ -13,15 +13,25 @@ export default function LandingScreen({ onStart }) {
       <img src={`${process.env.PUBLIC_URL}/PeelAwayLogicLogoText.png`} alt="PeelAway Logic" className="landing-logo" />
       <p className="landing-tagline">AI-powered job search pipeline for busy professionals.</p>
       <div className="landing-buttons">
-        <button className="btn primary" onClick={onStart} disabled={isConnected}>
-          {"\uD83D\uDE80"} Start as Guest
-        </button>
-        <button
-          className={`btn ${isConnected ? "glow-btn" : "default"}`}
-          onClick={() => setShowCloud(true)}
-        >
-          {isConnected ? "\u2705 Dropbox Connected" : "\u2601\uFE0F Connect Your Workspace"}
-        </button>
+        {isConnected ? (
+          <>
+            <button className="btn primary" onClick={onStart}>
+              {"\uD83D\uDE80"} Launch Pipeline
+            </button>
+            <button className="btn glow-btn" onClick={() => setShowCloud(true)}>
+              {"\u2705"} Dropbox Connected
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="btn primary" onClick={onStart}>
+              {"\uD83D\uDE80"} Start as Guest
+            </button>
+            <button className="btn default" onClick={() => setShowCloud(true)}>
+              {"\u2601\uFE0F"} Connect Your Workspace
+            </button>
+          </>
+        )}
       </div>
       <p className="landing-privacy">
         {isConnected
