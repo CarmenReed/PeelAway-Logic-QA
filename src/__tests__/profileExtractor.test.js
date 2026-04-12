@@ -178,9 +178,24 @@ describe("extractProfile — location", () => {
     expect(result.location).toContain("remote");
   });
 
-  it("defaults to remote when no location found", () => {
+  it("returns empty array when no obvious location found", () => {
     const result = extractProfile("John Doe\nSoftware engineer with 5 years of experience in building distributed systems and microservices");
-    expect(result.location).toContain("remote");
+    expect(result.location).toEqual([]);
+  });
+
+  it("extracts City, ST from header area", () => {
+    const result = extractProfile("John Doe\nSan Francisco, CA\nSoftware engineer with 5 years of experience in JavaScript, React, and Node.js development");
+    expect(result.location).toContain("San Francisco, CA");
+  });
+
+  it("does not extract City, ST from deep in resume body", () => {
+    // Location buried far below header in an old job should not be picked up
+    const lines = ["John Doe", "Senior Engineer", "10 years of experience in JavaScript"];
+    // Add 20 filler lines then a location in an old job
+    for (let i = 0; i < 20; i++) lines.push("Built scalable systems for enterprise clients");
+    lines.push("Previous Role at ACME Corp, Austin, TX");
+    const result = extractProfile(lines.join("\n"));
+    expect(result.location).not.toContain("Austin, TX");
   });
 });
 

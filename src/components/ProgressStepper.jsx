@@ -1,7 +1,7 @@
 import useWindowWidth from "../hooks/useWindowWidth";
 import { MOBILE_BP } from "../constants";
 
-const PHASES = ["Scout", "Review", "Tailor", "Complete"];
+const PHASES = ["Scout", "Search", "Review", "Tailor", "Complete"];
 
 export default function ProgressStepper({ current, maxVisited, onTabClick }) {
   const isMobile = useWindowWidth() < MOBILE_BP;
@@ -27,7 +27,7 @@ export default function ProgressStepper({ current, maxVisited, onTabClick }) {
               >
                 {i < current ? "\u2713" : i + 1}
               </div>
-              {i < 3 && <div className={`step-line ${i < current ? "done" : "future"}`} />}
+              {i < PHASES.length - 1 && <div className={`step-line ${i < current ? "done" : "future"}`} />}
             </span>
           );
         })}

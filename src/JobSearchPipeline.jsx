@@ -9,9 +9,12 @@ import LandingScreen from "./components/LandingScreen";
 import Header from "./components/Header";
 import ProgressStepper from "./components/ProgressStepper";
 import ScoutPhase from "./phases/ScoutPhase";
+import SearchPhase from "./phases/SearchPhase";
 import ReviewPhase from "./phases/ReviewPhase";
 import TailorPhase from "./phases/TailorPhase";
 import CompletePhase from "./phases/CompletePhase";
+
+// Phase indices: 0=Scout, 1=Search, 2=Review, 3=Tailor, 4=Complete
 
 export default function JobSearchPipeline() {
   const [started, setStarted] = useState(false);
@@ -19,6 +22,7 @@ export default function JobSearchPipeline() {
   const [phase, setPhase] = useState(0);
   const [scoutResults, setScoutResults] = useState(null);
   const [scoutKey, setScoutKey] = useState(0);
+  const [searchKey, setSearchKey] = useState(0);
   const [extractedProfile, setExtractedProfile] = useState(null);
   const [approvedJobs, setApprovedJobs] = useState([]);
   const [tailorResults, setTailorResults] = useState(() => loadTailorResults());
@@ -51,7 +55,7 @@ export default function JobSearchPipeline() {
 
   const handleTailorComplete = useCallback((results) => {
     setTailorResults(results);
-    advanceTo(3);
+    advanceTo(4);
   }, [advanceTo]);
 
   const handleRunAgain = useCallback(() => {
@@ -61,6 +65,7 @@ export default function JobSearchPipeline() {
     setMaxVisited(0);
   }, []);
 
+  // Start Over: clears everything EXCEPT tailorResults and appliedJobs
   const handleStartOver = useCallback(() => {
     const msg = tailorResults.length > 0
       ? "This will clear your current search results. Your tailored documents and applied jobs will be preserved. Continue?"
@@ -68,10 +73,16 @@ export default function JobSearchPipeline() {
     if (!window.confirm(msg)) return;
     setScoutResults(null);
     setApprovedJobs([]);
+    setProfileText("");
+    setExtractedProfile(null);
     setPhase(0);
     setMaxVisited(0);
     setScoutKey(k => k + 1);
+    setSearchKey(k => k + 1);
   }, [tailorResults]);
+
+  // Whether a PDF/text has been loaded (controls Start Over visibility)
+  const hasProfile = profileText.trim().length > 50;
 
   if (!started) {
     return (
@@ -86,7 +97,8 @@ export default function JobSearchPipeline() {
       <Header />
       <ProgressStepper current={phase} maxVisited={maxVisited} onTabClick={setPhase} />
 
-      {maxVisited > 0 && (
+      {/* Start Over button — on every tab, only after a PDF has been uploaded */}
+      {hasProfile && (
         <div className="start-over-row">
           <button className="btn danger-btn sm" onClick={handleStartOver}>Start Over</button>
         </div>
@@ -96,7 +108,7 @@ export default function JobSearchPipeline() {
         <div className="saved-notice">
           <p className="saved-notice-text">You have {tailorResults.length} saved tailor result(s) from a previous session.</p>
           <div className="flex-gap">
-            <button className="btn primary sm" onClick={() => advanceTo(3)}>View Results</button>
+            <button className="btn primary sm" onClick={() => advanceTo(4)}>View Results</button>
             <button className="btn default sm" onClick={() => { clearTailorResults(); setTailorResults([]); }}>Dismiss</button>
           </div>
         </div>
@@ -109,20 +121,31 @@ export default function JobSearchPipeline() {
           setProfileText={setProfileText}
           extractedProfile={extractedProfile}
           setExtractedProfile={setExtractedProfile}
-          appliedList={appliedJobs}
-          onComplete={(data) => { setScoutResults(data); advanceTo(1); }}
+          locked={maxVisited > 0 && phase !== maxVisited}
+          onAdvance={() => advanceTo(1)}
         />
       )}
 
       {phase === 1 && (
-        <ReviewPhase
-          scoutResults={scoutResults}
+        <SearchPhase
+          key={searchKey}
+          profileText={profileText}
+          extractedProfile={extractedProfile}
           appliedList={appliedJobs}
-          onAdvance={(jobs) => { setApprovedJobs(jobs); advanceTo(2); }}
+          locked={maxVisited > 1 && phase !== maxVisited}
+          onComplete={(data) => { setScoutResults(data); advanceTo(2); }}
         />
       )}
 
       {phase === 2 && (
+        <ReviewPhase
+          scoutResults={scoutResults}
+          appliedList={appliedJobs}
+          onAdvance={(jobs) => { setApprovedJobs(jobs); advanceTo(3); }}
+        />
+      )}
+
+      {phase === 3 && (
         <TailorPhase
           approvedJobs={approvedJobs}
           profileText={profileText}
@@ -131,7 +154,7 @@ export default function JobSearchPipeline() {
         />
       )}
 
-      {phase === 3 && (
+      {phase === 4 && (
         <CompletePhase
           tailorResults={tailorResults}
           appliedList={appliedJobs}

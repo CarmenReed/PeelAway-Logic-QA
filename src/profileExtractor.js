@@ -98,6 +98,15 @@ const LEVEL_PATTERNS = [
   { level: "Junior", patterns: [/\bjunior\b/i, /\bjr\.?\s/i, /\bentry[\s-]level\b/i] },
 ];
 
+// ── US State Abbreviations ──────────────────────────────────────────────────────
+
+const US_STATES = new Set([
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+  "VA","WA","WV","WI","WY","DC",
+]);
+
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
 function escapeRegex(str) {
@@ -257,31 +266,57 @@ function inferTargetLevel(text, years) {
 
 function extractLocation(text) {
   const locations = new Set();
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-  // Check for "remote" mentions
-  if (/\bremote\b/i.test(text)) locations.add("remote");
+  // Only search the header area (top ~10 lines) and the first/current job position.
+  // This avoids pulling in locations from past jobs, education, etc.
+  const headerLines = lines.slice(0, 10).join("\n");
 
-  // Check for US state + city patterns (City, ST or City, State)
+  // Find the first job position section (text between the first job-like heading and the next section)
+  const currentJobSection = (() => {
+    const sectionHeaders = /^(?:experience|work\s+experience|professional\s+experience|employment)/i;
+    let start = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (sectionHeaders.test(lines[i])) { start = i + 1; break; }
+    }
+    if (start < 0) return "";
+    // Grab lines until the next section header or 15 lines, whichever is first
+    const nextSection = /^(?:education|skills|certifications|projects|publications|awards|interests|references|volunteer|summary|objective)/i;
+    const chunk = [];
+    for (let i = start; i < Math.min(start + 15, lines.length); i++) {
+      if (nextSection.test(lines[i])) break;
+      chunk.push(lines[i]);
+    }
+    return chunk.join("\n");
+  })();
+
+  const searchableText = headerLines + "\n" + currentJobSection;
+
+  // Check for "remote" mentions in header or current job
+  if (/\bremote\b/i.test(searchableText)) locations.add("remote");
+
+  // Check for US state + city patterns (City, ST) — only in header/current job
   const cityStatePattern = /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)?),\s*([A-Z]{2})\b/g;
   let match;
-  while ((match = cityStatePattern.exec(text)) !== null) {
-    locations.add(`${match[1]}, ${match[2]}`);
+  while ((match = cityStatePattern.exec(searchableText)) !== null) {
+    // Validate the two-letter code is a real US state abbreviation
+    if (US_STATES.has(match[2])) {
+      locations.add(`${match[1]}, ${match[2]}`);
+    }
   }
 
-  // Check for explicit location preferences
+  // Check for explicit location preferences in header/current job
   const locationPrefs = [
     /(?:seeking|prefer|open\s+to|looking\s+for)\s+(?:a\s+)?remote/i,
     /(?:willing\s+to\s+)?relocat/i,
   ];
   for (const pat of locationPrefs) {
-    if (pat.test(text) && !locations.has("remote")) {
+    if (pat.test(searchableText) && !locations.has("remote")) {
       locations.add("remote");
     }
   }
 
-  // Default to remote if nothing found
-  if (locations.size === 0) locations.add("remote");
-
+  // Only return what we found — do NOT guess if nothing is obvious
   return [...locations];
 }
 
