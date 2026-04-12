@@ -10,7 +10,7 @@ function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtracte
   const [fileName, setFileName] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [fileError, setFileError] = useState(null);
-  const [inputMode, setInputMode] = useState("upload"); // "upload" | "paste"
+  const [inputMode, setInputMode] = useState(cloudConnected && isDropboxConfigured() ? "dropbox" : "upload"); // "upload" | "paste" | "dropbox"
   const [newSkill, setNewSkill] = useState("");
   const [newQuery, setNewQuery] = useState("");
   const fileRef = useRef(null);
@@ -58,11 +58,11 @@ function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtracte
         <div className="section-title"><span className="step-num">1</span> Upload Resume</div>
         {!locked && (
           <div className="tab-bar mb-10">
-            <button className={`tab-btn${inputMode === "upload" ? " active" : ""}`} onClick={() => setInputMode("upload")}>Upload PDF/TXT</button>
-            <button className={`tab-btn${inputMode === "paste" ? " active" : ""}`} onClick={() => setInputMode("paste")}>Paste Resume Text</button>
             {cloudConnected && isDropboxConfigured() && (
               <button className={`tab-btn${inputMode === "dropbox" ? " active" : ""}`} onClick={() => setInputMode("dropbox")}>Import from Dropbox</button>
             )}
+            <button className={`tab-btn${inputMode === "upload" ? " active" : ""}`} onClick={() => setInputMode("upload")}>Upload PDF/TXT</button>
+            <button className={`tab-btn${inputMode === "paste" ? " active" : ""}`} onClick={() => setInputMode("paste")}>Paste Resume Text</button>
           </div>
         )}
         {!locked && inputMode === "upload" && (
