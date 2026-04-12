@@ -33,12 +33,13 @@ export function setDropboxToken(token) {
  */
 export function authenticateDropbox() {
   return new Promise((resolve) => {
-    // Omit redirect_uri - Dropbox will use the allowed domain from app settings.
-    // Dropbox app settings only accept bare domains (e.g. "carmenreed.github.io").
+    // redirect_uri must match one of the URIs registered in the Dropbox app settings.
+    const redirectUri = window.location.origin + window.location.pathname;
     const authUrl =
       `https://www.dropbox.com/oauth2/authorize` +
       `?client_id=${encodeURIComponent(DROPBOX_APP_KEY)}` +
-      `&response_type=token`;
+      `&response_type=token` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     const popup = window.open(authUrl, "dropbox-auth", "width=600,height=700");
     if (!popup) {
