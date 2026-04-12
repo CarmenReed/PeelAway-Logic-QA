@@ -74,8 +74,8 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 ### Local Development
 
 ```bash
-git clone https://github.com/CarmenReed/AI-Agentic-Solutions-Architecture.git
-cd AI-Agentic-Solutions-Architecture/PeelAway-Logic-QA
+git clone https://github.com/CarmenReed/PeelAway-Logic-QA.git
+cd PeelAway-Logic-QA
 npm install
 ```
 

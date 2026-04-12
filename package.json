@@ -2,7 +2,7 @@
   "name": "peelaway-logic",
   "version": "4.0.0",
   "description": "AI-powered job search pipeline: Scout, Review, Tailor",
-  "homepage": "https://carmenreed.github.io/PeelAway-Logic",
+  "homepage": "https://carmenreed.github.io/PeelAway-Logic-QA",
   "private": true,
   "scripts": {
     "start": "react-scripts start",

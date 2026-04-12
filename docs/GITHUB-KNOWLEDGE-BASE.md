@@ -26,12 +26,12 @@
 
 | Property | QA / DEV (local) | PROD (GitHub) |
 |---|---|---|
-| **Path / URL** | `C:\Users\CarmenReed\Downloads\ClaudeProjects\PeelAway-Logic-QA` | https://github.com/CarmenReed/PeelAway-Logic |
+| **Path / URL** | https://github.com/CarmenReed/PeelAway-Logic-QA | https://github.com/CarmenReed/PeelAway-Logic |
 | **Purpose** | Development & testing environment | Live production app |
-| **Deployed URL** | `localhost:3000` (dev server) | https://carmenreed.github.io/PeelAway-Logic |
+| **Deployed URL** | https://carmenreed.github.io/PeelAway-Logic-QA | https://carmenreed.github.io/PeelAway-Logic |
 | **Package version** | 4.0.0 | 4.0.0 |
 | **Default branch** | `main` | `main` |
-| **Remotes** | `origin → CarmenReed/PeelAway-Logic` | N/A (is the origin) |
+| **Remotes** | `origin → CarmenReed/PeelAway-Logic-QA` | N/A (is the origin) |
 
 ---
 
@@ -172,7 +172,7 @@ PROD is structurally identical to QA **except** for the following differences:
 | **Hot reload** | Yes (CRA HMR) | No (static build) |
 | **Source maps** | Full (dev mode) | Optimized/minified |
 | **Deploy trigger** | Manual (`npm start` locally) | `git push main` → GitHub Actions |
-| **Deploy target** | `localhost:3000` | `carmenreed.github.io/PeelAway-Logic` |
+| **Deploy target** | `carmenreed.github.io/PeelAway-Logic-QA` | `carmenreed.github.io/PeelAway-Logic` |
 | **Developer guides** | `claude-code-entry-point.md` present | Not present |
 | **Refactor artifacts** | `POST_RESKIN_DECOMPOSITION_PLAN.md`, `peelaway-mockups-v2.html`, `JobSearchPipelineV4.jsx` | Same files present in PROD |
 | **`package.json` version** | Identical (4.0.0) | Identical (4.0.0) |
@@ -349,7 +349,8 @@ jobs:
 | **Deploy method** | GitHub Actions → `actions/deploy-pages@v4` |
 | **Build output** | `build/` directory (CRA production build) |
 | **Live URL** | https://carmenreed.github.io/PeelAway-Logic |
-| **Homepage field** | `"homepage": "https://carmenreed.github.io/PeelAway-Logic"` in `package.json` |
+| **QA URL** | https://carmenreed.github.io/PeelAway-Logic-QA |
+| **Homepage field** | `"homepage": "https://carmenreed.github.io/PeelAway-Logic-QA"` in `package.json` |
 | **Node version (CI)** | 20 |
 | **Node version (local)** | ≥ 18 |
 | **`npm run deploy` script** | Defined (`gh-pages -d build`) but **not used** — CI handles deploys |
@@ -364,7 +365,7 @@ Local QA (main branch)
                     ├── npm install
                     ├── npm run build  (env vars injected from Secrets)
                     ├── upload-pages-artifact
-                    └── deploy-pages → carmenreed.github.io/PeelAway-Logic
+                    └── deploy-pages → carmenreed.github.io/PeelAway-Logic-QA
 ```
 
 ---
@@ -464,7 +465,7 @@ CI=true npm test -- --coverage
 |---|---|
 | **Active branches** | `main` only |
 | **Feature branches** | None currently |
-| **Remote** | `origin → CarmenReed/PeelAway-Logic` (single remote) |
+| **Remote** | `origin → CarmenReed/PeelAway-Logic-QA` (single remote) |
 | **Deploy trigger** | Push to `main` auto-deploys to GitHub Pages |
 | **QA → PROD flow** | Develop and test locally in QA repo → push `main` to GitHub → CI builds and deploys |
 | **No branch protection** | `main` accepts direct pushes (no PR requirement observed) |
