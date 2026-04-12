@@ -151,7 +151,7 @@ export default function CloudConnector({ show, onClose, onConnectionChange }) {
         <div className="cloud-info mt-16">
           <p className="text-hint">
             Connecting your workspace syncs your applied jobs, tailored documents, and search history across devices.
-            Your data is saved as a file in your own Dropbox — we never store it on our servers.
+            Your data is saved as a file in your own Dropbox - we never store it on our servers.
           </p>
         </div>
       </div>

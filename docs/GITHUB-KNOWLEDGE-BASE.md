@@ -1,8 +1,8 @@
-# PeelAway Logic — GitHub Knowledge Base
+# PeelAway Logic - GitHub Knowledge Base
 
 > Generated: 2026-04-11
 > Covers: QA/DEV local repo + GitHub production repo
-> Author: Carmen Reed — Solutions Architect
+> Author: Carmen Reed - Solutions Architect
 
 ---
 
@@ -66,7 +66,7 @@ PeelAway-Logic-QA/
     ├── index.js                          ← React entry point (ReactDOM.render)
     ├── setupTests.js                     ← QA-only: imports @testing-library/jest-dom
     ├── JobSearchPipeline.jsx             ← Active orchestrator (phase router + step locking)
-    ├── JobSearchPipelineV4.jsx           ← 96K monolith — target for decomposition
+    ├── JobSearchPipelineV4.jsx           ← 96K monolith - target for decomposition
     ├── api.js                            ← All API wrappers + PDF.js loader
     ├── constants.js                      ← All magic numbers, keys, model IDs
     ├── profileExtractor.js               ← Regex-based resume parser (16K)
@@ -89,7 +89,7 @@ PeelAway-Logic-QA/
     │   └── useWindowWidth.js             ← Responsive breakpoint hook
     ├── phases/
     │   ├── ScoutPhase.jsx                ← Phase 1: Resume upload, profile display, search filters, layer buttons
-    │   ├── SearchPhase.jsx               ← Phase 1b: 3-layer search execution (35K — heavy lifting)
+    │   ├── SearchPhase.jsx               ← Phase 1b: 3-layer search execution (35K - heavy lifting)
     │   ├── ReviewPhase.jsx               ← Phase 2: Job tier display + sorting
     │   ├── TailorPhase.jsx               ← Phase 4: Resume/cover letter generation cards
     │   └── CompletePhase.jsx             ← Phase 5: Download + applied tracker
@@ -122,10 +122,10 @@ PROD is structurally identical to QA **except** for the following differences:
 | `claude-code-entry-point.md` | No | QA-only developer guide |
 | `.env` | No | Secrets stay local; PROD uses GitHub Secrets |
 | `prod-update-docs.yml` | No | Template file for syncing workflow to PROD |
-| — | `.claude/launch.json` | PROD has Claude Code session config |
-| — | `.claude/settings.local.json` | PROD has Claude Code local settings |
+| - | `.claude/launch.json` | PROD has Claude Code session config |
+| - | `.claude/settings.local.json` | PROD has Claude Code local settings |
 
-> **Note:** The PROD README contains a stale `git clone` URL pointing to `AI-Agentic-Solutions-Architecture` — the original monorepo this project was extracted from. The correct standalone repo is `CarmenReed/PeelAway-Logic`.
+> **Note:** The PROD README contains a stale `git clone` URL pointing to `AI-Agentic-Solutions-Architecture` - the original monorepo this project was extracted from. The correct standalone repo is `CarmenReed/PeelAway-Logic`.
 
 ---
 
@@ -154,7 +154,7 @@ PROD is structurally identical to QA **except** for the following differences:
 
 | Service | Usage | Config |
 |---|---|---|
-| **Anthropic Claude API** | Tailoring, scoring, ATS web search | Direct browser fetch — `anthropic-dangerous-direct-browser-access: true` |
+| **Anthropic Claude API** | Tailoring, scoring, ATS web search | Direct browser fetch - `anthropic-dangerous-direct-browser-access: true` |
 | **PDF.js** | Resume PDF text extraction | CDN, pinned at v3.11.174 |
 | **Adzuna API** | Job board search (Layer 1) | Optional; `REACT_APP_ADZUNA_APP_ID` + `REACT_APP_ADZUNA_APP_KEY` |
 | **JSearch (RapidAPI)** | Job board search (Layer 1) | Optional; `REACT_APP_RAPIDAPI_KEY` |
@@ -203,9 +203,9 @@ PROD is structurally identical to QA **except** for the following differences:
 
 | Variable | Required | Used By | Notes |
 |---|---|---|---|
-| `REACT_APP_ADZUNA_APP_ID` | No | Layer 1 — Adzuna job search | Layer 1 skipped if absent |
-| `REACT_APP_ADZUNA_APP_KEY` | No | Layer 1 — Adzuna job search | Layer 1 skipped if absent |
-| `REACT_APP_RAPIDAPI_KEY` | No | Layer 1 — JSearch job search | Layer 1 skipped if absent |
+| `REACT_APP_ADZUNA_APP_ID` | No | Layer 1 - Adzuna job search | Layer 1 skipped if absent |
+| `REACT_APP_ADZUNA_APP_KEY` | No | Layer 1 - Adzuna job search | Layer 1 skipped if absent |
+| `REACT_APP_RAPIDAPI_KEY` | No | Layer 1 - JSearch job search | Layer 1 skipped if absent |
 | `REACT_APP_DROPBOX_APP_KEY` | No | Cloud sync (cloudStorage.js) | Cloud sync disabled if absent |
 
 ### 5.3 Local `.env` Template (QA)
@@ -242,18 +242,18 @@ DISMISSED_KEY = "jsp-dismissed-jobs"
 
 ## 6. Application Pipeline Description
 
-The app is a single-page React application that walks users through five sequential phases. Phase progression is managed by `JobSearchPipeline.jsx`, which enforces step locking — users cannot skip or revert to a previous phase mid-pipeline.
+The app is a single-page React application that walks users through five sequential phases. Phase progression is managed by `JobSearchPipeline.jsx`, which enforces step locking - users cannot skip or revert to a previous phase mid-pipeline.
 
 ```
 [LandingScreen] → [Scout] → [Review] → [Human Gate] → [Tailor] → [Complete]
 ```
 
-### Phase 1 — Scout (`src/phases/ScoutPhase.jsx` + `src/phases/SearchPhase.jsx`)
+### Phase 1 - Scout (`src/phases/ScoutPhase.jsx` + `src/phases/SearchPhase.jsx`)
 
 Scout was split into two tabs after the QA overhaul:
 
 - **Scout tab (`ScoutPhase.jsx`):** Resume upload/paste, dynamic profile extraction display, search filters (work type, date range, employment type, zip + radius). Triggers the three search layers.
-- **Search tab (`SearchPhase.jsx`):** Executes and displays search layer progress (35K — all dedup, pre-filtering, scoring, JD fetch, and re-score logic lives here).
+- **Search tab (`SearchPhase.jsx`):** Executes and displays search layer progress (35K - all dedup, pre-filtering, scoring, JD fetch, and re-score logic lives here).
 
 | Layer | Source | API/Method | Key |
 |---|---|---|---|
@@ -262,11 +262,11 @@ Scout was split into two tabs after the QA overhaul:
 | Layer 3 | ATS boards | Greenhouse, Lever, Workday via Claude `web_search_20250305` | Anthropic |
 | Manual | URL / paste | User-supplied; scored on demand via Quick Score | Anthropic |
 
-- Each layer has its own abort controller — cancelling one doesn't affect others
+- Each layer has its own abort controller - cancelling one doesn't affect others
 - Profile extraction (`profileExtractor.js`) uses regex to derive: name, skills by category, experience level (Junior/Mid/Senior), location, and dynamic search query strings
 - After all desired layers run, "Score and Review Results" triggers: deduplication → pre-filter → batch scoring (haiku) → full JD fetch → re-score
 
-### Phase 2 — Review (`src/phases/ReviewPhase.jsx`)
+### Phase 2 - Review (`src/phases/ReviewPhase.jsx`)
 
 Jobs are bucketed into tiers by score:
 
@@ -280,11 +280,11 @@ Jobs are bucketed into tiers by score:
 - Sort options: score, date posted (newest first), company name
 - Green badge = posted within 7 days; orange badge = stale / unverifiable date
 
-### Phase 3 — Human Gate
+### Phase 3 - Human Gate
 
 User manually selects which roles to approve for tailoring. No API calls are made until explicit approval. Step locking prevents returning to Scout/Review once the gate is passed.
 
-### Phase 4 — Tailor (`src/phases/TailorPhase.jsx`)
+### Phase 4 - Tailor (`src/phases/TailorPhase.jsx`)
 
 Each approved role renders as a card with two independent on-demand buttons:
 
@@ -293,7 +293,7 @@ Each approved role renders as a card with two independent on-demand buttons:
 
 Anti-hallucination enforcement: prompts (`src/prompts.js`) restrict output to content derivable from the uploaded resume only.
 
-### Phase 5 — Complete (`src/phases/CompletePhase.jsx`)
+### Phase 5 - Complete (`src/phases/CompletePhase.jsx`)
 
 - Download or copy documents per role
 - Mark jobs as applied
@@ -356,7 +356,7 @@ jobs:
 - Triggers automatically on every push to `main`
 - Secrets injected at build time as `REACT_APP_*` env vars (baked into the static bundle)
 - Deploys the `build/` directory to GitHub Pages using the official `deploy-pages` action
-- No test step in CI — tests run locally in QA only
+- No test step in CI - tests run locally in QA only
 - `workflow_dispatch` allows manual re-deploy from the GitHub Actions UI
 
 ### 7.2 Auto-Update Docs Workflow
@@ -387,8 +387,8 @@ jobs:
 | **Homepage field** | `"homepage": "https://carmenreed.github.io/PeelAway-Logic-QA"` in `package.json` |
 | **Node version (CI)** | 20 |
 | **Node version (local)** | ≥ 18 |
-| **`npm run deploy` script** | Defined (`gh-pages -d build`) but **not used** — CI handles deploys |
-| **Config files** | None — no `netlify.toml`, `vercel.json`, or custom server config |
+| **`npm run deploy` script** | Defined (`gh-pages -d build`) but **not used** - CI handles deploys |
+| **Config files** | None - no `netlify.toml`, `vercel.json`, or custom server config |
 
 **Deploy flow:**
 
@@ -490,9 +490,9 @@ CI=true npm test -- --testPathPattern="api.test"
 CI=true npm test -- --coverage
 ```
 
-**No CI test step** — tests are not run in the GitHub Actions workflow. All testing is manual in the local QA environment before pushing.
+**No CI test step** - tests are not run in the GitHub Actions workflow. All testing is manual in the local QA environment before pushing.
 
-**No config overrides** — Jest runs with CRA defaults (no `jest.config.js`). No Cypress, Playwright, or other E2E framework is present.
+**No config overrides** - Jest runs with CRA defaults (no `jest.config.js`). No Cypress, Playwright, or other E2E framework is present.
 
 ---
 
@@ -532,7 +532,7 @@ CI=true npm test -- --coverage
 | `src/cloudStorage.js` | Cloud storage wrapper | Dropbox integration interface |
 | `src/cloudSync.js` | Cloud sync logic | Handles sync between localStorage and Dropbox |
 | `src/phases/ScoutPhase.jsx` | Phase 1 UI | Resume upload, profile display, search filters, layer trigger buttons |
-| `src/phases/SearchPhase.jsx` | Phase 1b — Search execution | 3 search layers, abort controllers, dedup, pre-filter, scoring, re-score (35K) |
+| `src/phases/SearchPhase.jsx` | Phase 1b - Search execution | 3 search layers, abort controllers, dedup, pre-filter, scoring, re-score (35K) |
 | `src/phases/ReviewPhase.jsx` | Phase 2 UI | Tier buckets, sorting, date badges |
 | `src/phases/TailorPhase.jsx` | Phase 4 UI + logic | Per-role resume/cover letter generation cards |
 | `src/phases/CompletePhase.jsx` | Phase 5 UI | Download, copy, applied job tracking |

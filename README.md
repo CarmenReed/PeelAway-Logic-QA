@@ -18,7 +18,7 @@ This folder serves as the staging ground for all iterative work on PeelAway Logi
 
 | Item | Type | Status |
 |------|------|--------|
-| — | — | No active items |
+| - | - | No active items |
 
 > Items will be added to this table as each iteration begins. Completed items are promoted to production and cleared from this list.
 
