@@ -1,0 +1,59 @@
+flowchart LR
+    Keywords["🔍 Keywords<br/>(User Input)"]
+
+    subgraph Scout["Scout Phase"]
+        Adzuna["Adzuna API<br/>(cap 10)"]
+        JSearch["JSearch API<br/>(cap 10)"]
+        RSS["RSS Feeds<br/>(cap 10)"]
+        WebSearch["Claude Web Search<br/>(cap 10)"]
+        Dedup["Deduplicate<br/>& Combine"]
+        Adzuna --> Dedup
+        JSearch --> Dedup
+        RSS --> Dedup
+        WebSearch --> Dedup
+    end
+
+    subgraph Review["Review Phase"]
+        Score["Claude Scores<br/>(claude-sonnet)"]
+        Tier["Tier Classification<br/>Strong: 8-10<br/>Possible: 6-7<br/>Weak: 3-5"]
+        Gate["🚦 Human Gate<br/>(Explicit Approval)"]
+        AzureIdx["Azure AI Search<br/>(Optional Index)"]
+        Score --> Tier
+        Tier --> Gate
+        Tier -.->|optional| AzureIdx
+    end
+
+    subgraph Tailor["Tailor Phase"]
+        TailorResume["Claude Tailors Resume<br/>(claude-sonnet)"]
+        Constraints["Anti-Hallucination<br/>Constraints:<br/>• No invented experience<br/>• No false credentials<br/>• Skills from resume only"]
+        TailorResume --- Constraints
+    end
+
+    subgraph CoverLetter["Cover Letter Phase"]
+        GenCL["Generate Cover Letter<br/>(claude-sonnet)"]
+    end
+
+    Export["📥 Export<br/>PDF + TXT<br/>localStorage tracking"]
+
+    Keywords --> Scout
+    Dedup --> Score
+    Gate -->|Approved jobs| TailorResume
+    TailorResume --> GenCL
+    GenCL --> Export
+
+    classDef input fill:#FFE6CC,stroke:#D68910,color:#000,stroke-width:2px
+    classDef phase fill:#D4E8FF,stroke:#2E5C8A,color:#000,stroke-width:2px
+    classDef ai fill:#E8D5FF,stroke:#9013FE,color:#000,stroke-width:2px
+    classDef gate fill:#FFE6D5,stroke:#E67E22,color:#000,stroke-width:2px
+    classDef azure fill:#C2E0FF,stroke:#0078D4,color:#000,stroke-width:2px
+    classDef output fill:#D4EDDA,stroke:#5FA319,color:#000,stroke-width:2px
+    classDef constraint fill:#FFF3CD,stroke:#D68910,color:#000,stroke-width:1px
+
+    class Keywords input
+    class Adzuna,JSearch,RSS,WebSearch,Dedup phase
+    class Score,TailorResume,GenCL ai
+    class Tier phase
+    class Gate gate
+    class AzureIdx azure
+    class Export output
+    class Constraints constraint

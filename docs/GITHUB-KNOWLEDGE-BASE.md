@@ -49,13 +49,27 @@ PeelAway-Logic-QA/
 ├── .gitignore
 ├── _.gitignore                           ← Duplicate / backup gitignore
 ├── claude-code-entry-point.md            ← QA-only developer guide for Claude Code
-├── POST_RESKIN_DECOMPOSITION_PLAN.md     ← Refactor roadmap (96K monolith → modules)
+├── POST_RESKIN_DECOMPOSITION_PLAN.md     ← Refactor roadmap (96K monolith into modules)
 ├── README.md
 ├── package.json
 ├── package-lock.json
 ├── peelaway-mockups-v2.html              ← Static UI mockup reference
 ├── prod-update-docs.yml                  ← Production doc-update workflow template
 ├── PeelAway Logic/                       ← Metadata / assets folder
+├── scripts/
+│   ├── doc-lint.js                       ← Documentation quality linter (em-dashes, broken links, ADR sections)
+│   └── repo-cleanup.js                   ← Repo maintenance utilities
+├── semantic-kernel-demo/                 ← Python SK orchestration demo (mirrors 5 pipeline phases, Azure OpenAI swap-ready)
+├── docs/
+│   ├── GITHUB-KNOWLEDGE-BASE.md          ← This file
+│   ├── AI_SKILLS_INVENTORY.md            ← AI skills and techniques demonstrated in the project
+│   ├── PROJECT_EVOLUTION.md              ← Project history and milestone log
+│   ├── GOVERNANCE.md                     ← Contributing and versioning guidelines
+│   └── architecture/
+│       ├── ARCHITECTURE.md               ← System context, component overview, data flow narrative
+│       ├── azure-resources.bicep         ← IaC template for 7 Azure resources
+│       ├── decisions/                    ← Architecture Decision Records (ADR-001 through ADR-006)
+│       └── diagrams/                     ← Mermaid source files (system context, container, pipeline, Azure integration)
 ├── public/
 │   ├── index.html
 │   ├── PeelAwayLogicLogo.png
@@ -93,7 +107,9 @@ PeelAway-Logic-QA/
     │   ├── ReviewPhase.jsx               ← Phase 2: Job tier display + sorting
     │   ├── TailorPhase.jsx               ← Phase 4: Resume/cover letter generation cards
     │   └── CompletePhase.jsx             ← Phase 5: Download + applied tracker
-    └── __tests__/                        ← QA-only test suite (346 tests, 15 files)
+    ├── services/
+    │   └── azureSearchService.js         ← Azure AI Search REST client (index, batch index, search, delete)
+    └── __tests__/                        ← QA-only test suite (425 tests, 16 files)
         ├── pipelineUtils.test.js         ← Utility unit tests (dedup, scoring, prompts)
         ├── profileExtractor.test.js      ← Resume parsing tests (name, skills, location, queries)
         ├── utilsKeywordPreFilter.test.js ← Dynamic pre-filtering tests (level + location matching)
@@ -108,7 +124,8 @@ PeelAway-Logic-QA/
         ├── reviewPhase.test.jsx          ← ReviewPhase tier tabs, selection, and advance tests
         ├── completePhase.test.jsx        ← CompletePhase download, applied, and tracker tests
         ├── tailorPhase.test.js           ← Tailor phase behavior tests
-        └── tailorPersistence.test.js     ← Tailor localStorage persistence tests
+        ├── tailorPersistence.test.js     ← Tailor localStorage persistence tests
+        └── azureSearchService.test.js    ← Azure AI Search client tests (9 tests, 4 describe blocks)
 ```
 
 ### 2.2 PROD GitHub Repo
@@ -117,7 +134,7 @@ PROD is structurally identical to QA **except** for the following differences:
 
 | Present in QA | Present in PROD | Notes |
 |---|---|---|
-| `src/__tests__/` (15 files) | No | Test suite lives only in QA |
+| `src/__tests__/` (16 files) | No | Test suite lives only in QA |
 | `src/setupTests.js` | No | Test setup lives only in QA |
 | `claude-code-entry-point.md` | No | QA-only developer guide |
 | `.env` | No | Secrets stay local; PROD uses GitHub Secrets |
@@ -161,7 +178,9 @@ PROD is structurally identical to QA **except** for the following differences:
 | **RSS feeds** | WeWorkRemotely, Remotive, RemoteOK, Stack Overflow (Layer 2) | No key required |
 | **ATS web search** | Greenhouse, Lever, Workday via Claude `web_search_20250305` tool (Layer 3) | Requires Anthropic key with web search enabled |
 | **Dropbox API** | Cloud sync of applied jobs / tailor results | Optional; `REACT_APP_DROPBOX_APP_KEY` |
-| **Google Fonts** | Quicksand (wght 400–700) | CDN, loaded in `public/index.html` |
+| **Azure AI Search** | Job index search (portfolio integration) | `peelaway-search` instance, East US, F0 free tier; REST client in `src/services/azureSearchService.js` |
+| **Azure OpenAI** | Swap-ready alternative to Anthropic API | Configured in `semantic-kernel-demo/` via `AzureChatCompletion`; swap-in documented in ADR-001 |
+| **Google Fonts** | Quicksand (wght 400-700) | CDN, loaded in `public/index.html` |
 
 ### 3.4 Build Toolchain
 
@@ -179,7 +198,7 @@ PROD is structurally identical to QA **except** for the following differences:
 |---|---|---|
 | **Run command** | `npm start` (CRA dev server, port 3000) | `npm run build` → deployed artifact |
 | **API keys source** | `.env` file (local, not committed) | GitHub Actions Secrets |
-| **Test suite** | 346 tests in `src/__tests__/` (15 files) | Not present |
+| **Test suite** | 425 tests in `src/__tests__/` (16 files) | Not present |
 | **Hot reload** | Yes (CRA HMR) | No (static build) |
 | **Source maps** | Full (dev mode) | Optimized/minified |
 | **Deploy trigger** | Manual (`npm start` locally) | `git push main` → GitHub Actions |
@@ -434,7 +453,8 @@ import "@testing-library/jest-dom";
 | `completePhase.test.jsx` | CompletePhase: render, applied state, tracker, download, navigation | ~21 | Component render/interaction tests with mocked URL API |
 | `tailorPhase.test.js` | Tailor phase: session restore, persistence, error handling, cancel, advance | ~10 | Component integration tests with mocked `fetch` |
 | `tailorPersistence.test.js` | localStorage persistence for tailor results (read/write/clear) | ~8 | Unit tests against localStorage API |
-| **Total** | | **346** | |
+| `azureSearchService.test.js` | Azure AI Search client: createJobIndex, indexJobs (batching), searchJobs (filters), deleteIndex | 9 | Unit tests with mocked `fetch`, verifies request construction and error handling |
+| **Total** | | **425** | |
 
 ### 9.2 Test Methodologies
 
@@ -472,7 +492,7 @@ Uses `jest.useFakeTimers()` + `jest.advanceTimersByTime()` for debounce and dela
 
 ### 9.4 Known Test Issues
 
-None. All 346 tests pass.
+None. All 425 tests pass.
 
 ### 9.5 Running Tests
 

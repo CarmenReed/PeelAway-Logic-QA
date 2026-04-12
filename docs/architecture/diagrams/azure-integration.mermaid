@@ -1,0 +1,46 @@
+flowchart TB
+    subgraph ReactApp["React SPA (PeelAway Logic)"]
+        ReviewPhase["Review Phase"]
+        AzureClient["azureSearchService.js<br/>(REST client, no SDK)"]
+        ReviewPhase -->|indexes scored jobs| AzureClient
+    end
+
+    subgraph AzureCloud["Azure AI Search"]
+        SearchService["peelaway-search<br/>(F0 Free Tier)"]
+        Index["Search Index<br/>(job profiles + scores)"]
+        Query["Semantic Query<br/>(BM25 + vector ranking)"]
+        SearchService --> Index
+        SearchService --> Query
+    end
+
+    AzureClient -->|"REST API (api-key auth)"| SearchService
+
+    subgraph SKDemo["semantic-kernel-demo/ (Python, standalone)"]
+        SKApp["Semantic Kernel App"]
+        JobPlugin["SK Plugin:<br/>JobScoring"]
+        ResumePlugin["SK Plugin:<br/>ResumeParser"]
+        SKApp --> JobPlugin
+        SKApp --> ResumePlugin
+    end
+
+    subgraph AIProviders["AI Providers"]
+        OpenAI["OpenAI API<br/>(current fallback)"]
+        AzureOpenAI["Azure OpenAI<br/>(swap-ready)"]
+    end
+
+    SKApp -->|"currently using"| OpenAI
+    SKApp -.->|"swap-ready"| AzureOpenAI
+
+    note1["⚠️ Azure OpenAI: swap-ready,<br/>currently using OpenAI fallback.<br/>Config change only — no code changes needed."]
+
+    classDef react fill:#61DAFB,stroke:#21A0C4,color:#000,stroke-width:2px
+    classDef azure fill:#0078D4,stroke:#004B7A,color:#fff,stroke-width:2px
+    classDef sk fill:#9013FE,stroke:#6B0BAA,color:#fff,stroke-width:2px
+    classDef ai fill:#F5A623,stroke:#D68910,color:#fff,stroke-width:2px
+    classDef note fill:#FFF3CD,stroke:#D68910,color:#000,stroke-width:1px
+
+    class ReviewPhase,AzureClient react
+    class SearchService,Index,Query azure
+    class SKApp,JobPlugin,ResumePlugin sk
+    class OpenAI,AzureOpenAI ai
+    class note1 note

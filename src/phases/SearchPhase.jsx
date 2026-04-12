@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   ANTHROPIC_API_KEY, SCORING_MODEL, SCORING_BATCH_SIZE,
   SCORING_BATCH_DELAY_MS, ADZUNA_APP_ID, ADZUNA_APP_KEY, RAPIDAPI_KEY,
+  SCOUT_ADZUNA_MAX, SCOUT_JSEARCH_MAX, SCOUT_RSS_MAX, SCOUT_ATS_MAX,
 } from "../constants";
 import {
   extractJson, extractTextFromBlocks, companyTitleKey, jobKey,
@@ -43,7 +44,7 @@ async function fetchAdzunaJobs(queries, filters, signal) {
       }
     } catch { continue; }
   }
-  return results;
+  return results.slice(0, SCOUT_ADZUNA_MAX);
 }
 
 async function fetchJSearchJobs(queries, filters, signal) {
@@ -82,7 +83,7 @@ async function fetchJSearchJobs(queries, filters, signal) {
       }
     } catch { continue; }
   }
-  return results;
+  return results.slice(0, SCOUT_JSEARCH_MAX);
 }
 
 async function fetchRssJobs(signal, onProgress) {
@@ -198,7 +199,7 @@ async function fetchRssJobs(signal, onProgress) {
     if (onProgress) onProgress(`${feed.source}: ${items.length} found`);
   }
 
-  return results;
+  return results.slice(0, SCOUT_RSS_MAX);
 }
 
 async function fetchAtsJobs(apiKey, profileText, targetLevels, filters, signal) {
@@ -231,7 +232,7 @@ Return this JSON:
       tools: [{ type: "web_search_20250305", name: "web_search" }],
       signal, maxTurns: 8,
     });
-    return (data.jobs || []).map(j => ({ ...j, source: j.source || "ats" }));
+    return (data.jobs || []).map(j => ({ ...j, source: j.source || "ats" })).slice(0, SCOUT_ATS_MAX);
   } catch { return []; }
 }
 

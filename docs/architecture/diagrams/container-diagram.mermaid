@@ -1,0 +1,46 @@
+C4Container
+    title PeelAway Logic — Container Diagram (C4 Level 2)
+
+    Person(user, "Job Seeker")
+
+    System_Boundary(spa, "PeelAway Logic React SPA") {
+        Container(scout, "Scout Phase", "React Component", "Job search: Adzuna, JSearch, RSS, Claude web search<br/>Cap 10 results per source")
+        Container(review, "Review Phase", "React Component", "Claude scores jobs (Strong/Possible/Weak)<br/>Human gate: explicit approval<br/>Optional Azure Search indexing")
+        Container(tailor, "Tailor Phase", "React Component", "Claude tailors resume to approved jobs<br/>Anti-hallucination constraints")
+        Container(cover, "Cover Letter Phase", "React Component", "Generates targeted cover letters<br/>Export PDF/TXT")
+        ContainerDb(storage, "Pipeline State", "localStorage", "Jobs, scores, resumes, tracking data")
+        Container(azureService, "azureSearchService.js", "Azure REST Client", "Index/query Azure AI Search<br/>REST calls, no SDK")
+    }
+
+    System_Boundary(sk, "Semantic Kernel Demo") {
+        Container(skDemo, "semantic-kernel-demo/", "Python (standalone)", "SK Plugins: JobScoring, ResumeParser<br/>OpenAI fallback, Azure OpenAI swap-ready")
+    }
+
+    System_Ext(claude, "Anthropic Claude API", "claude-sonnet")
+    System_Ext(adzuna, "Adzuna API", "Job listings")
+    System_Ext(jsearch, "JSearch API", "Job listings")
+    System_Ext(rss, "RSS Feeds", "Job sources")
+    System_Ext(azure, "Azure AI Search", "peelaway-search (F0)")
+    System_Ext(ghPages, "GitHub Pages", "Static hosting via GitHub Actions CI/CD")
+
+    Rel(user, scout, "Enters keywords")
+    Rel(scout, review, "Passes fetched jobs")
+    Rel(review, tailor, "Passes approved jobs")
+    Rel(tailor, cover, "Passes tailored content")
+
+    Rel(scout, adzuna, "Fetches jobs")
+    Rel(scout, jsearch, "Fetches jobs")
+    Rel(scout, rss, "Parses feeds")
+    Rel(scout, claude, "Web search")
+    Rel(review, claude, "Scores jobs")
+    Rel(review, azureService, "Indexes scored jobs")
+    Rel(tailor, claude, "Tailors resume")
+    Rel(cover, claude, "Generates cover letter")
+    Rel(azureService, azure, "REST API calls")
+    Rel(scout, storage, "Persists state")
+    Rel(review, storage, "Persists state")
+    Rel(tailor, storage, "Persists state")
+    Rel(cover, storage, "Persists state")
+    Rel(skDemo, claude, "Uses Claude API")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")

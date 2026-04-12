@@ -1,0 +1,32 @@
+timeline
+    title PeelAway Logic — Evolution Timeline
+
+    section v0 — Gemini Gems
+        Origin : 5 disconnected Gemini Gems prompts
+               : Manual copy-paste between steps
+               : No orchestration or state
+
+    section v1 — Claude Code + React SPA
+        Unified Pipeline : Claude Code builds React 18 SPA (Vite)
+                         : 4-phase pipeline (Scout → Review → Tailor → Cover Letter)
+                         : localStorage for pipeline state
+                         : Client-side Claude API (claude-sonnet)
+
+    section v2 — Tests + CI/CD + GitHub Pages
+        Production Ready : 346 tests across 15 files
+                         : GitHub Actions CI/CD pipeline
+                         : Deployed to GitHub Pages
+                         : Automated doc updates
+
+    section v3 — Azure AI Search + Semantic Kernel (Current Sprint)
+        Azure Integration : Azure AI Search (peelaway-search, F0)
+                          : azureSearchService.js (REST, no SDK)
+                          : Semantic Kernel demo (Python, standalone)
+                          : Architecture documentation + ADRs
+
+    section Enterprise Vision
+        Future State : Azure Static Web Apps (CDN + serverless)
+                     : Cosmos DB (replace localStorage)
+                     : Azure OpenAI (swap from Anthropic Claude)
+                     : Key Vault (centralized secrets)
+                     : Bicep IaC (reproducible infrastructure)

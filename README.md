@@ -50,6 +50,18 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 - Google Fonts (Fredoka for brand header)
 - localStorage for applied job tracking across sessions
 
+## Azure Integration
+
+PeelAway Logic includes a portfolio-quality Azure integration layer demonstrating enterprise AI search and orchestration patterns.
+
+**Azure AI Search** (`src/services/azureSearchService.js`): A REST client for the `peelaway-search` Azure AI Search instance (East US, F0 free tier). Demonstrates index creation with a typed schema, batch document indexing in 50-job chunks, full-text search with OData `$filter` support, and index deletion. All operations return structured result objects and never throw, matching the error-handling pattern used in the main app.
+
+**Semantic Kernel Demo** (`semantic-kernel-demo/`): A Python orchestration demo that mirrors the five PeelAway pipeline phases using Microsoft Semantic Kernel. Implements `JobScoringPlugin` and `ResumeParserPlugin` as native SK plugins and wires them into a kernel. The demo is Azure OpenAI swap-ready: `AzureChatCompletion` is included as a commented-in alternative to `OpenAIChatCompletion`, so switching providers requires a single line change and environment variable updates.
+
+For architecture diagrams and component context, see [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md).
+
+For design decisions behind the Azure integration, see the ADRs in [docs/architecture/decisions/](docs/architecture/decisions/).
+
 ## Features
 
 - Regex-based profile extraction from uploaded resume (skills, experience level, titles, location, search queries)
@@ -135,7 +147,7 @@ npm test
 
 ## Project Background
 
-Built as a suite of AI-powered tools designed to support neurodivergent job seekers by reducing executive function friction in the job search process.
+Built as a suite of AI-powered tools designed to reduce executive function friction in the job search process.
 
 ## Author
 

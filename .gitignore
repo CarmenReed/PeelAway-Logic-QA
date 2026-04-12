@@ -1,10 +1,36 @@
+# Claude Code internals — never commit
+.claude/
+
 # dependencies
 node_modules/
 
 # production build
 build/
 
-# environment variables (contains API key)
+# Secrets and environment
 .env
 .env.local
 .env.*.local
+semantic-kernel-demo/.env
+
+# OS files
+.DS_Store
+Thumbs.db
+*._.*
+._*
+
+# Sprint artifacts (keep out of PROD - copy carefully)
+MASTER_PLAN_*
+AZURE_INTEGRATION_PLAN.md
+*sprint-plan*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+semantic-kernel-demo/venv/
+
+# Temp/local scripts
+fix-failing-tests.ps1
+prod-update-docs.yml

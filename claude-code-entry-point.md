@@ -6,7 +6,7 @@ A developer guide for using Claude Code with this repository. Read this first be
 
 ## 1. Project Overview
 
-**PeelAway Logic** is a QA environment for an AI-powered job search automation pipeline. It reduces executive function friction for neurodivergent job seekers by automating the scout-to-apply workflow.
+**PeelAway Logic** is a QA environment for an AI-powered job search automation pipeline. It reduces executive function friction in the job search by automating the scout-to-apply workflow.
 
 The app is a React 18 single-page application. It calls the Anthropic API directly from the browser (no backend server). Job data is persisted in localStorage between sessions.
 
@@ -532,6 +532,8 @@ src/
     Spinner.jsx         Loading animation
   hooks/
     useWindowWidth.js   Responsive breakpoint hook (MOBILE_BP = 640)
+  services/
+    azureSearchService.js  Azure AI Search REST client (index, batch index, search, delete)
   __tests__/             tests across  suites
     pipelineUtils.test.js       Utility function tests (JSON, dedup, titles, prompts)
     utilsKeywordPreFilter.test.js Dynamic pre-filter tests (profile-driven)
@@ -548,6 +550,19 @@ src/
     api.test.js                 API wrapper and retry logic tests
     storage.test.js             localStorage wrapper tests
     hooks.test.js               Custom hook tests
+    azureSearchService.test.js  Azure AI Search REST client tests (index, batch, search, delete)
+```
+
+### Additional Directories
+
+```
+semantic-kernel-demo/           Python SK orchestration demo (mirrors pipeline phases, Azure OpenAI swap-ready)
+docs/architecture/              Architecture docs, Mermaid diagrams, and ADRs
+  ARCHITECTURE.md               System context, component overview, data flow narrative
+  decisions/                    Architecture Decision Records (ADR-001 through ADR-006)
+  diagrams/                     Mermaid source files for system context, container, and pipeline diagrams
+scripts/
+  doc-lint.js                   Documentation quality linter (em-dashes, broken links, file size, ADR sections)
 ```
 
 ### localStorage Quick Reference

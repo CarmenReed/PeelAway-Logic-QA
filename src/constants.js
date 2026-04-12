@@ -22,3 +22,13 @@ export const ADZUNA_APP_ID = process.env.REACT_APP_ADZUNA_APP_ID || "";
 export const ADZUNA_APP_KEY = process.env.REACT_APP_ADZUNA_APP_KEY || "";
 export const RAPIDAPI_KEY = process.env.REACT_APP_RAPIDAPI_KEY || "";
 export const DROPBOX_APP_KEY = process.env.REACT_APP_DROPBOX_APP_KEY || "";
+
+// Azure AI Search
+export const AZURE_SEARCH_API_VERSION = "2023-11-01";
+export const AZURE_SEARCH_INDEX_NAME = "peelaway-jobs";
+
+// Scout result caps (per source, total across all queries/feeds)
+export const SCOUT_ADZUNA_MAX = 10;
+export const SCOUT_JSEARCH_MAX = 10;
+export const SCOUT_RSS_MAX = 10;
+export const SCOUT_ATS_MAX = 10;
