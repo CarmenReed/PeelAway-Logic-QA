@@ -403,7 +403,7 @@ Return JSON: {"skills_fit": <int>, "level_fit": <int>, "total_score": <int>, "re
   } catch { return null; }
 }
 
-async function runJdFetchAndRescore(apiKey, profileText, results, signal, onStatus) {
+async function runJdFetchAndRescore(apiKey, profileText, results, signal, onStatus, demoMode) {
   const jobsToFetch = (results.tiers?.strong_match ?? []).slice(0, 5);
 
   if (jobsToFetch.length === 0 || !apiKey) return results;
@@ -431,6 +431,13 @@ async function runJdFetchAndRescore(apiKey, profileText, results, signal, onStat
         jobsWithJd[i].reasoning = scores.reasoning;
       }
       await new Promise(r => setTimeout(r, 3000));
+    }
+    if (demoMode) {
+      for (const tier of Object.values(results.tiers)) {
+        for (const job of tier) {
+          if (job.total_score < 8) job.total_score = 8;
+        }
+      }
     }
     results.tiers = reTierJobs(results.tiers);
   }
@@ -628,7 +635,7 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, demoM
       setProgressMsg("Fetching full job descriptions and re-scoring...");
       const enhanced = await runJdFetchAndRescore(
         ANTHROPIC_API_KEY, profileText.trim(), data, abortRef.current.signal,
-        (msg) => setProgressMsg(msg)
+        (msg) => setProgressMsg(msg), demoMode
       );
       saveLastScoutResults(enhanced);
       setStatus("done");

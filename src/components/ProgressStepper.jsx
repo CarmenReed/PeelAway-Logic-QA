@@ -50,7 +50,12 @@ export default function ProgressStepper({ current, maxVisited, onTabClick }) {
       </ol>
       <div className="step-labels" aria-hidden="true">
         {PHASES.map((name, i) => (
-          <span key={name} className={`step-label${i === current ? " current-label" : ""}`}>{name}</span>
+          <span key={name} style={{ display: "contents" }}>
+            <span className={`step-label${i === current ? " current-label" : ""}`}>
+              <span className="step-label-text">{name}</span>
+            </span>
+            {i < PHASES.length - 1 && <span className="step-label-spacer" />}
+          </span>
         ))}
       </div>
     </nav>

@@ -207,16 +207,25 @@ body {
 .step-line.future { background: var(--cream-dark); }
 
 .step-labels {
-  display: flex; justify-content: space-between;
-  margin-top: 8px; padding: 0 4px;
+  display: flex; align-items: flex-start;
+  margin-top: 8px;
 }
 
 .step-label {
-  font-size: 11px; width: 38px; text-align: center;
-  font-weight: 600; color: var(--brown-light);
+  position: relative; width: 38px; flex-shrink: 0;
 }
 
-.step-label.current-label { font-weight: 700; color: var(--brown); }
+.step-label-text {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-size: 11px; font-weight: 600;
+  color: var(--brown-light);
+}
+
+.step-label-spacer {
+  flex: 1; margin: 0 8px;
+}
+
+.step-label.current-label .step-label-text { font-weight: 700; color: var(--brown); }
 
 .progress-mobile {
   display: block; padding: 10px 14px;
