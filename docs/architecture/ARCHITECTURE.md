@@ -2,7 +2,7 @@
 
 ## Overview
 
-PeelAway Logic is an AI-powered job search pipeline built as a React 18 single-page application (Vite), deployed to GitHub Pages. It orchestrates a 4-phase workflow (Scout, Review, Tailor, Cover Letter) that transforms a resume and keywords into scored job matches and tailored application materials, using Anthropic Claude (claude-sonnet) for AI scoring and content generation with all state persisted in localStorage. The current sprint adds Azure AI Search integration and a standalone Semantic Kernel demo as enterprise proof-of-concept extensions.
+PeelAway Logic is an AI-powered job search pipeline built as a React 18 single-page application (Vite), deployed to GitHub Pages. It orchestrates a 4-phase workflow (Scout, Search, Review, Complete) that transforms a resume and keywords into scored job matches and tailored application materials, using Anthropic Claude (claude-sonnet) for AI scoring and content generation with all state persisted in localStorage. The current sprint adds Azure AI Search integration and a standalone Semantic Kernel demo as enterprise proof-of-concept extensions.
 
 ## System Context
 
@@ -41,8 +41,7 @@ C4Container
     System_Boundary(spa, "PeelAway Logic React SPA") {
         Container(scout, "Scout Phase", "React Component", "Job search: Adzuna, JSearch, RSS, Claude web search<br/>Cap 10 results per source")
         Container(review, "Review Phase", "React Component", "Claude scores jobs (Strong/Possible/Weak)<br/>Human gate: explicit approval<br/>Optional Azure Search indexing")
-        Container(tailor, "Tailor Phase", "React Component", "Claude tailors resume to approved jobs<br/>Anti-hallucination constraints")
-        Container(cover, "Cover Letter Phase", "React Component", "Generates targeted cover letters<br/>Export PDF/TXT")
+        Container(complete, "Complete Phase", "React Component", "Claude tailors resume and cover letter to approved jobs<br/>Anti-hallucination constraints<br/>Export PDF/TXT")
         ContainerDb(storage, "Pipeline State", "localStorage", "Jobs, scores, resumes, tracking data")
         Container(azureService, "azureSearchService.js", "Azure REST Client", "Index/query Azure AI Search<br/>REST calls, no SDK")
     }
@@ -60,8 +59,7 @@ C4Container
 
     Rel(user, scout, "Enters keywords")
     Rel(scout, review, "Passes fetched jobs")
-    Rel(review, tailor, "Passes approved jobs")
-    Rel(tailor, cover, "Passes tailored content")
+    Rel(review, complete, "Passes approved jobs")
 
     Rel(scout, adzuna, "Fetches jobs")
     Rel(scout, jsearch, "Fetches jobs")
@@ -69,13 +67,11 @@ C4Container
     Rel(scout, claude, "Web search")
     Rel(review, claude, "Scores jobs")
     Rel(review, azureService, "Indexes scored jobs")
-    Rel(tailor, claude, "Tailors resume")
-    Rel(cover, claude, "Generates cover letter")
+    Rel(complete, claude, "Tailors resume and cover letter")
     Rel(azureService, azure, "REST API calls")
     Rel(scout, storage, "Persists state")
     Rel(review, storage, "Persists state")
-    Rel(tailor, storage, "Persists state")
-    Rel(cover, storage, "Persists state")
+    Rel(complete, storage, "Persists state")
     Rel(skDemo, claude, "Uses Claude API")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
@@ -109,14 +105,12 @@ flowchart LR
         Tier -.->|optional| AzureIdx
     end
 
-    subgraph Tailor["Tailor Phase"]
+    subgraph Complete["Complete Phase"]
         TailorResume["Claude Tailors Resume<br/>(claude-sonnet)"]
+        GenCL["Generate Cover Letter<br/>(claude-sonnet)"]
         Constraints["Anti-Hallucination<br/>Constraints:<br/>• No invented experience<br/>• No false credentials<br/>• Skills from resume only"]
         TailorResume --- Constraints
-    end
-
-    subgraph CoverLetter["Cover Letter Phase"]
-        GenCL["Generate Cover Letter<br/>(claude-sonnet)"]
+        TailorResume --> GenCL
     end
 
     Export["📥 Export<br/>PDF + TXT<br/>localStorage tracking"]
@@ -124,7 +118,6 @@ flowchart LR
     Keywords --> Scout
     Dedup --> Score
     Gate -->|Approved jobs| TailorResume
-    TailorResume --> GenCL
     GenCL --> Export
 
     classDef input fill:#FFE6CC,stroke:#D68910,color:#000,stroke-width:2px
@@ -209,7 +202,7 @@ timeline
 
     section v1 — Claude Code + React SPA
         Unified Pipeline : Claude Code builds React 18 SPA (Vite)
-                         : 4-phase pipeline (Scout → Review → Tailor → Cover Letter)
+                         : 4-phase pipeline (Scout → Search → Review → Complete)
                          : localStorage for pipeline state
                          : Client-side Claude API (claude-sonnet)
 

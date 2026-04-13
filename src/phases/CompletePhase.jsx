@@ -1,12 +1,116 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { ANTHROPIC_API_KEY, TAILOR_DELAY_MS } from "../constants";
+import { companyTitleKey, jobKey, extractTextFromBlocks, extractJson } from "../utils";
+import { loadTailorResults, saveTailorResult } from "../storage";
+import { TAILOR_SYSTEM, buildResumeOnlyPrompt, buildCoverLetterOnlyPrompt } from "../prompts";
+import { withRetry, callAnthropic } from "../api";
 import { saveToDropbox, isDropboxConfigured } from "../cloudStorage";
+import Spinner from "../components/Spinner";
 import AppliedTracker from "../components/AppliedTracker";
 import GuideBar from "../components/GuideBar";
 
-function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain, cloudConnected, onStartOver }) {
+function CompletePhase({ approvedJobs, profileText, extractedProfile, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain, cloudConnected, onStartOver }) {
+  const [downloadFormat, setDownloadFormat] = useState("txt");
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [copiedType, setCopiedType] = useState(null);
-  const [downloadFormat, setDownloadFormat] = useState("txt");
+
+  // Per-job generation state: { [jobKey]: { resumeStatus, coverStatus, resume, coverLetter, error } }
+  const [jobState, setJobState] = useState(() => {
+    const saved = loadTailorResults();
+    const restored = {};
+    for (const r of saved) {
+      const key = companyTitleKey({ company: r.company, title: r.job_title });
+      const match = approvedJobs.find(j => companyTitleKey(j) === key);
+      if (match) {
+        restored[jobKey(match)] = {
+          resumeStatus: r.resume ? "done" : "idle",
+          coverStatus: r.cover_letter ? "done" : "idle",
+          resume: r.resume || null,
+          coverLetter: r.cover_letter || null,
+        };
+      }
+    }
+    return restored;
+  });
+  const abortRefs = useRef({});
+  const lastCallTime = useRef(0);
+
+  const getJobState = (job) => jobState[jobKey(job)] ?? {};
+
+  const setJobField = (job, fields) => {
+    setJobState(prev => ({
+      ...prev,
+      [jobKey(job)]: { ...prev[jobKey(job)], ...fields },
+    }));
+  };
+
+  const waitForRateLimit = async () => {
+    const now = Date.now();
+    const elapsed = now - lastCallTime.current;
+    if (lastCallTime.current > 0 && elapsed < TAILOR_DELAY_MS) {
+      await new Promise(r => setTimeout(r, TAILOR_DELAY_MS - elapsed));
+    }
+    lastCallTime.current = Date.now();
+  };
+
+  const persistJobResult = (job, fields) => {
+    const currentState = { ...jobState[jobKey(job)], ...fields };
+    saveTailorResult({
+      job_title: job.title,
+      company: job.company,
+      url: job.url || "",
+      resume: currentState.resume || "",
+      cover_letter: currentState.coverLetter || "",
+    });
+  };
+
+  const handleCreateResume = async (job) => {
+    const key = jobKey(job);
+    abortRefs.current[key + "_resume"] = new AbortController();
+    setJobField(job, { resumeStatus: "running", resumeError: null });
+    try {
+      await waitForRateLimit();
+      const data = await withRetry(() => callAnthropic({
+        apiKey: ANTHROPIC_API_KEY,
+        system: TAILOR_SYSTEM,
+        messages: [{ role: "user", content: buildResumeOnlyPrompt(profileText, job) }],
+        maxTokens: 4000,
+        signal: abortRefs.current[key + "_resume"].signal,
+      }));
+      const raw = extractTextFromBlocks(data.content);
+      const parsed = extractJson([raw]);
+      setJobField(job, { resumeStatus: "done", resume: parsed.resume });
+      persistJobResult(job, { resume: parsed.resume });
+    } catch (err) {
+      if (err.name === "AbortError") { setJobField(job, { resumeStatus: "idle" }); return; }
+      console.error(`Resume generation failed for ${job.title} at ${job.company}:`, err);
+      setJobField(job, { resumeStatus: "error", resumeError: err.message });
+    }
+  };
+
+  const handleCreateCoverLetter = async (job) => {
+    const key = jobKey(job);
+    abortRefs.current[key + "_cover"] = new AbortController();
+    setJobField(job, { coverStatus: "running", coverError: null });
+    try {
+      await waitForRateLimit();
+      const data = await withRetry(() => callAnthropic({
+        apiKey: ANTHROPIC_API_KEY,
+        system: TAILOR_SYSTEM,
+        messages: [{ role: "user", content: buildCoverLetterOnlyPrompt(profileText, job, extractedProfile?.name) }],
+        maxTokens: 2000,
+        signal: abortRefs.current[key + "_cover"].signal,
+      }));
+      const raw = extractTextFromBlocks(data.content);
+      const parsed = extractJson([raw]);
+      setJobField(job, { coverStatus: "done", coverLetter: parsed.cover_letter });
+      persistJobResult(job, { coverLetter: parsed.cover_letter });
+    } catch (err) {
+      if (err.name === "AbortError") { setJobField(job, { coverStatus: "idle" }); return; }
+      console.error(`Cover letter generation failed for ${job.title} at ${job.company}:`, err);
+      setJobField(job, { coverStatus: "error", coverError: err.message });
+    }
+  };
 
   const download = (content, baseName, type) => {
     if (downloadFormat === "pdf") {
@@ -42,16 +146,30 @@ function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveAppli
     } catch { /* noop */ }
   };
 
-  const isApplied = (result) => appliedList.some(j =>
-    (j.url && j.url === result.url) ||
-    (j.company?.toLowerCase() === result.company?.toLowerCase() && j.title?.toLowerCase() === result.job_title?.toLowerCase())
+  const isApplied = (job) => appliedList.some(j =>
+    (j.url && j.url === (job.url || "")) ||
+    (j.company?.toLowerCase() === job.company?.toLowerCase() && j.title?.toLowerCase() === job.title?.toLowerCase())
   );
 
-  const estimateWords = (text) => text ? text.split(/\s+/).length : 0;
+  if (approvedJobs.length === 0) {
+    return (
+      <div className="content" data-testid="complete-phase">
+        <GuideBar emoji={"\uD83C\uDF89"} text="Generate tailored documents, download, apply, and track your progress!" onStartOver={onStartOver} />
+        <p className="text-p">No jobs were approved. Go back to Review to select jobs.</p>
+        <AppliedTracker appliedList={appliedList} onRemove={onRemoveApplied} onClear={onClearApplied} />
+        <div className="flex-gap mt-16">
+          <button className="btn primary" onClick={onRunAgain}>{"\uD83D\uDD04"} New Search</button>
+        </div>
+      </div>
+    );
+  }
+
+  const restoredCount = Object.values(jobState).filter(s => s.resume || s.coverLetter).length;
+  const doneCount = approvedJobs.filter(job => { const s = getJobState(job); return s.resume && s.coverLetter; }).length;
 
   return (
-    <div className="content">
-      <GuideBar emoji={"\uD83C\uDF89"} text="Your tailored documents are ready! Download, apply, and track." onStartOver={onStartOver} />
+    <div className="content" data-testid="complete-phase">
+      <GuideBar emoji={"\uD83C\uDF89"} text="Generate tailored documents, download, apply, and track your progress!" onStartOver={onStartOver} />
 
       <div className="format-row">
         <span className="format-label">Download format:</span>
@@ -62,46 +180,86 @@ function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveAppli
         </select>
       </div>
 
-      {tailorResults.map((r, i) => {
-        const applied = isApplied(r);
-        const cardClass = applied ? "card glow a-success" : "card a-yellow";
+      {restoredCount > 0 && <p className="text-success mb-12">Restored {restoredCount} result(s) from previous session.</p>}
+
+      {approvedJobs.map((job, i) => {
+        const s = getJobState(job);
+        const resumeRunning = s.resumeStatus === "running";
+        const coverRunning = s.coverStatus === "running";
+        const isReady = s.resume && s.coverLetter;
+        const isGenerating = resumeRunning || coverRunning;
+        const applied = isApplied(job);
+        const cardClass = applied ? "card glow a-success" : isReady ? "card glow a-success" : isGenerating ? "card a-warn" : "card a-gray";
+        const statusLabel = applied ? "Applied" : isReady ? "Ready" : isGenerating ? "Generating..." : "Pending";
+        const statusClass = applied ? "applied-chip" : isReady ? "status-chip status-ready" : isGenerating ? "status-chip status-gen" : "status-chip status-pending";
+
         return (
           <div key={i} className={cardClass}>
             <div className="flex-between">
               <div>
-                <div className="job-title">{r.job_title}</div>
-                <div className="job-meta">{r.company}</div>
+                <div className="job-title">{job.title}</div>
+                <div className="job-meta">{job.company}</div>
               </div>
-              {applied && <span className="applied-chip">{"\u2705"} Applied</span>}
+              <span className={statusClass}>{applied ? "\u2705 Applied" : isReady ? "\u2705 Ready" : isGenerating ? "\u23F3 Generating..." : statusLabel}</span>
             </div>
-            {r.url && <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-link mb-10">View Posting</a>}
-            {r.error ? (
-              <p className="text-error">{r.error}</p>
-            ) : (
-              <>
-                <div className="flex-gap mt-12">
-                  <button className="btn primary sm" onClick={() => download(r.resume, `${r.company}_resume`, "resume")}>{"\uD83D\uDCE5"} Resume</button>
-                  <button className="btn primary sm" onClick={() => download(r.cover_letter, `${r.company}_cover_letter`, "cover")}>{"\uD83D\uDCE5"} Cover Letter</button>
-                  {cloudConnected && isDropboxConfigured() && (
-                    <button className="btn default sm" onClick={async () => {
-                      try {
-                        if (r.resume) await saveToDropbox(r.resume, `${r.company}_resume.txt`);
-                        if (r.cover_letter) await saveToDropbox(r.cover_letter, `${r.company}_cover_letter.txt`);
-                      } catch { /* user cancelled or error */ }
-                    }}>{"\u2601\uFE0F"} Dropbox</button>
-                  )}
-                  {!applied && (
-                    <button className="btn glow-btn sm" onClick={() => onAddApplied({
-                      title: r.job_title, company: r.company, url: r.url || "",
-                      appliedDate: new Date().toISOString().slice(0, 10),
-                    })}>Mark Applied</button>
-                  )}
-                </div>
-              </>
+
+            {job.url && (
+              <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-link mb-10" data-testid="job-posting-link">View Posting</a>
             )}
+
+            <div className="flex-gap mt-12">
+              {!s.resume ? (
+                <button className="btn primary sm" disabled={resumeRunning} onClick={() => handleCreateResume(job)}>
+                  {resumeRunning ? <><Spinner />Resume...</> : "\uD83D\uDCC4 Create Resume"}
+                </button>
+              ) : (
+                <>
+                  <button className="btn primary sm" onClick={() => download(s.resume, `${job.company}_resume`, "resume")}>{"\uD83D\uDCE5"} Resume</button>
+                  <button className="btn default sm" onClick={() => copy(s.resume, i, "resume")}>Copy</button>
+                  <button className="btn default sm" onClick={() => handleCreateResume(job)}>Redo</button>
+                </>
+              )}
+              {resumeRunning && <button className="btn default sm" onClick={() => abortRefs.current[jobKey(job) + "_resume"]?.abort()}>Cancel</button>}
+
+              {!s.coverLetter ? (
+                <button className="btn primary sm" disabled={coverRunning} onClick={() => handleCreateCoverLetter(job)}>
+                  {coverRunning ? <><Spinner />Cover...</> : "\uD83D\uDCDD Create Cover Letter"}
+                </button>
+              ) : (
+                <>
+                  <button className="btn primary sm" onClick={() => download(s.coverLetter, `${job.company}_cover_letter`, "cover")}>{"\uD83D\uDCE5"} Cover Letter</button>
+                  <button className="btn default sm" onClick={() => copy(s.coverLetter, i, "cover")}>Copy</button>
+                  <button className="btn default sm" onClick={() => handleCreateCoverLetter(job)}>Redo</button>
+                </>
+              )}
+              {coverRunning && <button className="btn default sm" onClick={() => abortRefs.current[jobKey(job) + "_cover"]?.abort()}>Cancel</button>}
+
+              {isReady && (
+                <button className="btn default sm" onClick={() => { download(s.resume, `${job.company}_resume`, "resume"); download(s.coverLetter, `${job.company}_cover_letter`, "cover"); }}>{"\u2B07\uFE0F"} Download All</button>
+              )}
+              {isReady && cloudConnected && isDropboxConfigured() && (
+                <button className="btn default sm" onClick={async () => {
+                  try {
+                    await saveToDropbox(s.resume, `${job.company}_resume.txt`);
+                    await saveToDropbox(s.coverLetter, `${job.company}_cover_letter.txt`);
+                  } catch { /* user cancelled or error */ }
+                }}>{"\u2601\uFE0F"} Dropbox</button>
+              )}
+
+              {isReady && !applied && (
+                <button className="btn glow-btn sm" onClick={() => onAddApplied({
+                  title: job.title, company: job.company, url: job.url || "",
+                  appliedDate: new Date().toISOString().slice(0, 10),
+                })}>Mark Applied</button>
+              )}
+            </div>
+            {s.resumeError && <p className="text-error mt-4">{s.resumeError}</p>}
+            {s.coverError && <p className="text-error mt-4">{s.coverError}</p>}
           </div>
         );
       })}
+
+      <div className="progress-bar">{doneCount} of {approvedJobs.length} complete {doneCount < approvedJobs.length ? "- generate documents above" : "- all done!"}</div>
 
       <AppliedTracker appliedList={appliedList} onRemove={onRemoveApplied} onClear={onClearApplied} />
 
@@ -111,9 +269,5 @@ function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveAppli
     </div>
   );
 }
-
-// ============================================================
-// MAIN PIPELINE
-// ============================================================
 
 export default CompletePhase;

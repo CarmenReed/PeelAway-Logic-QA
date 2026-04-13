@@ -50,7 +50,7 @@ function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtracte
   const hasProfile = profileText.trim().length > 50;
 
   return (
-    <div className="content">
+    <div className="content" data-testid="scout-phase">
       <GuideBar emoji={"\uD83D\uDC4B"} text="Upload your resume to extract your profile, then move to Search." />
 
       {/* Upload Resume */}
@@ -186,7 +186,7 @@ function ScoutPhase({ profileText, setProfileText, extractedProfile, setExtracte
 
       {/* Advance button */}
       {hasProfile && extractedProfile && !locked && (
-        <button className="btn primary full" onClick={onAdvance}>Continue to Search</button>
+        <button className="btn primary full" data-testid="scout-continue-btn" onClick={onAdvance}>Continue to Search</button>
       )}
     </div>
   );

@@ -22,10 +22,10 @@
 
 | Pattern | Where Applied | Evidence |
 |---------|--------------|----------|
-| **Human-gated pipeline** | All 5 phases require explicit user approval before API calls | ADR-003, ReviewPhase.jsx |
+| **Human-gated pipeline** | All phases require explicit user approval before API calls | ADR-003, ReviewPhase.jsx |
 | **Anti-hallucination prompt engineering** | TAILOR_SYSTEM constant constrains output to resume-derivable content only | ADR-006, prompts.js |
 | **Multi-model orchestration** | Haiku for batch scoring (cost), Sonnet for tailoring (quality) | constants.js, api.js |
-| **Agentic pipeline architecture** | 5-phase Scout > Search > Review > Tailor > Complete with state management | JobSearchPipeline.jsx |
+| **Agentic pipeline architecture** | 4-phase Scout > Search > Review > Complete with state management | JobSearchPipeline.jsx |
 | **RAG-adjacent retrieval** | Resume text extraction (PDF.js) feeds profile data into scoring prompts | profileExtractor.js, ScoutPhase.jsx |
 | **Batch processing with rate limiting** | 8-job batches with 15s delays to avoid API throttling | constants.js (SCORING_BATCH_SIZE, SCORING_BATCH_DELAY_MS) |
 | **Confidence-based tiering** | LLM scores mapped to Strong/Possible/Weak tiers with human override | utils.js, ReviewPhase.jsx |
@@ -70,8 +70,8 @@
 |-----------|---------------|
 | **Python kernel setup** | Kernel initialized with `OpenAIChatCompletion` service; `AzureChatCompletion` is a commented-in drop-in replacement requiring only `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_KEY` env vars. |
 | **Plugin authoring** | `JobScoringPlugin` and `ResumeParserPlugin` implemented as native Python classes with `@kernel_function` decorators. Each function has typed parameters and return annotations consumed by the SK planner. |
-| **Function invocation** | Pipeline phases invoke SK functions directly via `kernel.invoke()`. No planner required for the demo path; the orchestration sequence mirrors the 5-phase PeelAway pipeline. |
-| **Multi-phase orchestration** | Scout, Score, Review, Tailor, and Complete phases are each represented as discrete SK function calls chained in sequence, demonstrating how the browser pipeline maps to a Python orchestration layer. |
+| **Function invocation** | Pipeline phases invoke SK functions directly via `kernel.invoke()`. No planner required for the demo path; the orchestration sequence mirrors the 4-phase PeelAway pipeline. |
+| **Multi-phase orchestration** | Scout, Score, Review, and Complete phases are each represented as discrete SK function calls chained in sequence, demonstrating how the browser pipeline maps to a Python orchestration layer. |
 
 ### Azure OpenAI - Swap-Ready Design Pattern
 
@@ -89,7 +89,7 @@
 |-----------|--------------|
 | **Resume-grounded output** | `TAILOR_SYSTEM` in `src/constants.js` instructs the model to derive all resume content from the uploaded profile only. Fabricated metrics, titles, and certifications are explicitly prohibited. |
 | **Prompt-layer enforcement** | Each tailor prompt in `src/prompts.js` reinforces grounding constraints in both the system prompt and user message. No separate post-processing filter is used; the constraint is upstream. |
-| **Regression test coverage** | Tailor phase tests in `tailorPhase.test.js` verify that the system prompt constant is passed on every API call. Scoring tests verify `total_score` bounds (0-10) and required field presence to catch hallucinated schema deviations. |
+| **Regression test coverage** | Document generation tests in `tailorPhase.test.js` verify that the system prompt constant is passed on every API call. Scoring tests verify `total_score` bounds (0-10) and required field presence to catch hallucinated schema deviations. |
 | **Documented rationale** | ADR-006 explains the grounding strategy and why prompt-layer enforcement was chosen over output validation. |
 
 ## SpaceGenius Production AI

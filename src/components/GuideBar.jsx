@@ -1,6 +1,6 @@
 export default function GuideBar({ emoji, text, onStartOver }) {
   return (
-    <div className="guide">
+    <div className="guide" data-testid="guide-bar">
       <span className="guide-emoji">{emoji}</span>
       <div className="guide-text">{text}</div>
       {onStartOver && (

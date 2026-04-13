@@ -1,20 +1,20 @@
 import useWindowWidth from "../hooks/useWindowWidth";
 import { MOBILE_BP } from "../constants";
 
-const PHASES = ["Scout", "Search", "Review", "Tailor", "Complete"];
+const PHASES = ["Scout", "Search", "Review", "Complete"];
 
 export default function ProgressStepper({ current, maxVisited, onTabClick }) {
   const isMobile = useWindowWidth() < MOBILE_BP;
   if (isMobile) {
     const name = PHASES[current] ?? PHASES[PHASES.length - 1];
     return (
-      <div className="progress-mobile">
+      <div className="progress-mobile" data-testid="progress-stepper-mobile">
         Step {current + 1} of {PHASES.length}: {name}
       </div>
     );
   }
   return (
-    <div className="progress">
+    <div className="progress" data-testid="progress-stepper">
       <div className="progress-track">
         {PHASES.map((name, i) => {
           const cls = i === current ? "current" : i < current ? "done" : "future";

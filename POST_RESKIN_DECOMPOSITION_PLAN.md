@@ -40,8 +40,7 @@ src/
   phases/
     ScoutPhase.jsx                (phase 1: resume + search layers)
     ReviewPhase.jsx               (phase 2: tier tabs + job selection)
-    TailorPhase.jsx               (phase 3: resume/cover letter gen)
-    CompletePhase.jsx             (phase 4: downloads + tracking)
+    CompletePhase.jsx             (phase 3: resume/cover letter gen + downloads + tracking)
   JobSearchPipeline.jsx           (main orchestrator: state, phase routing)
 ```
 
@@ -130,7 +129,7 @@ Extract shared API interaction helpers:
 
 Import from `./constants` as needed. Export as named exports.
 
-**Note**: Phase-specific API calls (Scout search layers, Tailor generation calls) stay in their phase files since they contain phase-specific request/response logic.
+**Note**: Phase-specific API calls (Scout search layers, Complete phase generation calls) stay in their phase files since they contain phase-specific request/response logic.
 
 ### 3.6 `hooks/useWindowWidth.js`
 
@@ -170,8 +169,7 @@ Each phase is a substantial component with its own state and effects:
 |-----------|------|-------------|
 | `ScoutPhase` | `phases/ScoutPhase.jsx` | constants, utils, storage, api, Spinner, ManualJobInput, JobCard, GuideBar |
 | `ReviewPhase` | `phases/ReviewPhase.jsx` | utils, JobCard, GuideBar |
-| `TailorPhase` | `phases/TailorPhase.jsx` | constants, utils, storage, prompts, api, Spinner, GuideBar |
-| `CompletePhase` | `phases/CompletePhase.jsx` | storage, AppliedTracker, GuideBar |
+| `CompletePhase` | `phases/CompletePhase.jsx` | constants, utils, storage, prompts, api, Spinner, AppliedTracker, GuideBar |
 
 Each gets a default export. Props stay exactly as they are now (passed from the orchestrator).
 
@@ -274,8 +272,7 @@ Do these one by one. After each, verify the app runs.
 
 - **9a**: Cut `ScoutPhase` into `src/phases/ScoutPhase.jsx`. Wire imports. **Verify.**
 - **9b**: Cut `ReviewPhase` into `src/phases/ReviewPhase.jsx`. Wire imports. **Verify.**
-- **9c**: Cut `TailorPhase` into `src/phases/TailorPhase.jsx`. Wire imports. **Verify.**
-- **9d**: Cut `CompletePhase` into `src/phases/CompletePhase.jsx`. Wire imports. **Verify.**
+- **9c**: Cut `CompletePhase` into `src/phases/CompletePhase.jsx`. Wire imports. **Verify.**
 
 ### Step 10: Rename and clean up
 - Rename the remaining `JobSearchPipelineV4.jsx` to `JobSearchPipeline.jsx`
@@ -309,8 +306,7 @@ After the full decomposition:
 5. Guide banners appear at top of each phase
 6. Scout: resume upload, all search layers, manual job input all work
 7. Review: tier tabs, checkboxes, percentage scores, "Advance" button work
-8. Tailor: status chips update, resume/cover letter generation works
-9. Complete: downloads, "Mark Applied", applied tracker, "New Search" work
+8. Complete: status chips update, resume/cover letter generation, downloads, "Mark Applied", applied tracker, "New Search" work
 10. localStorage persistence works across page refreshes
 11. All cards, buttons, inputs match the reskinned mockup styling
 12. Quicksand font renders throughout

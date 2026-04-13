@@ -10,7 +10,7 @@ Early PeelAway versions auto-applied all AI scoring and tailoring output. The ta
 
 ## Decision
 
-Implement explicit human approval gates before Phase 2 (tailoring) and Phase 3 (cover letter generation). Users must review scored jobs and approve before tailoring proceeds. Gates are UI checkpoints, not automated thresholds.
+Implement explicit human approval gates before the Complete phase (document generation). Users must review scored jobs and approve before tailoring proceeds. Gates are UI checkpoints, not automated thresholds.
 
 ## Consequences
 

@@ -2,8 +2,8 @@ import {
   loadTailorResults,
   saveTailorResult,
   clearTailorResults,
-  TAILOR_RESULTS_KEY,
-} from "../JobSearchPipelineV4";
+} from "../storage";
+import { TAILOR_RESULTS_KEY } from "../constants";
 
 beforeEach(() => {
   localStorage.clear();

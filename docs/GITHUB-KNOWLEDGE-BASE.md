@@ -59,7 +59,7 @@ PeelAway-Logic-QA/
 ├── scripts/
 │   ├── doc-lint.js                       ← Documentation quality linter (em-dashes, broken links, ADR sections)
 │   └── repo-cleanup.js                   ← Repo maintenance utilities
-├── semantic-kernel-demo/                 ← Python SK orchestration demo (mirrors 5 pipeline phases, Azure OpenAI swap-ready)
+├── semantic-kernel-demo/                 ← Python SK orchestration demo (mirrors 4 pipeline phases, Azure OpenAI swap-ready)
 ├── docs/
 │   ├── GITHUB-KNOWLEDGE-BASE.md          ← This file
 │   ├── AI_SKILLS_INVENTORY.md            ← AI skills and techniques demonstrated in the project
@@ -105,11 +105,10 @@ PeelAway-Logic-QA/
     │   ├── ScoutPhase.jsx                ← Phase 1: Resume upload, profile display, search filters, layer buttons
     │   ├── SearchPhase.jsx               ← Phase 1b: 3-layer search execution (35K - heavy lifting)
     │   ├── ReviewPhase.jsx               ← Phase 2: Job tier display + sorting
-    │   ├── TailorPhase.jsx               ← Phase 4: Resume/cover letter generation cards
-    │   └── CompletePhase.jsx             ← Phase 5: Download + applied tracker
+    │   └── CompletePhase.jsx             ← Phase 3: Resume/cover letter generation + download + applied tracker
     ├── services/
     │   └── azureSearchService.js         ← Azure AI Search REST client (index, batch index, search, delete)
-    └── __tests__/                        ← QA-only test suite (425 tests, 16 files)
+    └── __tests__/                        ← QA-only test suite (436 tests, 16 files)
         ├── pipelineUtils.test.js         ← Utility unit tests (dedup, scoring, prompts)
         ├── profileExtractor.test.js      ← Resume parsing tests (name, skills, location, queries)
         ├── utilsKeywordPreFilter.test.js ← Dynamic pre-filtering tests (level + location matching)
@@ -123,8 +122,8 @@ PeelAway-Logic-QA/
         ├── scoutPhase.test.jsx           ← ScoutPhase render and layer button tests
         ├── reviewPhase.test.jsx          ← ReviewPhase tier tabs, selection, and advance tests
         ├── completePhase.test.jsx        ← CompletePhase download, applied, and tracker tests
-        ├── tailorPhase.test.js           ← Tailor phase behavior tests
-        ├── tailorPersistence.test.js     ← Tailor localStorage persistence tests
+        ├── tailorPhase.test.js           ← Complete phase document generation tests
+        ├── tailorPersistence.test.js     ← Document generation localStorage persistence tests
         └── azureSearchService.test.js    ← Azure AI Search client tests (9 tests, 4 describe blocks)
 ```
 
@@ -261,10 +260,10 @@ DISMISSED_KEY = "jsp-dismissed-jobs"
 
 ## 6. Application Pipeline Description
 
-The app is a single-page React application that walks users through five sequential phases. Phase progression is managed by `JobSearchPipeline.jsx`, which enforces step locking - users cannot skip or revert to a previous phase mid-pipeline.
+The app is a single-page React application that walks users through four sequential phases. Phase progression is managed by `JobSearchPipeline.jsx`, which enforces step locking - users cannot skip or revert to a previous phase mid-pipeline.
 
 ```
-[LandingScreen] → [Scout] → [Review] → [Human Gate] → [Tailor] → [Complete]
+[LandingScreen] → [Scout] → [Review] → [Human Gate] → [Complete]
 ```
 
 ### Phase 1 - Scout (`src/phases/ScoutPhase.jsx` + `src/phases/SearchPhase.jsx`)
@@ -303,7 +302,7 @@ Jobs are bucketed into tiers by score:
 
 User manually selects which roles to approve for tailoring. No API calls are made until explicit approval. Step locking prevents returning to Scout/Review once the gate is passed.
 
-### Phase 4 - Tailor (`src/phases/TailorPhase.jsx`)
+### Phase 3 - Complete (`src/phases/CompletePhase.jsx`)
 
 Each approved role renders as a card with two independent on-demand buttons:
 
@@ -312,8 +311,7 @@ Each approved role renders as a card with two independent on-demand buttons:
 
 Anti-hallucination enforcement: prompts (`src/prompts.js`) restrict output to content derivable from the uploaded resume only.
 
-### Phase 5 - Complete (`src/phases/CompletePhase.jsx`)
-
+Additional functionality:
 - Download or copy documents per role
 - Mark jobs as applied
 - Applied jobs persist in `localStorage` (`jsp-applied-jobs`) and are excluded from future Scout runs
@@ -451,10 +449,10 @@ import "@testing-library/jest-dom";
 | `scoutPhase.test.jsx` | ScoutPhase: initial render, layer button disabled/enabled state, score button | ~14 | Render tests with mocked constants, api, and storage |
 | `reviewPhase.test.jsx` | ReviewPhase: tier tabs, tab switching, selection, advance button, Select All, sort | ~19 | Component integration tests with mocked storage |
 | `completePhase.test.jsx` | CompletePhase: render, applied state, tracker, download, navigation | ~21 | Component render/interaction tests with mocked URL API |
-| `tailorPhase.test.js` | Tailor phase: session restore, persistence, error handling, cancel, advance | ~10 | Component integration tests with mocked `fetch` |
-| `tailorPersistence.test.js` | localStorage persistence for tailor results (read/write/clear) | ~8 | Unit tests against localStorage API |
+| `tailorPhase.test.js` | Complete phase document generation: session restore, persistence, error handling, cancel | ~10 | Component integration tests with mocked `fetch` |
+| `tailorPersistence.test.js` | localStorage persistence for document generation results (read/write/clear) | ~8 | Unit tests against localStorage API |
 | `azureSearchService.test.js` | Azure AI Search client: createJobIndex, indexJobs (batching), searchJobs (filters), deleteIndex | 9 | Unit tests with mocked `fetch`, verifies request construction and error handling |
-| **Total** | | **425** | |
+| **Total** | | **436** | |
 
 ### 9.2 Test Methodologies
 
@@ -488,7 +486,7 @@ Uses `jest.useFakeTimers()` + `jest.advanceTimersByTime()` for debounce and dela
 | `constants.js` | 16 exports | Indirectly tested | N/A (config values) |
 | `components/` | 9 components | 9 | 100% |
 | `hooks/` | 1 | 1 | 100% |
-| `phases/` | 5 | 5 | 100% |
+| `phases/` | 4 | 4 | 100% |
 
 ### 9.4 Known Test Issues
 
@@ -541,7 +539,7 @@ CI=true npm test -- --coverage
 | File | Role | Notes |
 |---|---|---|
 | `src/App.jsx` | Root component | Thin wrapper; mounts `JobSearchPipeline` |
-| `src/JobSearchPipeline.jsx` | Phase orchestrator | Routes Scout → Review → Gate → Tailor → Complete; enforces step locking |
+| `src/JobSearchPipeline.jsx` | Phase orchestrator | Routes Scout → Review → Gate → Complete; enforces step locking |
 | `src/JobSearchPipelineV4.jsx` | Legacy monolith (96K) | Reskinned UI; being decomposed per `POST_RESKIN_DECOMPOSITION_PLAN.md` |
 | `src/constants.js` | All config / magic numbers | Model IDs, API URLs, localStorage keys, timing values |
 | `src/api.js` | External API wrappers | Adzuna, JSearch, Anthropic messages, PDF.js loader |
@@ -554,8 +552,7 @@ CI=true npm test -- --coverage
 | `src/phases/ScoutPhase.jsx` | Phase 1 UI | Resume upload, profile display, search filters, layer trigger buttons |
 | `src/phases/SearchPhase.jsx` | Phase 1b - Search execution | 3 search layers, abort controllers, dedup, pre-filter, scoring, re-score (35K) |
 | `src/phases/ReviewPhase.jsx` | Phase 2 UI | Tier buckets, sorting, date badges |
-| `src/phases/TailorPhase.jsx` | Phase 4 UI + logic | Per-role resume/cover letter generation cards |
-| `src/phases/CompletePhase.jsx` | Phase 5 UI | Download, copy, applied job tracking |
+| `src/phases/CompletePhase.jsx` | Phase 3 UI + logic | Per-role resume/cover letter generation, download, copy, applied job tracking |
 | `src/components/CloudConnector.jsx` | Cloud sync UI | Settings panel for Dropbox connection and sync status |
 | `src/hooks/useWindowWidth.js` | Responsive hook | Returns current window width; used for mobile layout |
 | `public/index.html` | HTML shell | Loads Google Fonts (Quicksand), sets meta tags |

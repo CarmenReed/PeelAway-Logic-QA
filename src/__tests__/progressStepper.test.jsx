@@ -21,13 +21,17 @@ function renderMobile({ current = 0, maxVisited = 0, onTabClick = jest.fn() } = 
 // ============================================================
 
 describe("ProgressStepper — desktop", () => {
-  it("renders all 5 phase labels", () => {
+  it("renders all 4 phase labels", () => {
     renderDesktop();
     expect(screen.getByText("Scout")).toBeInTheDocument();
     expect(screen.getByText("Search")).toBeInTheDocument();
     expect(screen.getByText("Review")).toBeInTheDocument();
-    expect(screen.getByText("Tailor")).toBeInTheDocument();
     expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  it("does not render a Tailor phase label", () => {
+    renderDesktop();
+    expect(screen.queryByText("Tailor")).not.toBeInTheDocument();
   });
 
   it("step 1 (index 0) has 'current' class when current=0", () => {
@@ -42,7 +46,6 @@ describe("ProgressStepper — desktop", () => {
     expect(dots[1].className).toContain("future");
     expect(dots[2].className).toContain("future");
     expect(dots[3].className).toContain("future");
-    expect(dots[4].className).toContain("future");
   });
 
   it("completed steps have 'done' class", () => {
@@ -66,7 +69,6 @@ describe("ProgressStepper — desktop", () => {
     expect(dots[1].textContent).toBe("2");
     expect(dots[2].textContent).toBe("3");
     expect(dots[3].textContent).toBe("4");
-    expect(dots[4].textContent).toBe("5");
   });
 
   it("clicking a visited step calls onTabClick with the step index", async () => {
@@ -83,7 +85,7 @@ describe("ProgressStepper — desktop", () => {
     const onTabClick = jest.fn();
     const { container } = renderDesktop({ current: 0, maxVisited: 0, onTabClick });
     const dots = container.querySelectorAll(".step-dot");
-    await user.click(dots[4]); // Complete (unvisited)
+    await user.click(dots[3]); // Complete (unvisited)
     expect(onTabClick).not.toHaveBeenCalled();
   });
 
@@ -93,7 +95,6 @@ describe("ProgressStepper — desktop", () => {
     expect(dots[1].className).toContain("no-click");
     expect(dots[2].className).toContain("no-click");
     expect(dots[3].className).toContain("no-click");
-    expect(dots[4].className).toContain("no-click");
   });
 
   it("step lines between done steps have 'done' class", () => {
@@ -101,8 +102,19 @@ describe("ProgressStepper — desktop", () => {
     const lines = container.querySelectorAll(".step-line");
     expect(lines[0].className).toContain("done"); // Scout -> Search
     expect(lines[1].className).toContain("done"); // Search -> Review
-    expect(lines[2].className).toContain("future"); // Review -> Tailor
-    expect(lines[3].className).toContain("future"); // Tailor -> Complete
+    expect(lines[2].className).toContain("future"); // Review -> Complete
+  });
+
+  it("renders exactly 4 step dots", () => {
+    const { container } = renderDesktop();
+    const dots = container.querySelectorAll(".step-dot");
+    expect(dots).toHaveLength(4);
+  });
+
+  it("renders exactly 3 step lines", () => {
+    const { container } = renderDesktop();
+    const lines = container.querySelectorAll(".step-line");
+    expect(lines).toHaveLength(3);
   });
 });
 
@@ -111,16 +123,16 @@ describe("ProgressStepper — desktop", () => {
 // ============================================================
 
 describe("ProgressStepper — mobile", () => {
-  it("renders 'Step X of 5: PhaseName' format", () => {
+  it("renders 'Step X of 4: PhaseName' format", () => {
     renderMobile({ current: 0 });
-    expect(screen.getByText("Step 1 of 5: Scout")).toBeInTheDocument();
+    expect(screen.getByText("Step 1 of 4: Scout")).toBeInTheDocument();
   });
 
   it("shows correct phase name for each step", () => {
-    const phases = ["Scout", "Search", "Review", "Tailor", "Complete"];
+    const phases = ["Scout", "Search", "Review", "Complete"];
     phases.forEach((name, i) => {
       const { unmount } = renderMobile({ current: i });
-      expect(screen.getByText(`Step ${i + 1} of 5: ${name}`)).toBeInTheDocument();
+      expect(screen.getByText(`Step ${i + 1} of 4: ${name}`)).toBeInTheDocument();
       unmount();
     });
   });

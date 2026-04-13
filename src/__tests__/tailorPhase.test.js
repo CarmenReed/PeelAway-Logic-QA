@@ -1,12 +1,11 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import CompletePhase from "../phases/CompletePhase";
 import {
   loadTailorResults,
   saveTailorResult,
   clearTailorResults,
-  TailorPhase,
-  TAILOR_RESULTS_KEY,
-} from "../JobSearchPipelineV4";
+} from "../storage";
 
 // ============================================================
 // Helpers and constants
@@ -93,6 +92,17 @@ function mockFetchFailImmediate(failCompany) {
   });
 }
 
+const defaultProps = {
+  approvedJobs: [],
+  profileText: "test profile",
+  extractedProfile: null,
+  appliedList: [],
+  onAddApplied: jest.fn(),
+  onRemoveApplied: jest.fn(),
+  onClearApplied: jest.fn(),
+  onRunAgain: jest.fn(),
+};
+
 beforeEach(() => {
   localStorage.clear();
   jest.restoreAllMocks();
@@ -103,10 +113,10 @@ afterEach(() => {
 });
 
 // ============================================================
-// TailorPhase: Session restore
+// CompletePhase: Session restore
 // ============================================================
 
-describe("TailorPhase session restore", () => {
+describe("CompletePhase session restore", () => {
   it("restores saved results from localStorage on mount", () => {
     saveTailorResult({
       job_title: "Engineer",
@@ -117,10 +127,9 @@ describe("TailorPhase session restore", () => {
     });
 
     render(
-      <TailorPhase
+      <CompletePhase
+        {...defaultProps}
         approvedJobs={MOCK_JOBS.slice(0, 1)}
-        profileText="test profile"
-        onComplete={jest.fn()}
       />
     );
 
@@ -138,10 +147,9 @@ describe("TailorPhase session restore", () => {
     });
 
     render(
-      <TailorPhase
+      <CompletePhase
+        {...defaultProps}
         approvedJobs={MOCK_JOBS.slice(0, 1)}
-        profileText="test profile"
-        onComplete={jest.fn()}
       />
     );
 
@@ -150,29 +158,27 @@ describe("TailorPhase session restore", () => {
 });
 
 // ============================================================
-// TailorPhase: Persistence on success
+// CompletePhase: Persistence on success
 // ============================================================
 
-describe("TailorPhase persistence", () => {
+describe("CompletePhase persistence", () => {
   it("saves result to localStorage immediately after resume creation", async () => {
     mockFetchSuccess();
 
     render(
-      <TailorPhase
+      <CompletePhase
+        {...defaultProps}
         approvedJobs={MOCK_JOBS.slice(0, 1)}
-        profileText="test profile"
-        onComplete={jest.fn()}
       />
     );
 
-    // Click the Resume button (contains emoji + "Resume" text)
-    const resumeBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Resume") && !b.textContent.includes("Cover"));
+    // Click the Create Resume button
+    const resumeBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Create Resume"));
     await act(async () => {
       resumeBtns[0].click();
     });
 
     await waitFor(() => {
-      // After generation, the card shows Ready status
       const saved = loadTailorResults();
       expect(saved).toHaveLength(1);
       expect(saved[0].resume).toBe("Resume for Acme");
@@ -183,15 +189,14 @@ describe("TailorPhase persistence", () => {
     mockFetchSuccess();
 
     render(
-      <TailorPhase
+      <CompletePhase
+        {...defaultProps}
         approvedJobs={MOCK_JOBS.slice(0, 1)}
-        profileText="test profile"
-        onComplete={jest.fn()}
       />
     );
 
-    // Click the Cover Letter button
-    const coverBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Cover Letter"));
+    // Click the Create Cover Letter button
+    const coverBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Create Cover Letter"));
     await act(async () => {
       coverBtns[0].click();
     });
@@ -205,37 +210,36 @@ describe("TailorPhase persistence", () => {
 });
 
 // ============================================================
-// TailorPhase: Error handling (per-job independence)
+// CompletePhase: Error handling (per-job independence)
 // ============================================================
 
-describe("TailorPhase error handling", () => {
+describe("CompletePhase error handling", () => {
   it("a failed job does not affect other jobs (other buttons remain available)", () => {
     mockFetchFailImmediate("Acme");
 
     render(
-      <TailorPhase
+      <CompletePhase
+        {...defaultProps}
         approvedJobs={MOCK_JOBS}
-        profileText="test profile"
-        onComplete={jest.fn()}
       />
     );
 
-    // Both jobs should have Resume buttons
-    const resumeBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Resume") && !b.textContent.includes("Cover"));
+    // Both jobs should have Create Resume buttons
+    const resumeBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Create Resume"));
     expect(resumeBtns.length).toBeGreaterThanOrEqual(2);
 
-    // Both jobs should also have Cover Letter buttons
-    const coverBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Cover Letter"));
+    // Both jobs should also have Create Cover Letter buttons
+    const coverBtns = screen.getAllByRole("button").filter(b => b.textContent.includes("Create Cover Letter"));
     expect(coverBtns.length).toBeGreaterThanOrEqual(2);
   });
 });
 
 // ============================================================
-// TailorPhase: Cancel behavior
+// CompletePhase: Cancel behavior
 // ============================================================
 
-describe("TailorPhase cancel", () => {
-  it("resets to idle state after cancel, shows Resume button again", async () => {
+describe("CompletePhase cancel", () => {
+  it("resets to idle state after cancel, shows Create Resume button again", async () => {
     global.fetch = jest.fn((url, opts) => {
       if (!url.includes("anthropic.com")) return Promise.reject(new Error("Unexpected"));
       return new Promise((_, reject) => {
@@ -246,15 +250,14 @@ describe("TailorPhase cancel", () => {
     });
 
     render(
-      <TailorPhase
+      <CompletePhase
+        {...defaultProps}
         approvedJobs={MOCK_JOBS.slice(0, 1)}
-        profileText="test profile"
-        onComplete={jest.fn()}
       />
     );
 
-    // Count Resume buttons before clicking
-    const resumeBtnsBefore = screen.getAllByRole("button").filter(b => b.textContent.includes("Resume") && !b.textContent.includes("Cover"));
+    // Count Create Resume buttons before clicking
+    const resumeBtnsBefore = screen.getAllByRole("button").filter(b => b.textContent.includes("Create Resume"));
 
     // Start resume creation
     await act(async () => {
@@ -269,67 +272,122 @@ describe("TailorPhase cancel", () => {
       screen.getByText("Cancel").click();
     });
 
-    // Should return to idle: Resume button reappears
+    // Should return to idle: Create Resume button reappears
     await waitFor(() => {
-      const resumeBtnsAfter = screen.getAllByRole("button").filter(b => b.textContent.includes("Resume") && !b.textContent.includes("Cover"));
+      const resumeBtnsAfter = screen.getAllByRole("button").filter(b => b.textContent.includes("Create Resume"));
       expect(resumeBtnsAfter.length).toBeGreaterThanOrEqual(1);
     });
   });
 });
 
 // ============================================================
-// TailorPhase: Advance with merged output
+// CompletePhase: Job posting link
 // ============================================================
 
-describe("TailorPhase advance", () => {
-  it("passes full merged output including restored results to onComplete", async () => {
+describe("CompletePhase job posting link", () => {
+  it("renders a visible clickable link to the job posting URL", () => {
+    render(
+      <CompletePhase
+        {...defaultProps}
+        approvedJobs={MOCK_JOBS.slice(0, 1)}
+      />
+    );
+
+    const link = screen.getByText("View Posting");
+    expect(link).toBeInTheDocument();
+    expect(link.tagName).toBe("A");
+    expect(link).toHaveAttribute("href", "https://acme.com/1");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("does not render View Posting link when url is empty", () => {
+    const jobNoUrl = { ...MOCK_JOBS[0], url: "" };
+    render(
+      <CompletePhase
+        {...defaultProps}
+        approvedJobs={[jobNoUrl]}
+      />
+    );
+
+    expect(screen.queryByText("View Posting")).not.toBeInTheDocument();
+  });
+});
+
+// ============================================================
+// CompletePhase: Create Resume / Create Cover Letter buttons
+// ============================================================
+
+describe("CompletePhase generation buttons", () => {
+  it("renders Create Resume and Create Cover Letter buttons for jobs without documents", () => {
+    render(
+      <CompletePhase
+        {...defaultProps}
+        approvedJobs={MOCK_JOBS.slice(0, 1)}
+      />
+    );
+
+    expect(screen.getByText(/Create Resume/)).toBeInTheDocument();
+    expect(screen.getByText(/Create Cover Letter/)).toBeInTheDocument();
+  });
+
+  it("shows download buttons after documents are generated (via restore)", () => {
     saveTailorResult({
       job_title: "Engineer",
       company: "Acme",
       url: "https://acme.com/1",
-      resume: "Previously saved resume",
-      cover_letter: "Previously saved cover letter",
+      resume: "Saved resume",
+      cover_letter: "Saved cover letter",
     });
-
-    saveTailorResult({
-      job_title: "Architect",
-      company: "Globex",
-      url: "https://globex.com/1",
-      resume: "Previously saved Globex resume",
-      cover_letter: "Previously saved Globex cover letter",
-    });
-
-    const onComplete = jest.fn();
 
     render(
-      <TailorPhase
-        approvedJobs={MOCK_JOBS}
-        profileText="test profile"
-        onComplete={onComplete}
+      <CompletePhase
+        {...defaultProps}
+        approvedJobs={MOCK_JOBS.slice(0, 1)}
       />
     );
 
-    // Both jobs should be restored with Ready status
-    const readyChips = screen.getAllByText(/Ready/);
-    expect(readyChips).toHaveLength(2);
+    // Should show download buttons, not Create buttons
+    expect(screen.queryByText(/Create Resume/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Create Cover Letter/)).not.toBeInTheDocument();
+    // Should show Resume download and Cover Letter download buttons
+    const resumeBtn = screen.getAllByRole("button").filter(b => b.textContent.includes("Resume") && !b.textContent.includes("Cover"));
+    expect(resumeBtn.length).toBeGreaterThanOrEqual(1);
+  });
+});
 
-    // Advance to Complete should be enabled
-    const advanceBtn = screen.getByText("Advance to Complete");
-    expect(advanceBtn).not.toBeDisabled();
-    await act(async () => {
-      advanceBtn.click();
+// ============================================================
+// CompletePhase: Mark Applied with generated documents
+// ============================================================
+
+describe("CompletePhase mark applied", () => {
+  it("shows Mark Applied button only when both documents are ready", () => {
+    saveTailorResult({
+      job_title: "Engineer",
+      company: "Acme",
+      url: "https://acme.com/1",
+      resume: "Saved resume",
+      cover_letter: "Saved cover letter",
     });
 
-    expect(onComplete).toHaveBeenCalledTimes(1);
-    const results = onComplete.mock.calls[0][0];
-    expect(results).toHaveLength(2);
+    render(
+      <CompletePhase
+        {...defaultProps}
+        approvedJobs={MOCK_JOBS.slice(0, 1)}
+      />
+    );
 
-    const acmeResult = results.find(r => r.company === "Acme");
-    expect(acmeResult.resume).toBe("Previously saved resume");
-    expect(acmeResult.cover_letter).toBe("Previously saved cover letter");
+    expect(screen.getByText("Mark Applied")).toBeInTheDocument();
+  });
 
-    const globexResult = results.find(r => r.company === "Globex");
-    expect(globexResult.resume).toBe("Previously saved Globex resume");
-    expect(globexResult.cover_letter).toBe("Previously saved Globex cover letter");
+  it("does not show Mark Applied when documents are not yet generated", () => {
+    render(
+      <CompletePhase
+        {...defaultProps}
+        approvedJobs={MOCK_JOBS.slice(0, 1)}
+      />
+    );
+
+    expect(screen.queryByText("Mark Applied")).not.toBeInTheDocument();
   });
 });

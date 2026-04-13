@@ -1,25 +1,32 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CompletePhase from "../phases/CompletePhase";
+import { saveTailorResult } from "../storage";
 
 // ============================================================
 // Test fixtures
 // ============================================================
 
-const TAILOR_RESULT = {
-  job_title: "Senior Engineer",
+const APPROVED_JOB = {
+  title: "Senior Engineer",
   company: "Acme",
   url: "https://acme.com/job/1",
-  resume: "RESUME TEXT for Senior Engineer at Acme",
-  cover_letter: "COVER LETTER TEXT for Senior Engineer at Acme",
+  location: "Remote",
+  key_tech_stack: ["React"],
+  reasoning: "good fit",
+  jd_text: "Build things",
+  total_score: 9,
 };
 
-const TAILOR_RESULT_NO_URL = {
-  job_title: "Staff Architect",
+const APPROVED_JOB_NO_URL = {
+  title: "Staff Architect",
   company: "Globex",
   url: "",
-  resume: "RESUME TEXT for Staff Architect at Globex",
-  cover_letter: "COVER LETTER TEXT for Staff Architect at Globex",
+  location: "Remote",
+  key_tech_stack: ["Azure"],
+  reasoning: "good fit",
+  jd_text: "Design systems",
+  total_score: 8,
 };
 
 const APPLIED_JOB = {
@@ -30,7 +37,7 @@ const APPLIED_JOB = {
 };
 
 function renderComplete({
-  tailorResults = [TAILOR_RESULT],
+  approvedJobs = [APPROVED_JOB],
   appliedList = [],
   onAddApplied = jest.fn(),
   onRemoveApplied = jest.fn(),
@@ -41,7 +48,9 @@ function renderComplete({
     onAddApplied, onRemoveApplied, onClearApplied, onRunAgain,
     ...render(
       <CompletePhase
-        tailorResults={tailorResults}
+        approvedJobs={approvedJobs}
+        profileText="test profile"
+        extractedProfile={null}
         appliedList={appliedList}
         onAddApplied={onAddApplied}
         onRemoveApplied={onRemoveApplied}
@@ -60,34 +69,34 @@ beforeEach(() => {
 });
 
 // ============================================================
-// Initial render
+// Initial render (no documents generated yet)
 // ============================================================
 
 describe("CompletePhase — initial render", () => {
   it("renders the guide banner", () => {
     renderComplete();
-    expect(screen.getByText(/Your tailored documents are ready/i)).toBeInTheDocument();
+    expect(screen.getByText(/Generate tailored documents/i)).toBeInTheDocument();
   });
 
-  it("renders the tailored job card with job title and company", () => {
+  it("renders the job card with job title and company", () => {
     renderComplete();
     expect(screen.getByText("Senior Engineer")).toBeInTheDocument();
     expect(screen.getByText("Acme")).toBeInTheDocument();
   });
 
-  it("renders resume download button", () => {
+  it("renders Create Resume button for jobs without documents", () => {
     renderComplete();
-    expect(screen.getByText(/Resume/i, { selector: "button" })).toBeInTheDocument();
+    expect(screen.getByText(/Create Resume/i)).toBeInTheDocument();
   });
 
-  it("renders cover letter download button", () => {
+  it("renders Create Cover Letter button for jobs without documents", () => {
     renderComplete();
-    expect(screen.getByText(/Cover Letter/i, { selector: "button" })).toBeInTheDocument();
+    expect(screen.getByText(/Create Cover Letter/i)).toBeInTheDocument();
   });
 
-  it("renders Mark Applied button when job is not applied", () => {
+  it("does not render Mark Applied when no documents generated", () => {
     renderComplete();
-    expect(screen.getByText("Mark Applied")).toBeInTheDocument();
+    expect(screen.queryByText("Mark Applied")).not.toBeInTheDocument();
   });
 
   it("renders New Search button", () => {
@@ -107,8 +116,39 @@ describe("CompletePhase — initial render", () => {
   });
 
   it("does not render View Posting link when url is empty", () => {
-    renderComplete({ tailorResults: [TAILOR_RESULT_NO_URL] });
+    renderComplete({ approvedJobs: [APPROVED_JOB_NO_URL] });
     expect(screen.queryByText("View Posting")).not.toBeInTheDocument();
+  });
+});
+
+// ============================================================
+// With restored documents (from localStorage)
+// ============================================================
+
+describe("CompletePhase — with restored documents", () => {
+  beforeEach(() => {
+    saveTailorResult({
+      job_title: "Senior Engineer",
+      company: "Acme",
+      url: "https://acme.com/job/1",
+      resume: "RESUME TEXT for Senior Engineer at Acme",
+      cover_letter: "COVER LETTER TEXT for Senior Engineer at Acme",
+    });
+  });
+
+  it("renders download buttons when documents are restored", () => {
+    renderComplete();
+    // Should not show Create buttons
+    expect(screen.queryByText(/Create Resume/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Create Cover Letter/i)).not.toBeInTheDocument();
+    // Should show download Resume and Cover Letter buttons
+    const resumeBtn = screen.getAllByRole("button").filter(b => b.textContent.includes("Resume") && !b.textContent.includes("Cover"));
+    expect(resumeBtn.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders Mark Applied button when both documents are ready", () => {
+    renderComplete();
+    expect(screen.getByText("Mark Applied")).toBeInTheDocument();
   });
 });
 
@@ -117,13 +157,23 @@ describe("CompletePhase — initial render", () => {
 // ============================================================
 
 describe("CompletePhase — applied state", () => {
+  beforeEach(() => {
+    saveTailorResult({
+      job_title: "Senior Engineer",
+      company: "Acme",
+      url: "https://acme.com/job/1",
+      resume: "RESUME TEXT",
+      cover_letter: "COVER LETTER TEXT",
+    });
+  });
+
   it("does not show Mark Applied button for already-applied jobs", () => {
-    renderComplete({ tailorResults: [TAILOR_RESULT], appliedList: [APPLIED_JOB] });
+    renderComplete({ appliedList: [APPLIED_JOB] });
     expect(screen.queryByText("Mark Applied")).not.toBeInTheDocument();
   });
 
   it("shows Applied chip for already-applied jobs", () => {
-    const { container } = renderComplete({ tailorResults: [TAILOR_RESULT], appliedList: [APPLIED_JOB] });
+    const { container } = renderComplete({ appliedList: [APPLIED_JOB] });
     expect(container.querySelector(".applied-chip")).toBeInTheDocument();
   });
 
@@ -145,8 +195,8 @@ describe("CompletePhase — applied state", () => {
 // ============================================================
 
 describe("CompletePhase — multiple results", () => {
-  it("renders a card for each tailor result", () => {
-    renderComplete({ tailorResults: [TAILOR_RESULT, TAILOR_RESULT_NO_URL] });
+  it("renders a card for each approved job", () => {
+    renderComplete({ approvedJobs: [APPROVED_JOB, APPROVED_JOB_NO_URL] });
     expect(screen.getByText("Senior Engineer")).toBeInTheDocument();
     expect(screen.getByText("Staff Architect")).toBeInTheDocument();
   });
@@ -182,7 +232,6 @@ describe("CompletePhase — AppliedTracker", () => {
 
   it("renders applied job entries in tracker", () => {
     renderComplete({ appliedList: [APPLIED_JOB] });
-    // Title shows in the tracker row
     expect(screen.getAllByText(/Senior Engineer/i).length).toBeGreaterThanOrEqual(1);
   });
 
@@ -211,23 +260,27 @@ describe("CompletePhase — download", () => {
     const select = screen.getByRole("combobox");
     expect(select.value).toBe("txt");
   });
+});
 
-  it("clicking Resume button triggers download (creates anchor)", async () => {
-    const user = userEvent.setup();
-    // Spy on createElement to capture the anchor click
-    const clickSpy = jest.fn();
-    const origCreate = document.createElement.bind(document);
-    jest.spyOn(document, "createElement").mockImplementation((tag) => {
-      const el = origCreate(tag);
-      if (tag === "a") { el.click = clickSpy; }
-      return el;
-    });
+// ============================================================
+// Phase progression: Review -> Complete (no Tailor phase)
+// ============================================================
 
+describe("CompletePhase — phase progression", () => {
+  it("shows Pending status for jobs without documents", () => {
     renderComplete();
-    const resumeBtn = screen.getByText(/Resume/i, { selector: "button" });
-    await user.click(resumeBtn);
-    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Pending")).toBeInTheDocument();
+  });
 
-    document.createElement.mockRestore();
+  it("shows Ready status for jobs with both documents restored", () => {
+    saveTailorResult({
+      job_title: "Senior Engineer",
+      company: "Acme",
+      url: "https://acme.com/job/1",
+      resume: "Resume text",
+      cover_letter: "Cover letter text",
+    });
+    renderComplete();
+    expect(screen.getByText(/Ready/)).toBeInTheDocument();
   });
 });

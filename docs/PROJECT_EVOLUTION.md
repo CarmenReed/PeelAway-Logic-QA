@@ -29,7 +29,7 @@ The Gems needed to stop being five disconnected conversations and start being a 
 
 The decision to rebuild in React with Vite as the build tool, using Claude Code as the development accelerator, changed the trajectory of the project entirely.
 
-The core architectural insight was that the five Gemini Gems mapped directly to a finite state machine. Scout extracts a candidate profile from a resume. Search discovers open positions. Review is a human gate — the applicant decides which jobs are worth pursuing. Tailor generates customized resumes and cover letters for the approved positions. Complete packages everything for download. Each phase has defined inputs, defined outputs, and a clear transition to the next.
+The core architectural insight was that the five Gemini Gems mapped directly to a finite state machine. Scout extracts a candidate profile from a resume. Search discovers open positions. Review is a human gate — the applicant decides which jobs are worth pursuing. Complete generates customized resumes and cover letters for the approved positions, then packages everything for download. Each phase has defined inputs, defined outputs, and a clear transition to the next.
 
 React made these phases into components. LocalStorage gave the pipeline cross-session persistence — close the browser, come back tomorrow, pick up where you left off. The Claude API replaced manual copy-paste with programmatic orchestration. What used to be five tabs and fifteen minutes became a single interface where the pipeline state flows forward automatically.
 
@@ -61,7 +61,7 @@ The F0 (free tier) Azure AI Search resource was chosen intentionally. It demonst
 
 There's a detail about this project that tends to land differently once you hear it: PeelAway Logic found the job it's preparing Carmen for.
 
-The Microsoft Principal Software Engineer position was surfaced by the Scout phase during a routine search run. The Review phase scored it 9 out of 10. The Tailor phase generated the customized resume. The same pipeline that Carmen built to solve her job search problem identified the specific role where the pipeline itself becomes the most relevant artifact on her resume.
+The Microsoft Principal Software Engineer position was surfaced by the Scout phase during a routine search run. The Review phase scored it 9 out of 10. The Complete phase generated the customized resume. The same pipeline that Carmen built to solve her job search problem identified the specific role where the pipeline itself becomes the most relevant artifact on her resume.
 
 This isn't a coincidence — it's a consequence of building a tool that actually works in production. When you use your own system daily, you find the edges. The anti-hallucination constraints exist because Carmen caught fabricated content in her own tailored resume. The human gate in Review exists because she caught herself applying to roles that were poor matches. The test suite exists because a broken deploy cost her a day of applications.
 

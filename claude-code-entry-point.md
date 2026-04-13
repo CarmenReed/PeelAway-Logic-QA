@@ -16,8 +16,7 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 |-------|------|-------------|
 | 0 | Scout | Upload resume, run 3 search layers, score all jobs with Haiku |
 | 1 | Review | Browse jobs by tier, select which ones to pursue (Human Gate) |
-| 2 | Tailor | Generate tailored resume and cover letter per approved job |
-| 3 | Complete | Download documents, mark jobs as applied, track history |
+| 2 | Complete | Generate tailored resume and cover letter per approved job, download documents, mark jobs as applied, track history |
 
 ### Tech Stack
 
@@ -29,7 +28,8 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | PDF extraction | pdf.js 3.11.174 (loaded from CDN at runtime) |
 | Persistence | localStorage (4 keys, all prefixed `jsp-`) |
 | Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
-| Testing | @testing-library/react,  tests across  suites |
+| Testing (Unit) | Jest + @testing-library/react, 436 tests across 16 suites |
+| Testing (E2E) | @playwright/test, 52 tests across 6 specs (Chromium) |
 
 ### One Rule That Applies Everywhere
 
@@ -76,7 +76,7 @@ When starting a new Claude Code session in this repo, prime the session with the
 
 ```
 Project: PeelAway Logic QA, React 18 job search pipeline app.
-Phases: Scout (0), Review (1), Tailor (2), Complete (3).
+Phases: Scout (0), Review (1), Complete (2).
 Models: claude-sonnet-4-6 for tailoring + ATS web search, claude-haiku-4-5-20251001 for scoring.
 All config values live in src/constants.js (model names, delays, batch sizes, storage keys, API URL).
 API wrappers (withRetry, callAnthropic, callAnthropicWithLoop) are all in src/api.js.
@@ -125,7 +125,7 @@ Root component. Owns all top-level state and routes between phases. Key state:
 phase          // 0-3, controls which phase renders
 profileText    // Extracted resume text, passed down to all phases
 scoutResults   // { found, summary, tiers, notes } from Scout
-approvedJobs   // Jobs approved in Review, passed to Tailor
+approvedJobs   // Jobs approved in Review, passed to Complete
 tailorResults  // Generated docs (restored from localStorage on mount)
 appliedJobs    // Applied job entries (restored from localStorage on mount)
 maxVisited     // Highest phase reached, unlocks phase nav tabs
@@ -191,21 +191,18 @@ Most complex file. Contains three independent search layers plus Quick Score (Ma
 - Search for `"You are a job scoring AI"` to find the Haiku scoring prompt
 - Search for `web_search_20250305` to find the ATS web search prompt
 
-### 9. `src/phases/TailorPhase.jsx`
+### 9. `src/phases/ReviewPhase.jsx`
 
-Per-job document generation. Key behaviors:
+Tier tabs (Strong, Possible, Weak) plus job selection. Weak tab is read-only. Selecting jobs and clicking Approve writes to `approvedJobs` state in the parent and writes dismissed jobs to localStorage.
+
+### 10. `src/phases/CompletePhase.jsx`
+
+Per-job document generation, downloads, Mark Applied, Applied Tracker. Key behaviors:
 - `jobState` object keyed by `job_title|company` stores status and generated text per job
 - `abortRefs` useRef holds one AbortController per job document (keyed `jobKey_resume`, `jobKey_cover`)
 - `lastCallTime` useRef enforces the 8-second delay between API calls
 - Restored from `jsp-tailor-results` on mount, so reloading the page preserves all work
-
-### 10. `src/phases/ReviewPhase.jsx`
-
-Tier tabs (Strong, Possible, Weak) plus job selection. Weak tab is read-only. Selecting jobs and clicking Approve writes to `approvedJobs` state in the parent and writes dismissed jobs to localStorage.
-
-### 11. `src/phases/CompletePhase.jsx`
-
-Downloads, Mark Applied, Applied Tracker. "Clear All" wipes `jsp-applied-jobs` and `jsp-last-scout` but intentionally leaves `jsp-tailor-results` so generated documents survive a new search.
+- "Clear All" wipes `jsp-applied-jobs` and `jsp-last-scout` but intentionally leaves `jsp-tailor-results` so generated documents survive a new search.
 
 ---
 
@@ -261,8 +258,11 @@ npm install
 # Start dev server (hot reload, localhost:3000)
 npm start
 
-# Run all  tests
+# Run all 436 Jest tests (interactive watch mode)
 npm test
+
+# Run Jest headless (CI mode)
+CI=true npm test
 
 # Build production bundle (output to build/)
 npm run build
@@ -270,11 +270,39 @@ npm run build
 
 The dev server reads `.env` automatically via CRA's dotenv integration. No manual sourcing needed.
 
-To run tests without interactive watch mode:
+### E2E Tests (Playwright)
 
 ```bash
-CI=true npm test
+# Run all 52 E2E tests headless
+npm run test:e2e
+
+# Interactive UI mode (best for debugging)
+npm run test:e2e:ui
+
+# Headed browser (watch tests run)
+npm run test:e2e:headed
+
+# Generate and view HTML report
+npx playwright test --reporter=html
+npx playwright show-report
 ```
+
+**E2E directory structure:**
+- `e2e/` contains 7 Playwright spec files covering all pipeline phases
+- `e2e/fixtures/test-helpers.ts` has shared helpers: `loginAsGuest()`, `waitForPhase()`, `mockAnthropicApi()`, `mockSearchApis()`, `goToLanding()`, `dismissBanners()`, `getMockJobResults()`
+- All external APIs (Anthropic Claude, Adzuna, JSearch, RSS feeds) are mocked via `page.route()` in test-helpers.ts, so tests run offline with deterministic data and zero API costs
+
+**User stories:** `docs/user-stories/` contains user stories with acceptance criteria across 6 files, providing requirements traceability from story to E2E spec to unit test.
+
+**API mocking pattern:** E2E tests intercept network requests using Playwright's `page.route()` API. Mocks live in `e2e/fixtures/test-helpers.ts` and cover:
+- `**/api.anthropic.com/v1/messages` (Anthropic Claude API)
+- `**/api.adzuna.com/**` (Adzuna job search)
+- `**/jsearch.p.rapidapi.com/**` (JSearch via RapidAPI)
+- RSS feeds (WeWorkRemotely, Remotive, RemoteOK, Himalayas, Jobicy)
+
+**data-testid convention:** Use the pattern `data-testid="phase-element-descriptor"`, e.g. `data-testid="tailor-card"`, `data-testid="progress-stepper-mobile"`, `data-testid="env-banner-close"`.
+
+**Test-writing rule:** Any new feature or bug fix should include both a Jest unit test AND a corresponding Playwright E2E test where applicable. Tests that require full pipeline data but cannot yet seed it should use `test.fixme()` with a clear comment explaining what they verify.
 
 ---
 
@@ -313,32 +341,24 @@ CI=true npm test
 7. Open React DevTools, find `JobSearchPipeline`, verify `approvedJobs` state has the selected entries
 8. Open DevTools > Application > Local Storage > check `jsp-dismissed-jobs` has entries for non-selected Strong/Possible jobs
 
-### Phase 2: Tailor
+### Phase 2: Complete
 
-**Goal:** Confirm per-job generation, rate limiting, persistence, and download formats.
+**Goal:** Confirm per-job generation, rate limiting, persistence, downloads, apply tracking, and reset behavior.
 
 1. Verify the page loads without triggering any network requests (Human Gate: no API calls until user clicks)
-2. Click **Resume** on the first job; watch the status change from idle to generating (spinner) to ready (checkmark)
-3. Click **Resume** on the second job immediately; confirm it waits approximately 8 seconds before firing
-4. Click **Cover Letter** on the first job after resume is ready
+2. Click **Create Resume** on the first job; watch the status change from idle to generating (spinner) to ready (checkmark)
+3. Click **Create Resume** on the second job immediately; confirm it waits approximately 8 seconds before firing
+4. Click **Create Cover Letter** on the first job after resume is ready
 5. Click the **redo** button on a completed resume; confirm it re-fires the API call and overwrites the stored text
 6. Switch the download format dropdown between txt, md, and pdf; confirm each download triggers the correct behavior (txt/md = file download, pdf = print dialog)
 7. Refresh the page; verify all completed resumes and cover letters are restored from localStorage
 8. Open DevTools > Application > Local Storage > check `jsp-tailor-results` has entries with `resume` and `cover_letter` text
-
-**Advance condition:** the Next button to Phase 3 is disabled until at least one job has both resume and cover letter completed.
-
-### Phase 3: Complete
-
-**Goal:** Confirm downloads, apply tracking, and reset behavior.
-
-1. Verify every approved job appears with its title, company, job URL (clickable), and download buttons
-2. Click **Mark Applied** on a job; confirm it moves to the Applied Tracker section with a timestamp
-3. Expand the Applied Tracker; verify the entry shows title, company, and applied date
-4. Click **Remove** on an applied entry; verify it disappears from the tracker
-5. Click **New Search**; verify the app resets to Phase 0 with a blank resume upload
-6. Return to Tailor phase (via nav tab); verify previously generated documents are still present
-7. Click **Clear All**; verify `jsp-applied-jobs` and `jsp-last-scout` are cleared in localStorage, but `jsp-tailor-results` is not
+9. Verify every approved job appears with its title, company, job URL (clickable), and download buttons
+10. Click **Mark Applied** on a job; confirm it moves to the Applied Tracker section with a timestamp
+11. Expand the Applied Tracker; verify the entry shows title, company, and applied date
+12. Click **Remove** on an applied entry; verify it disappears from the tracker
+13. Click **New Search**; verify the app resets to Phase 0 with a blank resume upload
+14. Click **Clear All**; verify `jsp-applied-jobs` and `jsp-last-scout` are cleared in localStorage, but `jsp-tailor-results` is not
 
 ---
 
@@ -354,7 +374,7 @@ Debug step: Add a `console.log` at the start of each turn inside `callAnthropicW
 
 **JD Fetch Re-score:** The `fetchJdText` function in `ScoutPhase.jsx` also uses the agentic loop, capped at 5 turns. If it finds no usable text after 5 turns, it returns `null` and the job is not re-scored. This is expected and safe; the job keeps its original score.
 
-**Tailor Generation:** Each job has its own `AbortController` stored in `abortRefs.current[jobKey + "_resume"]` and `abortRefs.current[jobKey + "_cover"]`. If a generation hangs, use the cancel button rendered per job. If no cancel button is visible, check that `jobState[jobKey].resumeStatus === "generating"` is true; the cancel button renders conditionally on that status.
+**Document Generation (Complete phase):** Each job has its own `AbortController` stored in `abortRefs.current[jobKey + "_resume"]` and `abortRefs.current[jobKey + "_cover"]`. If a generation hangs, use the cancel button rendered per job. If no cancel button is visible, check that `jobState[jobKey].resumeStatus === "generating"` is true; the cancel button renders conditionally on that status.
 
 **`withRetry` total wait time:** On a 429 response, `withRetry` waits 20 seconds before retrying. With 3 attempts, total wall time before an error surfaces can be 60 seconds or more. This is not a hang; it is expected retry behavior.
 
@@ -472,7 +492,7 @@ Use Manual Job Input (Quick Score) in the Scout phase. Paste a single job descri
 **For tailor prompt changes:**
 
 1. Complete Scout and Review with a small set (one or two approved jobs)
-2. In Tailor phase, click Resume or Cover Letter on a single job
+2. In Complete phase, click Create Resume or Create Cover Letter on a single job
 3. After it completes, click the **redo** button to re-fire the call with your updated prompt
 4. Compare the new output against the previous one
 
@@ -519,8 +539,7 @@ src/
   phases/
     ScoutPhase.jsx      3 search layers + filters + profile extraction + scoring (most complex)
     ReviewPhase.jsx     Tier tabs, sort, job selection, Human Gate
-    TailorPhase.jsx     Per-job doc generation, rate limiting, abort refs, persistence
-    CompletePhase.jsx   Downloads, Mark Applied, Applied Tracker, Clear All
+    CompletePhase.jsx   Per-job doc generation, rate limiting, abort refs, persistence, downloads, Mark Applied, Applied Tracker
   components/
     JobCard.jsx         Single job display, tech stack chips, score badge
     ManualJobInput.jsx  Quick Score: paste URL or JD, integrated into Step 3
@@ -534,7 +553,7 @@ src/
     useWindowWidth.js   Responsive breakpoint hook (MOBILE_BP = 640)
   services/
     azureSearchService.js  Azure AI Search REST client (index, batch index, search, delete)
-  __tests__/             tests across  suites
+  __tests__/             436 tests across 16 suites
     pipelineUtils.test.js       Utility function tests (JSON, dedup, titles, prompts)
     utilsKeywordPreFilter.test.js Dynamic pre-filter tests (profile-driven)
     profileExtractor.test.js    Resume parser tests (skills, name, levels, queries)
@@ -545,12 +564,32 @@ src/
     reviewPhase.test.jsx        Review phase tier and selection tests
     completePhase.test.jsx      Complete phase tests
     progressStepper.test.jsx    Phase nav stepper tests
-    tailorPhase.test.js         Tailor phase behavior tests
+    tailorPhase.test.js         Complete phase document generation tests
     tailorPersistence.test.js   localStorage persistence tests
     api.test.js                 API wrapper and retry logic tests
     storage.test.js             localStorage wrapper tests
     hooks.test.js               Custom hook tests
     azureSearchService.test.js  Azure AI Search REST client tests (index, batch, search, delete)
+e2e/                             52 Playwright E2E tests across 6 specs
+  fixtures/
+    test-helpers.ts              Shared helpers, API mocks (page.route)
+  01-landing.spec.ts             Landing page (6 tests)
+  02-scout.spec.ts               Scout + Search phases (10 tests)
+  03-review.spec.ts              Review phase + structural checks (8 tests)
+  04-human-gate.spec.ts          Human Gate intent enforcement (6 tests)
+  05-complete.spec.ts            Complete phase: doc generation, persistence, applied tracking (14 tests)
+  07-navigation.spec.ts          Navigation, responsive layout (8 tests)
+docs/
+  user-stories/                  36 user stories, 127 acceptance criteria
+    01-landing.md                Landing (4 stories, 13 AC)
+    02-scout.md                  Scout & Search (8 stories, 28 AC)
+    03-review.md                 Review (4 stories, 16 AC)
+    04-human-gate.md             Human Gate (5 stories, 17 AC)
+    05-complete.md               Complete (7 stories)
+    06-cross-cutting.md          Cross-cutting (5 stories, 16 AC)
+  TEST-STRATEGY-OVERVIEW.md      Interview-ready test strategy reference
+playwright.config.ts             E2E config (chromium, localhost:3000, 60s timeout)
+playwright-report/               HTML report (gitignored)
 ```
 
 ### Additional Directories

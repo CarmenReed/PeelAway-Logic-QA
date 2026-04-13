@@ -34,3 +34,9 @@ semantic-kernel-demo/venv/
 # Temp/local scripts
 fix-failing-tests.ps1
 prod-update-docs.yml
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
