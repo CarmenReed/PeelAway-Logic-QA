@@ -1,4 +1,4 @@
-# Human Gate — User Stories
+# Human Gate - User Stories
 
 ## US-GATE-001: Select Individual Jobs for Document Generation
 

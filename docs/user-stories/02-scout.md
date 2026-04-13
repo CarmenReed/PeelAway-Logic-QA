@@ -1,4 +1,4 @@
-# Scout & Search — User Stories
+# Scout & Search - User Stories
 
 ## US-SCOUT-001: Upload Resume via PDF or TXT
 

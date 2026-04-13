@@ -1,4 +1,4 @@
-# Landing — User Stories
+# Landing - User Stories
 
 ## US-LAND-001: Start as Guest
 

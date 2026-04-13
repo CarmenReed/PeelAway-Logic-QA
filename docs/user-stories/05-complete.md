@@ -1,4 +1,4 @@
-# Complete — User Stories
+# Complete - User Stories
 
 ## US-COMP-001: Per-Job Document Generation
 

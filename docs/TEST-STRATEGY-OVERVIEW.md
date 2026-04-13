@@ -1,4 +1,4 @@
-# PeelAway Logic -- Test Strategy Overview
+# PeelAway Logic - Test Strategy Overview
 
 ## Approach
 
@@ -20,9 +20,9 @@ Two-tier testing (unit + E2E) with user story traceability. Every requirement is
 | Scout & Search | 8 | 28 | 10 | All passing |
 | Review | 4 | 16 | 8 | 3 passing, 5 pending |
 | Human Gate | 5 | 17 | 6 | 6 pending |
-| Complete | 7 | -- | 14 | 3 passing, 11 pending |
+| Complete | 7 | n/a | 14 | 3 passing, 11 pending |
 | Cross-cutting | 5 | 16 | 8 | All passing |
-| **Total** | **--** | **--** | **52** | **32 passing, 20 pending** |
+| **Total** | **n/a** | **n/a** | **52** | **32 passing, 20 pending** |
 
 **Unit test coverage (Jest):** 436 tests across 16 suites covering utilities, profile extraction, API wrappers, storage, hooks, and all phase components. All passing.
 

@@ -1,4 +1,4 @@
-# Demo Mode — User Stories
+# Demo Mode - User Stories
 
 ## US-DEMO-001: Demo Mode Toggle
 

@@ -1,4 +1,4 @@
-# Cross-Cutting — User Stories
+# Cross-Cutting - User Stories
 
 ## US-NAV-001: ProgressStepper Navigation
 

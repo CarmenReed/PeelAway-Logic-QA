@@ -1,4 +1,4 @@
-# Review — User Stories
+# Review - User Stories
 
 ## US-REV-001: Tier Bucket Display
 
