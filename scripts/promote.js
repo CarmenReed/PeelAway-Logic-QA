@@ -859,6 +859,16 @@ if (COMMIT) {
 
 // Step N: Push PROD to GitHub (if requested)
 if (COMMIT && PUSH) {
+  info('Pulling latest from PROD remote (CI may have auto-committed)...');
+  try {
+    execSync('git fetch origin main', { cwd: prodRoot, stdio: 'inherit' });
+    execSync('git rebase origin/main', { cwd: prodRoot, stdio: 'inherit' });
+    good('PROD rebased on latest remote.');
+  } catch {
+    err('Rebase failed. Resolve conflicts in PROD manually, then push.');
+    process.exit(1);
+  }
+
   info('Pushing PROD to GitHub...');
   try {
     execSync('git push origin main', { cwd: prodRoot, stdio: 'inherit' });
