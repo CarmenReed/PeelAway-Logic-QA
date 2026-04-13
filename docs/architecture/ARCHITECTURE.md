@@ -2,7 +2,7 @@
 
 ## Overview
 
-PeelAway Logic is an AI-powered job search pipeline built as a React 18 single-page application (Vite), deployed to GitHub Pages. It orchestrates a 4-phase workflow (Scout, Search, Review, Complete) that transforms a resume and keywords into scored job matches and tailored application materials, using Anthropic Claude (claude-sonnet) for AI scoring and content generation with all state persisted in localStorage. The current sprint adds Azure AI Search integration and a standalone Semantic Kernel demo as enterprise proof-of-concept extensions.
+PeelAway Logic is an AI-powered job search pipeline built as a React 18 single-page application (Create React App), deployed to GitHub Pages. It orchestrates a 4-phase workflow (Scout, Search, Review, Complete) that transforms a resume and keywords into scored job matches and tailored application materials, using Anthropic Claude (claude-sonnet) for AI scoring and content generation with all state persisted in localStorage. The current sprint adds Azure AI Search integration and a standalone Semantic Kernel demo as enterprise proof-of-concept extensions.
 
 ## System Context
 
@@ -12,7 +12,7 @@ C4Context
 
     Person(user, "Job Seeker", "Uploads resume, reviews scored jobs, exports tailored applications")
 
-    System(peelaway, "PeelAway Logic", "React 18 SPA (Vite)<br/>4-phase job search pipeline")
+    System(peelaway, "PeelAway Logic", "React 18 SPA (Create React App)<br/>4-phase job search pipeline")
 
     System_Ext(claude, "Anthropic Claude API", "claude-sonnet via client-side fetch<br/>Scoring + tailoring + web search")
     System_Ext(adzuna, "Adzuna API", "Job listings (structured REST)")
@@ -201,16 +201,16 @@ timeline
                : No orchestration or state
 
     section v1 — Claude Code + React SPA
-        Unified Pipeline : Claude Code builds React 18 SPA (Vite)
+        Unified Pipeline : Claude Code builds React 18 SPA (Create React App)
                          : 4-phase pipeline (Scout → Search → Review → Complete)
                          : localStorage for pipeline state
                          : Client-side Claude API (claude-sonnet)
 
     section v2 — Tests + CI/CD + GitHub Pages
-        Production Ready : 346 tests across 15 files
+        Production Ready : 453 tests across 16 suites (Jest + RTL)
+                         : 62 E2E tests (Microsoft Playwright + Chromium)
                          : GitHub Actions CI/CD pipeline
                          : Deployed to GitHub Pages
-                         : Automated doc updates
 
     section v3 — Azure AI Search + Semantic Kernel (Current Sprint)
         Azure Integration : Azure AI Search (peelaway-search, F0)

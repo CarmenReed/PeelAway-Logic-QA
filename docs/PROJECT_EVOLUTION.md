@@ -27,7 +27,7 @@ The Gems needed to stop being five disconnected conversations and start being a 
 
 ## The Pivot — Claude Code and React
 
-The decision to rebuild in React with Vite as the build tool, using Claude Code as the development accelerator, changed the trajectory of the project entirely.
+The decision to rebuild in React with Create React App, using Claude Code as the primary development tool and GitHub Copilot for inline questions and quick lookups, changed the trajectory of the project entirely.
 
 The core architectural insight was that the five Gemini Gems mapped directly to a finite state machine. Scout extracts a candidate profile from a resume. Search discovers open positions. Review is a human gate — the applicant decides which jobs are worth pursuing. Complete generates customized resumes and cover letters for the approved positions, then packages everything for download. Each phase has defined inputs, defined outputs, and a clear transition to the next.
 
@@ -39,9 +39,9 @@ GitHub Pages provided zero-ops hosting. No backend servers to maintain, no infra
 
 ## Growth — Tests, CI/CD, and Production Discipline
 
-The test suite didn't start at 346 tests. It started at zero, and every test that exists was written because something broke or because something could break and the consequence was unacceptable.
+The test suite didn't start at 453 tests. It started at zero, and every test that exists was written because something broke or because something could break and the consequence was unacceptable.
 
-Today, 346 tests span 15 test files covering unit, integration, and component boundaries. The tests aren't ceremonial — they enforce real invariants. Anti-hallucination regression tests verify that tailor output contains only content derivable from source material, because early versions of the pipeline would fabricate skills and embellish experience. When that's going on a real resume attached to a real application, fabrication isn't a quality issue — it's a professional and legal risk. ADR-006 documents the prompt engineering constraints that eliminated this, and the test suite ensures they stay eliminated.
+Today, 453 unit and component tests span 16 test suites (Jest + React Testing Library), and 62 E2E tests run in Microsoft Playwright against a real Chromium browser, validating complete user workflows through all four pipeline phases. The tests aren't ceremonial — they enforce real invariants. Anti-hallucination regression tests verify that tailor output contains only content derivable from source material, because early versions of the pipeline would fabricate skills and embellish experience. When that's going on a real resume attached to a real application, fabrication isn't a quality issue — it's a professional and legal risk. ADR-006 documents the prompt engineering constraints that eliminated this, and the test suite ensures they stay eliminated.
 
 GitHub Actions enforces CI on every push. Tests run, the build compiles, and nothing deploys to GitHub Pages unless the full suite passes. This isn't enterprise theater — it's the reason the pipeline has survived over fifty deployments with zero regressions. When you're using a tool daily for actual job applications, production discipline isn't optional. A broken deploy means a missed application window.
 

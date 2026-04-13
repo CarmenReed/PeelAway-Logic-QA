@@ -15,7 +15,7 @@ Implement hard grounding constraints on all tailor and cover letter prompts: ins
 ## Consequences
 
 **Benefits:**
-- 346 tests include specific anti-hallucination regression tests that verify output only contains derivable content.
+- 453 unit/component tests (Jest) and 62 E2E tests (Playwright) include specific anti-hallucination regression tests that verify output only contains derivable content.
 - Zero fabrication incidents in production use since implementation.
 - Demonstrates responsible AI engineering to interviewers.
 
