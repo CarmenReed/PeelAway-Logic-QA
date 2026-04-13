@@ -1,6 +1,6 @@
 # HCI Audit Flag: RED
 
-- Timestamp (UTC): 20260413-141358Z
+- Timestamp (UTC): 20260413-142658Z
 - Branch: claude_hci-governance-audit-gybQ0
 - Verdict: RED
 
@@ -18,7 +18,7 @@
 | Tier 2 (interaction) | 3 |
 | Tier 3 (visual) | 0 |
 | Tier 4 (copy/user stories) | 1 |
-| Non HCI | 13 |
+| Non HCI | 14 |
 
 ## Changed Files
 

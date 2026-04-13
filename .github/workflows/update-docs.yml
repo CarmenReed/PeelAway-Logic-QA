@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run docs-sync (structural + per file lists)
+        run: node scripts/docs-sync.js || true
+
       - name: Get test counts
         id: tests
         run: |
@@ -93,7 +96,6 @@ jobs:
           sed -i "s/[0-9]\+ tests across [0-9]\+ suites$/$TESTS tests across $SUITES suites/" claude-code-entry-point.md
 
       - name: Commit and push if changed
-        if: steps.check.outputs.needs_update == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -104,6 +106,8 @@ jobs:
             git commit -m "docs: auto-update test counts and documentation
 
           Updated by GitHub Actions after source changes detected.
+          Includes structural updates from scripts/docs-sync.js and
+          numeric totals from the Jest run.
 
           Co-Authored-By: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
             git push

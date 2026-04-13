@@ -28,8 +28,8 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | PDF extraction | pdf.js 3.11.174 (loaded from CDN at runtime) |
 | Persistence | localStorage (4 keys, all prefixed `jsp-`) |
 | Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
-| Testing (Unit) | Jest + @testing-library/react,  tests across  suites |
-| Testing (E2E) | @playwright/test, 52 tests across 6 specs (Chromium) |
+| Testing (Unit) | Jest + @testing-library/react, 446 tests across 17 suites |
+| Testing (E2E) | @playwright/test, 70 tests across 8 specs (Chromium) |
 | Accessibility (Unit) | jest-axe, vision impaired rules (alt, button/link/label names, ARIA, SVG) |
 | Accessibility (E2E) | @axe-core/playwright, color contrast (WCAG 1.4.3), focus, landmarks |
 | HCI Governance | `scripts/hci-audit.js`, skill at `.claude/skills/hci-audit/`, flags at `docs/hci-audit/flags/` |
@@ -261,7 +261,7 @@ npm install
 # Start dev server (hot reload, localhost:3000)
 npm start
 
-# Run all 436 Jest tests (interactive watch mode)
+# Run all 446 Jest tests (interactive watch mode)
 npm test
 
 # Run Jest headless (CI mode)
@@ -306,7 +306,7 @@ reproducible in one of these suites.
 ### E2E Tests (Playwright)
 
 ```bash
-# Run all 52 E2E tests headless
+# Run all 70 E2E tests headless
 npm run test:e2e
 
 # Interactive UI mode (best for debugging)

@@ -13,7 +13,9 @@
   "alwaysPromote": {
     "paths": [
       ".claude/skills/hci-audit/",
-      ".claude/skills/hci-audit/SKILL.md"
+      ".claude/skills/hci-audit/SKILL.md",
+      ".claude/skills/docs-sync/",
+      ".claude/skills/docs-sync/SKILL.md"
     ]
   },
 

@@ -33,6 +33,26 @@ After copying, the promotion script replaces QA-specific text across all file ty
 - Run `node scripts/doc-lint.js` after any documentation changes.
 - `update-docs.yml` CI workflow auto-updates test counts in README after source changes.
 
+## Documentation Sync
+
+After adding, renaming, or removing any file in `src/__tests__/` or `e2e/`,
+run the documentation sync script before committing:
+
+```bash
+npm run docs-sync
+```
+
+The script rewrites the test file lists, structural counts, and per spec
+test counts in `README.md` and `claude-code-entry-point.md` so they never
+drift from the source tree. Hand written descriptions on existing entries
+are preserved; new files get descriptions extracted from leading comments
+or a `TODO: add description` placeholder. Exit code 0 means already in
+sync, 1 means changes were written and need a commit. The same script
+also runs as a step inside `.github/workflows/update-docs.yml` so drift
+is caught even when developers forget. The skill definition lives at
+`.claude/skills/docs-sync/SKILL.md` and is also invocable as
+`/docs-sync`.
+
 ## HCI Governance
 
 Before committing any change that touches user facing surface, run the HCI
