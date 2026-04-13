@@ -9,14 +9,9 @@
 
   "preserveProdVersions": ["docs/GITHUB-KNOWLEDGE-BASE.md"],
 
-  "_alwaysPromoteComment": "Paths listed here override neverPromote. The promotion script must include any file whose path matches one of these patterns, even if an ancestor directory is in neverPromote.dirs. Use this to opt shared, portable assets (like the hci-audit skill) back into promotion while keeping the rest of .claude/ local.",
+  "_alwaysPromoteComment": "Paths listed here override neverPromote. The promotion script copies these even if an ancestor directory is in neverPromote.dirs.",
   "alwaysPromote": {
-    "paths": [
-      ".claude/skills/hci-audit/",
-      ".claude/skills/hci-audit/SKILL.md",
-      ".claude/skills/docs-sync/",
-      ".claude/skills/docs-sync/SKILL.md"
-    ]
+    "paths": []
   },
 
   "alwaysExcludeFromCopy": {
