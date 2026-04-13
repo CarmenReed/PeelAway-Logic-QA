@@ -7,7 +7,7 @@
     "rootFileExtensions": [".ps1"]
   },
 
-  "preserveProdVersions": ["docs/GITHUB-KNOWLEDGE-BASE.md"],
+  "preserveProdVersions": ["CLAUDE.md", "docs/GITHUB-KNOWLEDGE-BASE.md"],
 
   "_alwaysPromoteComment": "Paths listed here override neverPromote. The promotion script copies these even if an ancestor directory is in neverPromote.dirs.",
   "alwaysPromote": {
@@ -32,7 +32,12 @@
     { "pattern": "PeelAway-Logic-QA", "flags": "i", "label": "PeelAway-Logic-QA" },
     { "pattern": "\\bQA repo\\b", "flags": "i", "label": "QA repo" },
     { "pattern": "\\bQA branch\\b", "flags": "i", "label": "QA branch" },
-    { "pattern": "\\bQA environment\\b", "flags": "i", "label": "QA environment" }
+    { "pattern": "\\bQA environment\\b", "flags": "i", "label": "QA environment" },
+    { "pattern": "Quality Assurance", "flags": "i", "label": "Quality Assurance (full phrase)" },
+    { "pattern": "\\bQA copy\\b", "flags": "i", "label": "QA copy" },
+    { "pattern": "\\bQA validation\\b", "flags": "i", "label": "QA validation" },
+    { "pattern": "\\bQA validates\\b", "flags": "i", "label": "QA validates" },
+    { "pattern": "\\bstaging ground\\b", "flags": "i", "label": "staging ground" }
   ],
 
   "packageJson": {

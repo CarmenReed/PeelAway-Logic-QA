@@ -212,11 +212,11 @@ body {
 }
 
 .step-label {
-  position: relative; width: 38px; flex-shrink: 0;
+  display: flex; justify-content: center;
+  width: 38px; flex-shrink: 0;
 }
 
 .step-label-text {
-  position: absolute; left: 50%; transform: translateX(-50%);
   white-space: nowrap; font-size: 11px; font-weight: 600;
   color: var(--brown-light);
 }

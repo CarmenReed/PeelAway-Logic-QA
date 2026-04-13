@@ -1,42 +1,34 @@
 # PeelAway Logic - QA Environment
 
-**Quality Assurance (QA)** environment for the PeelAway Logic application. This is where new features are developed, bugs are fixed, and changes are validated before being promoted to production.
-
-## Purpose
-
-This folder serves as the staging ground for all iterative work on PeelAway Logic. Each development cycle, new features and bug fixes are implemented and tested here first. Changes are only promoted to `PeelAway Logic` after passing QA validation.
-
-### What Gets Tracked Here
-
-- New feature development and integration
-- Bug fixes and regression corrections
-- UI/UX improvements
-- API and performance optimizations
-- Test coverage expansion
-
-## Current Iteration
-
-| Item | Type | Status |
-|------|------|--------|
-| - | - | No active items |
-
-> Items will be added to this table as each iteration begins. Completed items are promoted to production and cleared from this list.
+QA environment for the PeelAway Logic application. Features are developed, tested, and validated here before each release.
 
 ## What It Does
 
-This is the QA copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in four phases:
+PeelAway Logic is an AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a four-phase pipeline:
 
-1. **Scout** - Upload your resume (PDF or TXT) or paste text. The app extracts skills, experience level, location, and generates search queries automatically via regex-based profile extraction. Configure search filters (work type, date posted, employment type, US zip code + radius) then run three independent search layers:
-   - **Layer 1:** Job boards (Adzuna + JSearch) - aggregator APIs searched in parallel, US-only
+1. **Scout** - Upload your resume (PDF or TXT), paste text, or import from Dropbox. The app extracts skills, experience level, location, and generates search queries automatically via regex-based profile extraction. Configure search filters (work type, date posted, employment type, US zip code + radius) then run three independent search layers:
+   - **Layer 1:** Job boards (Adzuna + JSearch), aggregator APIs searched in parallel, US-only
    - **Layer 2:** RSS feeds (WeWorkRemotely, Remotive, RemoteOK, Himalayas, Jobicy)
    - **Layer 3:** ATS boards (Greenhouse, Lever, Workday) via AI-driven web search, US-only
    - **Quick Score:** Score a specific job by pasting a URL or job description text (integrated into Step 3)
    - Each layer runs independently with disable flow (one at a time, completed layers stay disabled until Start Over).
    - When ready, click "Score & Review" to deduplicate, pre-filter, score, fetch full JDs, and re-score.
 
-2. **Review** - Discovered roles organized into tiers (Strong Match 8-10, Possible 6-7, Weak 3-5, Rejected 0-2). Sort by score, date posted (newest first), or company. Fresh postings (within 7 days) display a green date badge; stale or unverifiable dates show an orange warning. Select which roles to move forward with via the Human Gate - no document generation API calls are made until you explicitly approve.
+2. **Review** - Discovered roles organized into tiers (Strong Match 8-10, Possible 6-7, Weak 3-5, Rejected 0-2). Sort by score, date posted (newest first), or company. Fresh postings (within 7 days) display a green date badge; stale or unverifiable dates show an orange warning. Strong Match and Possible tiers are selectable; Weak and Rejected are visible for reference but cannot advance. Select which roles to move forward with via the Human Gate; no document generation API calls are made until you explicitly approve.
 
-3. **Complete** - Each approved role displays as a card with a clickable link to the original job posting and two independent buttons: "Create Resume" and "Create Cover Letter." Each document is one click, one API call. Nothing generates automatically. Download, copy, or regenerate any document individually. Mark jobs as applied. Applied jobs are tracked across sessions and automatically excluded from future scout runs.
+3. **Complete** - Each approved role displays as a card with a clickable link to the original job posting and two independent buttons: "Create Resume" and "Create Cover Letter." Each document is one click, one API call. Nothing generates automatically. Download as TXT, Markdown, or PDF; copy to clipboard; or regenerate any document individually. Save generated documents to Dropbox when connected. Mark jobs as applied. Applied jobs are tracked across sessions and automatically excluded from future scout runs.
+
+## Dropbox Integration
+
+PeelAway Logic supports optional Dropbox workspace connection via OAuth 2.0:
+
+- **Connect/disconnect** from the Landing page ("Connect Your Workspace" button)
+- **Import resume** from Dropbox in the Scout phase via the Dropbox Chooser widget
+- **Save generated documents** (resumes and cover letters) to Dropbox in the Complete phase
+- **Auto-sync** applied jobs, tailor results, scout data, and dismissed jobs to `/PeelAway Logic/peelaway-sync-data.json` in the user's Dropbox (5-second debounce)
+- **Cross-device continuity** via cloud-synced state with intelligent merge logic
+
+Dropbox is fully optional. The app works as a guest without connecting.
 
 ## Testing & Quality
 
@@ -77,14 +69,15 @@ Requirements are defined as user stories with acceptance criteria in [`docs/user
 
 ### Environment Strategy
 
-All tests live in the QA environment only. The production repo ships clean artifacts, and QA validates before promotion.
+Tests are validated before each release. The production repo ships clean, tested artifacts.
 
 ## Tech Stack
 
 - React 18 (Create React App)
 - Anthropic Claude API (`claude-sonnet-4-6` for tailoring, `claude-haiku-4-5` for scoring) with `web_search_20250305` tool
+- Dropbox OAuth 2.0 (cloud sync, resume import, document export)
 - PDF.js v3.11.174 (CDN, pinned) for resume text extraction
-- Google Fonts (Fredoka for brand header)
+- Google Fonts (Fredoka for brand header, Quicksand for body)
 - localStorage for applied job tracking across sessions
 - @playwright/test (E2E browser testing, Microsoft)
 - wait-on (CI server readiness check)
@@ -112,20 +105,24 @@ For design decisions behind the Azure integration, see the ADRs in [docs/archite
 - Cross-source duplicate detection using normalized company+title matching (catches "Sr. Software Eng" at "Acme Inc" and "Senior Software Engineer" at "Acme" as the same listing)
 - Quick Score (paste URL or JD text) integrated into Step 3 for scoring individual jobs
 - Dynamic keyword pre-filter driven by extracted profile (level-based and location-based)
-- Full job description fetch and re-score after initial discovery
+- Full job description fetch, re-score, and re-tier after initial discovery
 - 7-day freshness enforcement with date-posted sorting
 - Anti-hallucination resume generation: only draws from your actual profile, enforced at the prompt layer
 - Separate resume and cover letter generation (one API call each, on demand)
+- Download generated documents as TXT, Markdown, or PDF; copy to clipboard
+- Save generated documents to Dropbox when connected
 - ATS-proof output formatting
-- Applied jobs tracker with persistent storage
+- Applied jobs tracker with persistent storage and cross-device Dropbox sync
+- Dismissed jobs tracking to exclude unwanted roles from future runs
 - Demo Mode toggle on the Landing page for streamlined live demos (1 result per search, scores floored at 80%)
+- Dropbox workspace connection with OAuth 2.0 (resume import, document export, auto-sync)
 - Clickable header logo to return to Landing from any phase
 - Mobile-responsive layout
 - Graceful cancellation at any phase
 - HCI governance audit: pre-commit impact analyzer that classifies changes by user facing tier and flags UAT re-test cycles (`npm run hci-audit`, skill at `.claude/skills/hci-audit/`)
 - Accessibility test coverage for vision impaired users via `jest-axe` and `@axe-core/playwright` (alt text, ARIA, labels, color contrast)
 - Documentation sync: `npm run docs-sync` keeps the README and entry point test file lists, per spec counts, and structural tables aligned with the actual `src/__tests__/` and `e2e/` inventory; same script also runs in CI via `.github/workflows/update-docs.yml`
--  unit and component tests across  suites (Jest + React Testing Library)
+- 445 unit and component tests across 17 suites (Jest + React Testing Library)
 - 70 E2E tests across 8 Playwright specs validating full user workflows
 
 ## Setup
@@ -134,6 +131,7 @@ For design decisions behind the Azure integration, see the ADRs in [docs/archite
 
 - Node.js 18+
 - An Anthropic API key with web search enabled ([console.anthropic.com](https://console.anthropic.com))
+- (Optional) A Dropbox app key for cloud sync ([dropbox.com/developers](https://www.dropbox.com/developers))
 
 ### Local Development
 
@@ -147,6 +145,7 @@ Create a `.env` file in the project root:
 
 ```
 REACT_APP_ANTHROPIC_API_KEY=sk-ant-api03-yourkey
+REACT_APP_DROPBOX_APP_KEY=your-dropbox-app-key
 ```
 
 ```bash
@@ -155,7 +154,7 @@ npm start
 
 ### Running Tests
 
-All tests live in the QA environment only. Tests are not included in the production folder.
+Tests are validated before each release.
 
 **Jest (Unit/Component):** 445 tests across 17 suites
 
@@ -211,15 +210,16 @@ GitHub Actions (`deploy.yml`) runs both test tiers on every push to main:
 
 ## Usage Notes
 
-- Upload your resume as a PDF or TXT, or paste text directly. The app auto-extracts skills, experience, and generates search queries.
+- Upload your resume as a PDF or TXT, paste text directly, or import from Dropbox. The app auto-extracts skills, experience, and generates search queries.
 - Review and edit extracted profile (skills, target levels, search queries) before searching
 - Configure search filters: work type (remote/hybrid/on-site/any), date posted, employment type, and zip code + radius for non-remote searches
 - Run search layers one at a time. Each layer takes 30 seconds to 2 minutes depending on API response times.
 - Use Quick Score (Step 3) to paste a specific job URL or description for immediate scoring
-- "Score & Review" handles deduplication, pre-filtering, scoring, JD fetching, and re-scoring in one pass
-- Only Strong Match (8-10) and Possible (6-7) roles advance to the Human Gate
-- In the Complete phase, generate resume and cover letter independently per role
+- "Score & Review" handles deduplication, pre-filtering, scoring, JD fetching, re-scoring, and re-tiering in one pass
+- All four tiers are visible in Review. Strong Match (8-10) and Possible (6-7) roles are selectable and can advance to the Human Gate. Weak (3-5) and Rejected (0-2) are shown for reference only.
+- In the Complete phase, generate resume and cover letter independently per role. Download as TXT, Markdown, or PDF; copy to clipboard; or save to Dropbox.
 - Previously applied roles are automatically excluded from future scout runs
+- Connect Dropbox from the Landing page for cross-device sync of applied jobs, scout data, and generated documents
 
 ## Project Background
 

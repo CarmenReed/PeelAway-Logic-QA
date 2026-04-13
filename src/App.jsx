@@ -4,7 +4,7 @@ import "./App.css";
 
 const isQA =
   window.location.hostname === "carmenreed.github.io" &&
-  window.location.pathname.startsWith("/PeelAway-Logic-QA");
+  window.location.pathname.includes("-QA");
 
 function QABanner() {
   const [dismissed, setDismissed] = useState(
