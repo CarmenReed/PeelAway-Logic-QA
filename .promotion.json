@@ -3,7 +3,7 @@
 
   "neverPromote": {
     "dirs": [".git", ".claude", "node_modules", ".venv", "__pycache__", "build", "playwright-report", "test-results", "PeelAway Logic", "docs/hci-audit/flags"],
-    "files": [".env", "claude-code-entry-point.md", "fix-failing-tests.ps1", "prod-update-docs.yml", "MASTER_PLAN_*", "*sprint-plan*", "POST_RESKIN_DECOMPOSITION_PLAN.md"],
+    "files": [".env", "claude-code-entry-point.md", "fix-failing-tests.ps1", "prod-update-docs.yml", "MASTER_PLAN_*", "*sprint-plan*", "POST_RESKIN_DECOMPOSITION_PLAN.md", "promotion-manifest.md"],
     "rootFileExtensions": [".ps1"]
   },
 
@@ -28,7 +28,8 @@
 
   "envReplacementFileTypes": ["*.md", "*.js", "*.jsx", "*.ts", "*.tsx", "*.json", "*.yml", "*.yaml", "*.html"],
 
-  "envAuditExclusions": [".promotion.json", "CLAUDE.md"],
+  "_envReplacementExclusionsComment": "Files that legitimately discuss the QA/PROD relationship. Excluded from BOTH env replacement AND env audit.",
+  "envReplacementExclusions": [".promotion.json", "CLAUDE.md", "scripts/promote.js"],
 
   "envAuditPatterns": [
     { "pattern": "PeelAway-Logic-QA", "flags": "i", "label": "PeelAway-Logic-QA" },
@@ -50,6 +51,21 @@
     "npm test",
     "node scripts/doc-lint.js"
   ],
+
+  "ecosystemSync": {
+    "ecosystemRelativePath": "../AI-Claude-Code-Ecosystem",
+    "scanExtensions": [".md", ".mermaid"],
+    "excludeDirs": [".git", "node_modules", ".claude", "build", "playwright-report", "test-results"],
+    "ecosystemScope": "peelaway-logic/",
+    "sourceInventory": {
+      "docs": "docs/",
+      "workflows": ".github/workflows/",
+      "scripts": "scripts/",
+      "tests": "src/__tests__/",
+      "e2e": "e2e/",
+      "adrs": "docs/architecture/decisions/"
+    }
+  },
 
   "cleanupHints": {
     "emptyDirs": true,
