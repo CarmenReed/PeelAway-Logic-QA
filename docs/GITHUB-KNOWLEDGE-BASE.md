@@ -1,6 +1,6 @@
 # PeelAway Logic - GitHub Knowledge Base
 
-> Generated: 2026-04-11
+> Generated: 2026-04-13
 > Covers: QA/DEV local repo + GitHub production repo
 > Author: Carmen Reed - Solutions Architect
 
@@ -41,57 +41,98 @@
 
 ```
 PeelAway-Logic-QA/
-├── .env                                  ← Local API keys (never committed)
+├── .env                                  <- Local API keys (never committed)
 ├── .github/
 │   └── workflows/
-│       ├── deploy.yml                    ← GitHub Actions CI/CD (build + deploy to Pages)
-│       └── update-docs.yml              ← Auto-update test counts in README on push to main
+│       ├── deploy.yml                    <- GitHub Actions CI/CD (test + build + deploy to Pages)
+│       └── update-docs.yml              <- Auto-update test counts in README on push to main
 ├── .gitignore
-├── _.gitignore                           ← Duplicate / backup gitignore
-├── claude-code-entry-point.md            ← QA-only developer guide for Claude Code
-├── POST_RESKIN_DECOMPOSITION_PLAN.md     ← Refactor roadmap (96K monolith into modules)
+├── .promotion.json                       <- QA-to-PROD promotion rules (neverPromote, preserveProdVersions, envReplacements)
+├── .claude/
+│   ├── commands/                         <- Custom Claude Code slash commands
+│   │   ├── fix-qa-public-references.md
+│   │   └── update-docs.md
+│   ├── skills/
+│   │   ├── docs-sync/SKILL.md            <- /docs-sync skill definition
+│   │   └── hci-audit/SKILL.md            <- /hci-audit skill definition
+│   └── launch.json                       <- Claude Code session config
+├── CLAUDE.md                             <- Project instructions for Claude Code sessions
+├── claude-code-entry-point.md            <- QA-only developer guide for Claude Code
+├── MASTER_PLAN_AZURE_SPRINT.md           <- Azure AI integration sprint plan
+├── POST_RESKIN_DECOMPOSITION_PLAN.md     <- Refactor roadmap (96K monolith into modules)
 ├── README.md
 ├── package.json
 ├── package-lock.json
-├── peelaway-mockups-v2.html              ← Static UI mockup reference
-├── prod-update-docs.yml                  ← Production doc-update workflow template
-├── PeelAway Logic/                       ← Metadata / assets folder
+├── playwright.config.ts                  <- Playwright E2E test configuration
+├── fix-failing-tests.ps1                 <- PowerShell helper for local test debugging
+├── prod-update-docs.yml                  <- Production doc-update workflow template
 ├── scripts/
-│   ├── doc-lint.js                       ← Documentation quality linter (em-dashes, broken links, ADR sections)
-│   └── repo-cleanup.js                   ← Repo maintenance utilities
-├── semantic-kernel-demo/                 ← Python SK orchestration demo (mirrors 4 pipeline phases, Azure OpenAI swap-ready)
+│   ├── doc-lint.js                       <- Documentation quality linter (em-dashes, env-audit, broken links)
+│   ├── docs-sync.js                      <- Sync README/entry-point with actual test file inventory
+│   ├── hci-audit.js                      <- HCI governance audit (UAT re-test gating, GREEN/YELLOW/RED verdict)
+│   └── repo-cleanup.js                   <- Repo maintenance utilities
+├── semantic-kernel-demo/                 <- Python SK orchestration demo (mirrors 4 pipeline phases, Azure OpenAI swap-ready)
+│   ├── job_pipeline_sk.py
+│   ├── plugins/
+│   │   ├── job_scoring_plugin.py
+│   │   └── resume_parser_plugin.py
+│   ├── requirements.txt
+│   └── README.md
 ├── docs/
-│   ├── GITHUB-KNOWLEDGE-BASE.md          ← This file
-│   ├── AI_SKILLS_INVENTORY.md            ← AI skills and techniques demonstrated in the project
-│   ├── PROJECT_EVOLUTION.md              ← Project history and milestone log
-│   ├── GOVERNANCE.md                     ← Contributing and versioning guidelines
+│   ├── GITHUB-KNOWLEDGE-BASE.md          <- This file
+│   ├── AI_SKILLS_INVENTORY.md            <- AI skills and techniques demonstrated in the project
+│   ├── GOVERNANCE.md                     <- Contributing and versioning guidelines
+│   ├── PROJECT_EVOLUTION.md              <- Project history and milestone log
+│   ├── TEST-STRATEGY-OVERVIEW.md         <- Testing philosophy and coverage overview
+│   ├── hci-audit/
+│   │   ├── README.md                     <- HCI tier definitions and sign-off workflow
+│   │   └── flags/                        <- YELLOW/RED audit flag files written by hci-audit.js
+│   ├── user-stories/
+│   │   ├── 01-landing.md
+│   │   ├── 02-scout.md
+│   │   ├── 03-review.md
+│   │   ├── 04-human-gate.md
+│   │   ├── 05-complete.md
+│   │   ├── 06-cross-cutting.md
+│   │   └── 07-demo-mode.md
 │   └── architecture/
-│       ├── ARCHITECTURE.md               ← System context, component overview, data flow narrative
-│       ├── azure-resources.bicep         ← IaC template for 7 Azure resources
-│       ├── decisions/                    ← Architecture Decision Records (ADR-001 through ADR-006)
-│       └── diagrams/                     ← Mermaid source files (system context, container, pipeline, Azure integration)
+│       ├── ARCHITECTURE.md               <- System context, component overview, data flow narrative
+│       ├── azure-resources.bicep         <- IaC template for 7 Azure resources
+│       ├── decisions/                    <- Architecture Decision Records (ADR-001 through ADR-006)
+│       └── diagrams/                     <- Mermaid source files (system context, container, pipeline, Azure integration, evolution timeline)
+├── e2e/                                  <- Playwright E2E test suite
+│   ├── 01-landing.spec.ts
+│   ├── 02-scout.spec.ts
+│   ├── 03-review.spec.ts
+│   ├── 04-human-gate.spec.ts
+│   ├── 05-complete.spec.ts
+│   ├── 07-navigation.spec.ts
+│   ├── 08-demo-mode.spec.ts
+│   ├── 09-accessibility.spec.ts          <- Playwright a11y checks (color contrast, real browser)
+│   └── fixtures/
+│       └── test-helpers.ts
 ├── public/
 │   ├── index.html
 │   ├── PeelAwayLogicLogo.png
 │   └── PeelAwayLogicLogoText.png
 └── src/
-    ├── App.css                           ← All styles (plain CSS, no preprocessor)
-    ├── App.jsx                           ← Root component, mounts pipeline
-    ├── index.js                          ← React entry point (ReactDOM.render)
-    ├── setupTests.js                     ← QA-only: imports @testing-library/jest-dom
-    ├── JobSearchPipeline.jsx             ← Active orchestrator (phase router + step locking)
-    ├── JobSearchPipelineV4.jsx           ← 96K monolith - target for decomposition
-    ├── api.js                            ← All API wrappers + PDF.js loader
-    ├── constants.js                      ← All magic numbers, keys, model IDs
-    ├── profileExtractor.js               ← Regex-based resume parser (16K)
-    ├── prompts.js                        ← All LLM prompt builder functions
-    ├── storage.js                        ← localStorage read/write helpers
-    ├── utils.js                          ← Pure utility functions (dedup, scoring, etc.)
-    ├── cloudStorage.js                   ← Cloud storage wrapper (Dropbox)
-    ├── cloudSync.js                      ← Cloud sync logic (local ↔ cloud)
+    ├── App.css                           <- All styles (plain CSS, no preprocessor)
+    ├── App.jsx                           <- Root component, mounts pipeline
+    ├── index.js                          <- React entry point (ReactDOM.render)
+    ├── setupTests.js                     <- QA-only: imports @testing-library/jest-dom
+    ├── JobSearchPipeline.jsx             <- Active orchestrator (phase router + step locking)
+    ├── JobSearchPipelineV4.jsx           <- 96K monolith - target for decomposition (do not add features)
+    ├── api.js                            <- All API wrappers + PDF.js loader
+    ├── constants.js                      <- All magic numbers, keys, model IDs
+    ├── profileExtractor.js               <- Regex-based resume parser (16K)
+    ├── prompts.js                        <- All LLM prompt builder functions
+    ├── storage.js                        <- localStorage read/write helpers
+    ├── utils.js                          <- Pure utility functions (dedup, scoring, etc.)
+    ├── cloudStorage.js                   <- Cloud storage wrapper (Dropbox)
+    ├── cloudSync.js                      <- Cloud sync logic (local <-> cloud)
     ├── components/
     │   ├── AppliedTracker.jsx
-    │   ├── CloudConnector.jsx            ← Cloud sync settings UI
+    │   ├── CloudConnector.jsx            <- Cloud sync settings UI
     │   ├── GuideBar.jsx
     │   ├── Header.jsx
     │   ├── JobCard.jsx
@@ -100,31 +141,32 @@ PeelAway-Logic-QA/
     │   ├── ProgressStepper.jsx
     │   └── Spinner.jsx
     ├── hooks/
-    │   └── useWindowWidth.js             ← Responsive breakpoint hook
+    │   └── useWindowWidth.js             <- Responsive breakpoint hook
     ├── phases/
-    │   ├── ScoutPhase.jsx                ← Phase 1: Resume upload, profile display, search filters, layer buttons
-    │   ├── SearchPhase.jsx               ← Phase 1b: 3-layer search execution (35K - heavy lifting)
-    │   ├── ReviewPhase.jsx               ← Phase 2: Job tier display + sorting
-    │   └── CompletePhase.jsx             ← Phase 3: Resume/cover letter generation + download + applied tracker
+    │   ├── ScoutPhase.jsx                <- Phase 1: Resume upload, profile display, search filters, layer buttons
+    │   ├── SearchPhase.jsx               <- Phase 1b: 3-layer search execution (35K - heavy lifting)
+    │   ├── ReviewPhase.jsx               <- Phase 2: Job tier display + sorting
+    │   └── CompletePhase.jsx             <- Phase 3: Resume/cover letter generation + download + applied tracker
     ├── services/
-    │   └── azureSearchService.js         ← Azure AI Search REST client (index, batch index, search, delete)
-    └── __tests__/                        ← QA-only test suite (436 tests, 16 files)
-        ├── pipelineUtils.test.js         ← Utility unit tests (dedup, scoring, prompts)
-        ├── profileExtractor.test.js      ← Resume parsing tests (name, skills, location, queries)
-        ├── utilsKeywordPreFilter.test.js ← Dynamic pre-filtering tests (level + location matching)
-        ├── api.test.js                   ← API layer tests (retry, fetch, loop, web search)
-        ├── storage.test.js               ← ALL localStorage function tests
-        ├── hooks.test.js                 ← useWindowWidth hook tests
-        ├── components.test.jsx           ← Main pipeline component render tests
-        ├── componentUnits.test.jsx       ← Individual component unit tests
-        ├── manualJobInput.test.jsx       ← ManualJobInput tab, scoring, and queue tests
-        ├── progressStepper.test.jsx      ← ProgressStepper desktop/mobile tests
-        ├── scoutPhase.test.jsx           ← ScoutPhase render and layer button tests
-        ├── reviewPhase.test.jsx          ← ReviewPhase tier tabs, selection, and advance tests
-        ├── completePhase.test.jsx        ← CompletePhase download, applied, and tracker tests
-        ├── tailorPhase.test.js           ← Complete phase document generation tests
-        ├── tailorPersistence.test.js     ← Document generation localStorage persistence tests
-        └── azureSearchService.test.js    ← Azure AI Search client tests (9 tests, 4 describe blocks)
+    │   └── azureSearchService.js         <- Azure AI Search REST client (index, batch index, search, delete)
+    └── __tests__/                        <- QA-only Jest test suite (453 tests, 17 files)
+        ├── pipelineUtils.test.js
+        ├── profileExtractor.test.js
+        ├── utilsKeywordPreFilter.test.js
+        ├── api.test.js
+        ├── storage.test.js
+        ├── hooks.test.js
+        ├── components.test.jsx
+        ├── componentUnits.test.jsx
+        ├── manualJobInput.test.jsx
+        ├── progressStepper.test.jsx
+        ├── scoutPhase.test.jsx
+        ├── reviewPhase.test.jsx
+        ├── completePhase.test.jsx
+        ├── tailorPhase.test.js
+        ├── tailorPersistence.test.js
+        ├── azureSearchService.test.js
+        └── accessibility.test.jsx        <- jest-axe WCAG automated a11y checks
 ```
 
 ### 2.2 PROD GitHub Repo
@@ -133,11 +175,16 @@ PROD is structurally identical to QA **except** for the following differences:
 
 | Present in QA | Present in PROD | Notes |
 |---|---|---|
-| `src/__tests__/` (16 files) | No | Test suite lives only in QA |
+| `src/__tests__/` (17 files) | No | Test suite lives only in QA |
 | `src/setupTests.js` | No | Test setup lives only in QA |
+| `e2e/` (8 spec files + fixtures) | No | Playwright E2E lives only in QA |
+| `playwright.config.ts` | No | Playwright config is QA-only |
 | `claude-code-entry-point.md` | No | QA-only developer guide |
 | `.env` | No | Secrets stay local; PROD uses GitHub Secrets |
 | `prod-update-docs.yml` | No | Template file for syncing workflow to PROD |
+| `fix-failing-tests.ps1` | No | QA-only debug helper |
+| `.claude/skills/` | No | Claude Code skills live only in QA |
+| `docs/hci-audit/` | No | HCI governance artifacts are QA-only |
 | - | `.claude/launch.json` | PROD has Claude Code session config |
 | - | `.claude/settings.local.json` | PROD has Claude Code local settings |
 
@@ -164,6 +211,10 @@ PROD is structurally identical to QA **except** for the following differences:
 | `@testing-library/react` | ^16.3.2 | React component testing |
 | `@testing-library/jest-dom` | ^6.9.1 | DOM assertion matchers |
 | `@testing-library/user-event` | ^14.6.1 | User interaction simulation |
+| `jest-axe` | ^9.0.0 | axe-core bindings for Jest (WCAG a11y checks) |
+| `@playwright/test` | ^1.59.1 | Playwright E2E test runner |
+| `@axe-core/playwright` | ^4.10.0 | axe-core bindings for Playwright (color contrast, real browser a11y) |
+| `wait-on` | ^9.0.5 | Wait for dev server before running E2E tests |
 | `gh-pages` | ^6.3.0 | Legacy `npm run deploy` script (unused in CI) |
 
 ### 3.3 External Services / CDNs
@@ -185,9 +236,10 @@ PROD is structurally identical to QA **except** for the following differences:
 
 - **Bundler:** Webpack (via Create React App / react-scripts 5.0.1)
 - **Transpiler:** Babel (via CRA)
-- **Test runner:** Jest (via CRA)
+- **Unit/Component test runner:** Jest (via CRA) + React Testing Library + jest-axe
+- **E2E test runner:** Playwright (chromium only in CI)
 - **No custom config files:** No `vite.config.js`, `jest.config.js`, `tailwind.config.js`, `cypress.config.js`, or `netlify.toml`
-- **Node.js requirement:** ≥ 18.0.0
+- **Node.js requirement:** >=18.0.0
 
 ---
 
@@ -195,15 +247,18 @@ PROD is structurally identical to QA **except** for the following differences:
 
 | Aspect | QA / DEV | PROD |
 |---|---|---|
-| **Run command** | `npm start` (CRA dev server, port 3000) | `npm run build` → deployed artifact |
+| **Run command** | `npm start` (CRA dev server, port 3000) | `npm run build` -> deployed artifact |
 | **API keys source** | `.env` file (local, not committed) | GitHub Actions Secrets |
-| **Test suite** | 425 tests in `src/__tests__/` (16 files) | Not present |
+| **Unit/component tests** | 453 tests in `src/__tests__/` (17 files) | Not present |
+| **E2E tests** | 8 Playwright spec files in `e2e/` | Not present |
 | **Hot reload** | Yes (CRA HMR) | No (static build) |
 | **Source maps** | Full (dev mode) | Optimized/minified |
-| **Deploy trigger** | Manual (`npm start` locally) | `git push main` → GitHub Actions |
+| **Deploy trigger** | Manual (`npm start` locally) | `git push main` -> GitHub Actions |
 | **Deploy target** | `carmenreed.github.io/PeelAway-Logic-QA` | `carmenreed.github.io/PeelAway-Logic` |
 | **Developer guides** | `claude-code-entry-point.md` present | Not present |
-| **Refactor artifacts** | `POST_RESKIN_DECOMPOSITION_PLAN.md`, `peelaway-mockups-v2.html`, `JobSearchPipelineV4.jsx` | Same files present in PROD |
+| **HCI governance** | `scripts/hci-audit.js` + `docs/hci-audit/` | Not present |
+| **Docs sync** | `scripts/docs-sync.js` + `/docs-sync` skill | Not present |
+| **Refactor artifacts** | `POST_RESKIN_DECOMPOSITION_PLAN.md`, `JobSearchPipelineV4.jsx` | Same files present in PROD |
 | **`package.json` version** | Identical (4.0.0) | Identical (4.0.0) |
 | **Workflow files** | `deploy.yml` + `update-docs.yml` | `deploy.yml` only (update-docs synced separately) |
 
@@ -263,7 +318,7 @@ DISMISSED_KEY = "jsp-dismissed-jobs"
 The app is a single-page React application that walks users through four sequential phases. Phase progression is managed by `JobSearchPipeline.jsx`, which enforces step locking - users cannot skip or revert to a previous phase mid-pipeline.
 
 ```
-[LandingScreen] → [Scout] → [Review] → [Human Gate] → [Complete]
+[LandingScreen] -> [Scout] -> [Review] -> [Human Gate] -> [Complete]
 ```
 
 ### Phase 1 - Scout (`src/phases/ScoutPhase.jsx` + `src/phases/SearchPhase.jsx`)
@@ -280,9 +335,9 @@ Scout was split into two tabs after the QA overhaul:
 | Layer 3 | ATS boards | Greenhouse, Lever, Workday via Claude `web_search_20250305` | Anthropic |
 | Manual | URL / paste | User-supplied; scored on demand via Quick Score | Anthropic |
 
-- Each layer has its own abort controller - cancelling one doesn't affect others
+- Each layer has its own abort controller - cancelling one does not affect others
 - Profile extraction (`profileExtractor.js`) uses regex to derive: name, skills by category, experience level (Junior/Mid/Senior), location, and dynamic search query strings
-- After all desired layers run, "Score and Review Results" triggers: deduplication → pre-filter → batch scoring (haiku) → full JD fetch → re-score
+- After all desired layers run, "Score and Review Results" triggers: deduplication -> pre-filter -> batch scoring (haiku) -> full JD fetch -> re-score
 
 ### Phase 2 - Review (`src/phases/ReviewPhase.jsx`)
 
@@ -290,10 +345,10 @@ Jobs are bucketed into tiers by score:
 
 | Tier | Score Range | Action |
 |---|---|---|
-| Strong Match | 8–10 | Shown, eligible for gate |
-| Possible | 6–7 | Shown, eligible for gate |
-| Weak | 3–5 | Shown, not forwarded |
-| Rejected | 0–2 | Hidden by default |
+| Strong Match | 8-10 | Shown, eligible for gate |
+| Possible | 6-7 | Shown, eligible for gate |
+| Weak | 3-5 | Shown, not forwarded |
+| Rejected | 0-2 | Hidden by default |
 
 - Sort options: score, date posted (newest first), company name
 - Green badge = posted within 7 days; orange badge = stale / unverifiable date
@@ -302,12 +357,12 @@ Jobs are bucketed into tiers by score:
 
 User manually selects which roles to approve for tailoring. No API calls are made until explicit approval. Step locking prevents returning to Scout/Review once the gate is passed.
 
-### Phase 3 - Complete (`src/phases/CompletePhase.jsx`)
+### Phase 4 - Complete (`src/phases/CompletePhase.jsx`)
 
 Each approved role renders as a card with two independent on-demand buttons:
 
-- **Create Resume** → one API call → `claude-sonnet-4-6`
-- **Create Cover Letter** → one API call → `claude-sonnet-4-6`
+- **Create Resume** -> one API call -> `claude-sonnet-4-6`
+- **Create Cover Letter** -> one API call -> `claude-sonnet-4-6`
 
 Anti-hallucination enforcement: prompts (`src/prompts.js`) restrict output to content derivable from the uploaded resume only.
 
@@ -316,6 +371,10 @@ Additional functionality:
 - Mark jobs as applied
 - Applied jobs persist in `localStorage` (`jsp-applied-jobs`) and are excluded from future Scout runs
 - Cloud sync (if configured) pushes applied jobs and tailor results to Dropbox via `cloudSync.js`
+
+### Demo Mode
+
+A Demo Mode toggle is available on the LandingScreen for streamlined live demos. It bypasses API calls and uses pre-baked fixture data so the full pipeline can be shown without real credentials. User story: `docs/user-stories/07-demo-mode.md`.
 
 ---
 
@@ -330,8 +389,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]       # Auto-deploy on push to main
-  workflow_dispatch:        # Manual trigger available
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -340,7 +399,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false  # In-flight deploys are not cancelled
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -352,15 +411,27 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20           # Node 20 in CI (local requires ≥18)
+          node-version: 20
       - name: Install dependencies
         run: npm install
+      - name: Run unit tests
+        run: CI=true npm test
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E tests
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000 --timeout 30000
+          npx playwright test --reporter=github
+        env:
+          CI: true
       - name: Build
         env:
           REACT_APP_ANTHROPIC_API_KEY: ${{ secrets.REACT_APP_ANTHROPIC_API_KEY }}
           REACT_APP_ADZUNA_APP_ID: ${{ secrets.REACT_APP_ADZUNA_APP_ID }}
           REACT_APP_ADZUNA_APP_KEY: ${{ secrets.REACT_APP_ADZUNA_APP_KEY }}
           REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
+          REACT_APP_DROPBOX_APP_KEY: ${{ secrets.REACT_APP_DROPBOX_APP_KEY }}
         run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
@@ -371,21 +442,22 @@ jobs:
 
 **Key behavior:**
 - Triggers automatically on every push to `main`
+- Runs all Jest unit/component tests before building (CI gate)
+- Installs Playwright chromium and runs E2E tests against a live dev server before building
 - Secrets injected at build time as `REACT_APP_*` env vars (baked into the static bundle)
 - Deploys the `build/` directory to GitHub Pages using the official `deploy-pages` action
-- No test step in CI - tests run locally in QA only
 - `workflow_dispatch` allows manual re-deploy from the GitHub Actions UI
 
 ### 7.2 Auto-Update Docs Workflow
 
 **Workflow file:** `.github/workflows/update-docs.yml`
 
-**Trigger:** Push to `main` that includes changes to `src/` (ignores README, docs, workflow files themselves)
+**Trigger:** Push to `main` (ignores README, docs, and the workflow file itself)
 
 **Steps:**
-1. Run `npx react-scripts test --watchAll=false --no-coverage` to capture current test count
-2. Identify changed `src/` files
-3. If test count or source file list changed → update `README.md` and `claude-code-entry-point.md`
+1. Run `scripts/docs-sync.js` to sync test file inventory in README and `claude-code-entry-point.md`
+2. Run `npx react-scripts test --watchAll=false --no-coverage` to capture current test count
+3. If test count or file structure changed -> update `README.md` and `claude-code-entry-point.md`
 4. Auto-commit and push the updated docs back to `main`
 
 **Purpose:** Keeps README test counts and source file listings automatically in sync after each push.
@@ -397,13 +469,13 @@ jobs:
 | Property | Value |
 |---|---|
 | **Platform** | GitHub Pages (native, no Netlify or Vercel) |
-| **Deploy method** | GitHub Actions → `actions/deploy-pages@v4` |
+| **Deploy method** | GitHub Actions -> `actions/deploy-pages@v4` |
 | **Build output** | `build/` directory (CRA production build) |
 | **Live URL** | https://carmenreed.github.io/PeelAway-Logic |
 | **QA URL** | https://carmenreed.github.io/PeelAway-Logic-QA |
 | **Homepage field** | `"homepage": "https://carmenreed.github.io/PeelAway-Logic-QA"` in `package.json` |
 | **Node version (CI)** | 20 |
-| **Node version (local)** | ≥ 18 |
+| **Node version (local)** | >=18 |
 | **`npm run deploy` script** | Defined (`gh-pages -d build`) but **not used** - CI handles deploys |
 | **Config files** | None - no `netlify.toml`, `vercel.json`, or custom server config |
 
@@ -411,19 +483,23 @@ jobs:
 
 ```
 Local QA (main branch)
-    └── git push origin main
-            └── GitHub Actions: build-and-deploy job
-                    ├── npm install
-                    ├── npm run build  (env vars injected from Secrets)
-                    ├── upload-pages-artifact
-                    └── deploy-pages → carmenreed.github.io/PeelAway-Logic-QA
+    -> git push origin main
+            -> GitHub Actions: build-and-deploy job
+                    |- npm install
+                    |- CI=true npm test          (Jest unit/component gate)
+                    |- playwright test           (E2E gate)
+                    |- npm run build  (env vars injected from Secrets)
+                    |- upload-pages-artifact
+                    -> deploy-pages -> carmenreed.github.io/PeelAway-Logic-QA
 ```
 
 ---
 
 ## 9. Testing Setup
 
-**Framework:** Jest (bundled with Create React App) + React Testing Library
+### 9.1 Unit & Component Tests (Jest)
+
+**Framework:** Jest (bundled with Create React App) + React Testing Library + jest-axe
 
 **Test runner:** `npm test` (interactive watch) or `CI=true npm test` (headless)
 
@@ -432,67 +508,45 @@ Local QA (main branch)
 import "@testing-library/jest-dom";
 ```
 
-### 9.1 Test Suites
+#### 9.1.1 Test Suites
 
-| File | Coverage Area | Tests | Methodology |
-|---|---|---|---|
-| `pipelineUtils.test.js` | Pure utility functions (dedup, scoring, normalization, filtering, prompts) | ~100 | Unit tests, boundary testing, integration chains |
-| `profileExtractor.test.js` | Resume parsing: name, skills, experience level, location, search query generation | ~20 | Unit tests with varied resume text inputs |
-| `utilsKeywordPreFilter.test.js` | Dynamic pre-filtering: level-based and location-based keyword matching | ~15 | Unit tests with extracted profile data |
-| `api.test.js` | API layer: `withRetry`, `callAnthropic`, `callAnthropicWithLoop`, `detectWebSearchSupport` | ~30 | Unit tests with mocked `fetch`, abort signal testing |
-| `storage.test.js` | ALL localStorage functions (applied, scout, tailor, dismissed) + `isDismissed` | ~30 | Unit tests against localStorage API, error handling |
-| `hooks.test.js` | `useWindowWidth` hook: resize, debounce, cleanup | ~6 | `renderHook` with fake timers, event simulation |
-| `components.test.jsx` | Main pipeline component rendering, Scout phase UI | ~12 | Component render tests with user interaction |
-| `componentUnits.test.jsx` | Individual components: JobCard, AppliedTracker, LandingScreen, Header, GuideBar, Spinner | ~35 | Component render/interaction tests, prop validation |
-| `manualJobInput.test.jsx` | ManualJobInput: tabs, button states, API key guard, scoring flow, add to queue | ~14 | Component render tests with mocked `callAnthropicWithLoop` |
-| `progressStepper.test.jsx` | ProgressStepper: desktop dots/labels/classes/clicks, mobile text format | ~13 | Component tests with mocked `useWindowWidth` |
-| `scoutPhase.test.jsx` | ScoutPhase: initial render, layer button disabled/enabled state, score button | ~14 | Render tests with mocked constants, api, and storage |
-| `reviewPhase.test.jsx` | ReviewPhase: tier tabs, tab switching, selection, advance button, Select All, sort | ~19 | Component integration tests with mocked storage |
-| `completePhase.test.jsx` | CompletePhase: render, applied state, tracker, download, navigation | ~21 | Component render/interaction tests with mocked URL API |
-| `tailorPhase.test.js` | Complete phase document generation: session restore, persistence, error handling, cancel | ~10 | Component integration tests with mocked `fetch` |
-| `tailorPersistence.test.js` | localStorage persistence for document generation results (read/write/clear) | ~8 | Unit tests against localStorage API |
-| `azureSearchService.test.js` | Azure AI Search client: createJobIndex, indexJobs (batching), searchJobs (filters), deleteIndex | 9 | Unit tests with mocked `fetch`, verifies request construction and error handling |
-| **Total** | | **436** | |
+| File | Coverage Area | Tests |
+|---|---|---|
+| `pipelineUtils.test.js` | Pure utility functions (dedup, scoring, normalization, filtering, prompts) | 118 |
+| `utilsKeywordPreFilter.test.js` | Dynamic pre-filtering: level-based and location-based keyword matching | 39 |
+| `componentUnits.test.jsx` | Individual components: JobCard, AppliedTracker, LandingScreen, Header, GuideBar, Spinner | 53 |
+| `profileExtractor.test.js` | Resume parsing: name, skills, experience level, location, search query generation | 32 |
+| `api.test.js` | API layer: `withRetry`, `callAnthropic`, `callAnthropicWithLoop`, `detectWebSearchSupport` | 32 |
+| `storage.test.js` | ALL localStorage functions (applied, scout, tailor, dismissed) + `isDismissed` | 35 |
+| `reviewPhase.test.jsx` | ReviewPhase: tier tabs, tab switching, selection, advance button, Select All, sort | 20 |
+| `completePhase.test.jsx` | CompletePhase: render, applied state, tracker, download, navigation | 24 |
+| `accessibility.test.jsx` | jest-axe WCAG a11y checks (image-alt, button-name, label, ARIA) across all components | 18 |
+| `progressStepper.test.jsx` | ProgressStepper: desktop dots/labels/classes/clicks, mobile text format | 17 |
+| `scoutPhase.test.jsx` | ScoutPhase: initial render, layer button disabled/enabled state, score button | 16 |
+| `components.test.jsx` | Main pipeline component rendering, Scout phase UI | 18 |
+| `manualJobInput.test.jsx` | ManualJobInput: tabs, button states, API key guard, scoring flow, add to queue | 13 |
+| `tailorPhase.test.js` | Complete phase document generation: session restore, persistence, error handling, cancel | 12 |
+| `tailorPersistence.test.js` | localStorage persistence for document generation results (read/write/clear) | 9 |
+| `azureSearchService.test.js` | Azure AI Search client: createJobIndex, indexJobs (batching), searchJobs, deleteIndex | 9 |
+| `hooks.test.js` | `useWindowWidth` hook: resize, debounce, cleanup | 6 |
+| **Total** | | **453** |
 
-### 9.2 Test Methodologies
+#### 9.1.2 Accessibility Test Coverage (`accessibility.test.jsx`)
 
-**Unit Testing (utils, storage, constants):**
-Tests isolate individual pure functions with known inputs/outputs. Covers happy paths, edge cases (empty/null/undefined), boundary values, and error handling. Uses Jest matchers (`toBe`, `toEqual`, `toThrow`, `toHaveLength`).
+Uses `jest-axe` (axe-core bindings) to catch WCAG violations in a jsdom environment:
 
-**Component Render Testing (components, phases):**
-Uses `@testing-library/react`'s `render()` + `screen` queries to verify DOM output. Tests component props, conditional rendering, CSS classes, ARIA labels, and user interactions via `userEvent.setup()`. Follows Testing Library best practices: query by role/text/label, not implementation details.
+- `image-alt` - every image has meaningful alt text or is marked decorative
+- `button-name` - every button has an accessible name
+- `link-name` - every link has an accessible name
+- `label` - every form control has an associated label
+- `aria-valid-attr` - ARIA attributes are spelled correctly
+- `aria-required-attr` - required ARIA attributes are present
+- `role-img-alt` - SVGs with `role="img"` have `aria-label` or `title`
+- `list` - list items live inside proper list containers
 
-**Integration Testing (pipelineUtils end-to-end chain):**
-Tests multi-function pipelines (e.g., `extractTextFromBlocks` → `extractJson`, `mergeRawJobs` → `deduplicateJobs`, `reTierJobs` → `filterAppliedFromTiers`) to verify functions compose correctly.
+> Color contrast (WCAG 1.4.3) requires a real layout engine and is therefore tested in `e2e/09-accessibility.spec.ts` via Playwright/axe instead.
 
-**API Mocking (api.test.js, tailorPhase.test.js):**
-`global.fetch` is replaced with `jest.fn()` to simulate API responses, errors, rate limits, and abort signals without network calls. Tests verify request body construction, header injection, retry logic, and multi-turn conversation loops.
-
-**Timer Mocking (hooks.test.js, withRetry):**
-Uses `jest.useFakeTimers()` + `jest.advanceTimersByTime()` for debounce and delay testing. The `withRetry` tests use a `setTimeout` override to avoid timing issues with Promise-based retry delays.
-
-**localStorage Testing (storage.test.js, tailorPersistence.test.js):**
-`localStorage.clear()` in `beforeEach` ensures isolation. Tests cover: empty state, corrupted JSON recovery, upsert behavior, quota exceeded errors (via `Storage.prototype.setItem` mock), and cross-function data flow.
-
-### 9.3 Coverage by Source Module
-
-| Module | Functions | Tested | Coverage |
-|---|---|---|---|
-| `utils.js` | 14 | 14 | 100% |
-| `profileExtractor.js` | ~12 | ~12 | ~95% |
-| `prompts.js` | 3 builders + 1 constant | 3 | ~95% |
-| `api.js` | 5 (withRetry, callAnthropic, callAnthropicWithLoop, detectWebSearchSupport, loadPdfJs/extractTextFromPdf) | 4 | ~80% (PDF functions require browser CDN) |
-| `storage.js` | 11 | 11 | 100% |
-| `constants.js` | 16 exports | Indirectly tested | N/A (config values) |
-| `components/` | 9 components | 9 | 100% |
-| `hooks/` | 1 | 1 | 100% |
-| `phases/` | 4 | 4 | 100% |
-
-### 9.4 Known Test Issues
-
-None. All 425 tests pass.
-
-### 9.5 Running Tests
+#### 9.1.3 Running Unit Tests
 
 ```bash
 # Interactive watch mode (default)
@@ -508,9 +562,58 @@ CI=true npm test -- --testPathPattern="api.test"
 CI=true npm test -- --coverage
 ```
 
-**No CI test step** - tests are not run in the GitHub Actions workflow. All testing is manual in the local QA environment before pushing.
+### 9.2 E2E Tests (Playwright)
 
-**No config overrides** - Jest runs with CRA defaults (no `jest.config.js`). No Cypress, Playwright, or other E2E framework is present.
+**Framework:** Playwright with `@axe-core/playwright`
+
+**Config:** `playwright.config.ts` - chromium only, `baseURL: http://localhost:3000`, 60s timeout
+
+**Test files:**
+
+| File | Coverage Area |
+|---|---|
+| `01-landing.spec.ts` | Landing screen render, CTA, Demo Mode toggle |
+| `02-scout.spec.ts` | Resume upload/paste, profile extraction, layer buttons |
+| `03-review.spec.ts` | Tier tabs, sort, job card interactions |
+| `04-human-gate.spec.ts` | Job selection, advance to Complete |
+| `05-complete.spec.ts` | Document generation, download, applied marking |
+| `07-navigation.spec.ts` | ProgressStepper, step locking, Start Over |
+| `08-demo-mode.spec.ts` | Demo Mode full pipeline walkthrough |
+| `09-accessibility.spec.ts` | axe-core color contrast + full a11y scan in real browser |
+
+**Running E2E tests:**
+
+```bash
+# Headless (requires running dev server on :3000)
+npm run test:e2e
+
+# Interactive Playwright UI
+npm run test:e2e:ui
+
+# Headed (visible browser)
+npm run test:e2e:headed
+```
+
+### 9.3 HCI Governance Audit
+
+**Script:** `scripts/hci-audit.js` (invoked via `npm run hci-audit` or `/hci-audit` skill)
+
+Scans the diff against `origin/main`, classifies changed files by HCI impact tier, and emits a GREEN / YELLOW / RED verdict before committing any user-facing change. YELLOW and RED verdicts write a flag file under `docs/hci-audit/flags/`. See `docs/hci-audit/README.md` for tier definitions.
+
+### 9.4 Coverage by Source Module
+
+| Module | Functions | Tested | Coverage |
+|---|---|---|---|
+| `utils.js` | 14 | 14 | 100% |
+| `profileExtractor.js` | ~12 | ~12 | ~95% |
+| `prompts.js` | 3 builders + 1 constant | 3 | ~95% |
+| `api.js` | 5 (withRetry, callAnthropic, callAnthropicWithLoop, detectWebSearchSupport, loadPdfJs/extractTextFromPdf) | 4 | ~80% (PDF functions require browser CDN) |
+| `storage.js` | 11 | 11 | 100% |
+| `constants.js` | 16 exports | Indirectly tested | N/A (config values) |
+| `components/` | 9 components | 9 | 100% |
+| `hooks/` | 1 | 1 | 100% |
+| `phases/` | 4 | 4 | 100% |
+| `services/azureSearchService.js` | 4 | 4 | 100% |
 
 ---
 
@@ -519,17 +622,19 @@ CI=true npm test -- --coverage
 | Aspect | Detail |
 |---|---|
 | **Active branches** | `main` only |
-| **Feature branches** | None currently |
-| **Remote** | `origin → CarmenReed/PeelAway-Logic-QA` (single remote) |
+| **Feature branches** | Created by Claude Code for PRs; merged and deleted after merge |
+| **Remote** | `origin -> CarmenReed/PeelAway-Logic-QA` (single remote) |
 | **Deploy trigger** | Push to `main` auto-deploys to GitHub Pages |
-| **QA → PROD flow** | Develop and test locally in QA repo → push `main` to GitHub → CI builds and deploys |
-| **No branch protection** | `main` accepts direct pushes (no PR requirement observed) |
-| **No staging environment** | Local QA = staging; GitHub Pages = production |
+| **QA -> PROD flow** | Develop and test in QA repo -> push `main` -> CI runs tests + E2E -> deploys QA Pages; then run `promote-qa-to-prod.ps1` from PROD repo to copy to PROD |
+| **No branch protection** | `main` accepts direct pushes (no PR requirement) |
+| **No staging environment** | Local dev server = staging; GitHub Pages = production |
 
 **Effective workflow:**
 
 ```
-[Local QA dev server]  →  test passes  →  git push origin main  →  GitHub Actions  →  GitHub Pages (PROD)
+[Local QA dev server]  ->  tests pass  ->  hci-audit  ->  git push origin main
+  -> GitHub Actions (unit tests + E2E + build)  ->  GitHub Pages (QA)
+  -> promote-qa-to-prod.ps1  ->  PeelAway-Logic repo  ->  GitHub Pages (PROD)
 ```
 
 ---
@@ -539,8 +644,8 @@ CI=true npm test -- --coverage
 | File | Role | Notes |
 |---|---|---|
 | `src/App.jsx` | Root component | Thin wrapper; mounts `JobSearchPipeline` |
-| `src/JobSearchPipeline.jsx` | Phase orchestrator | Routes Scout → Review → Gate → Complete; enforces step locking |
-| `src/JobSearchPipelineV4.jsx` | Legacy monolith (96K) | Reskinned UI; being decomposed per `POST_RESKIN_DECOMPOSITION_PLAN.md` |
+| `src/JobSearchPipeline.jsx` | Phase orchestrator | Routes Scout -> Review -> Gate -> Complete; enforces step locking |
+| `src/JobSearchPipelineV4.jsx` | Legacy monolith (96K) | Reskinned UI; being decomposed per `POST_RESKIN_DECOMPOSITION_PLAN.md`; do not add features |
 | `src/constants.js` | All config / magic numbers | Model IDs, API URLs, localStorage keys, timing values |
 | `src/api.js` | External API wrappers | Adzuna, JSearch, Anthropic messages, PDF.js loader |
 | `src/profileExtractor.js` | Resume parser | Regex-based extraction of name, skills, experience level, location, search queries |
@@ -552,10 +657,18 @@ CI=true npm test -- --coverage
 | `src/phases/ScoutPhase.jsx` | Phase 1 UI | Resume upload, profile display, search filters, layer trigger buttons |
 | `src/phases/SearchPhase.jsx` | Phase 1b - Search execution | 3 search layers, abort controllers, dedup, pre-filter, scoring, re-score (35K) |
 | `src/phases/ReviewPhase.jsx` | Phase 2 UI | Tier buckets, sorting, date badges |
-| `src/phases/CompletePhase.jsx` | Phase 3 UI + logic | Per-role resume/cover letter generation, download, copy, applied job tracking |
+| `src/phases/CompletePhase.jsx` | Phase 4 UI + logic | Per-role resume/cover letter generation, download, copy, applied job tracking |
+| `src/services/azureSearchService.js` | Azure AI Search REST client | createJobIndex, indexJobs (batching), searchJobs (filters), deleteIndex |
 | `src/components/CloudConnector.jsx` | Cloud sync UI | Settings panel for Dropbox connection and sync status |
 | `src/hooks/useWindowWidth.js` | Responsive hook | Returns current window width; used for mobile layout |
 | `public/index.html` | HTML shell | Loads Google Fonts (Quicksand), sets meta tags |
+| `scripts/doc-lint.js` | Doc quality linter | Enforces no em-dashes, env-audit patterns |
+| `scripts/docs-sync.js` | Docs inventory sync | Rewrites test file lists and counts in README/entry-point; run via `npm run docs-sync` |
+| `scripts/hci-audit.js` | HCI governance gate | Classifies diff by HCI tier, emits GREEN/YELLOW/RED verdict; run via `npm run hci-audit` |
+| `playwright.config.ts` | Playwright config | chromium, baseURL :3000, 60s timeout, E2E in `e2e/` |
 | `POST_RESKIN_DECOMPOSITION_PLAN.md` | Refactor roadmap | 10-step plan to extract `JobSearchPipelineV4.jsx` into modules |
+| `MASTER_PLAN_AZURE_SPRINT.md` | Azure integration plan | Sprint plan for Azure AI Search, Semantic Kernel, and ADR work |
 | `claude-code-entry-point.md` | QA developer guide | Context for Claude Code sessions (QA only, not in PROD) |
-| `peelaway-mockups-v2.html` | UI mockup | Static visual reference for the reskin |
+| `.promotion.json` | Promotion rules | Controls what gets copied/excluded/replaced during QA-to-PROD promotion |
+| `docs/hci-audit/README.md` | HCI governance docs | Tier definitions, sign-off workflow, flag file format |
+| `docs/architecture/decisions/` | ADR-001 to ADR-006 | Architecture Decision Records for all major tech choices |
