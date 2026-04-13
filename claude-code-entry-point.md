@@ -261,7 +261,7 @@ npm install
 # Start dev server (hot reload, localhost:3000)
 npm start
 
-# Run all 446 Jest tests (interactive watch mode)
+# Run all 445 Jest tests (interactive watch mode)
 npm test
 
 # Run Jest headless (CI mode)

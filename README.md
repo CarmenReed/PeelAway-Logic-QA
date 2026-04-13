@@ -44,7 +44,7 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 
 PeelAway Logic uses a two-tier testing approach driven by user stories with acceptance criteria:
 
-- **Unit/Component tests:** Jest + React Testing Library validate individual functions, components, and integration points. 446 tests across 17 suites, all passing.
+- **Unit/Component tests:** Jest + React Testing Library validate individual functions, components, and integration points. 445 tests across 17 suites, all passing.
 - **E2E tests:** Microsoft Playwright validates complete user workflows through the 4-phase pipeline in a real Chromium browser. 70 tests across 8 spec files (42 passing, 20 pending via `test.fixme()` awaiting full pipeline data seeding).
 - **Accessibility tests:** `jest-axe` covers vision impaired rules (image alt, button/link/label names, ARIA validity, SVG labeling, list structure) at the unit level. `@axe-core/playwright` covers color contrast and focus/landmark rules that need a real browser. See `docs/hci-audit/README.md` for the governance process.
 - **All external APIs mocked:** Tests are deterministic and free to run. E2E tests mock Anthropic, Adzuna, JSearch, and RSS feeds via `page.route()`. Jest tests use standard mocks. Zero API costs.
@@ -54,7 +54,7 @@ PeelAway Logic uses a two-tier testing approach driven by user stories with acce
 
 | Layer | Framework | Files | Tests | Status |
 |-------|-----------|-------|-------|--------|
-| Unit/Component | Jest + RTL | 17 | 446 | All passing |
+| Unit/Component | Jest + RTL | 17 | 445 | All passing |
 | Accessibility (unit) | jest-axe | 1 | Vision impaired rules | Active |
 | E2E | Playwright | 8 | 42 passing, 20 pending | Active |
 | Accessibility (E2E) | @axe-core/playwright | 1 | Color contrast, focus order, landmarks | Active |
@@ -157,7 +157,7 @@ npm start
 
 All tests live in the QA environment only. Tests are not included in the production folder.
 
-**Jest (Unit/Component):** 446 tests across 17 suites
+**Jest (Unit/Component):** 445 tests across 17 suites
 
 ```bash
 npm test                        # Interactive watch mode
@@ -204,7 +204,7 @@ npx playwright show-report      # View HTML report
 
 GitHub Actions (`deploy.yml`) runs both test tiers on every push to main:
 
-1. `CI=true npm test` runs all 446 Jest tests
+1. `CI=true npm test` runs all 445 Jest tests
 2. `npx playwright install --with-deps chromium` installs browser binaries
 3. `npm start` + `wait-on` + `npx playwright test` runs all E2E tests
 4. Failed tests block the build and deployment
