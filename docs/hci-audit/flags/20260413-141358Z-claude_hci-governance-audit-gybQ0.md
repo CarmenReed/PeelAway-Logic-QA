@@ -1,12 +1,13 @@
 # HCI Audit Flag: RED
 
-- Timestamp (UTC): 20260413-140730Z
+- Timestamp (UTC): 20260413-141358Z
 - Branch: claude_hci-governance-audit-gybQ0
 - Verdict: RED
 
 ## Reasons
 
 - 2 Tier 1 (user journey) file(s) touched
+- 1 user story file(s) touched (acceptance criteria may have drifted)
 - 3 Tier 2/3 (interaction/visual) file(s) also touched
 
 ## File Tier Summary
@@ -16,10 +17,15 @@
 | Tier 1 (journey) | 2 |
 | Tier 2 (interaction) | 3 |
 | Tier 3 (visual) | 0 |
-| Tier 4 (copy/user stories) | 0 |
-| Non HCI | 8 |
+| Tier 4 (copy/user stories) | 1 |
+| Non HCI | 13 |
 
 ## Changed Files
+
+### `docs/user-stories/06-cross-cutting.md` (TIER_4_COPY)
+
+- Added lines: 36
+- Removed lines: 0
 
 ### `src/components/AppliedTracker.jsx` (TIER_2_INTERACTION)
 

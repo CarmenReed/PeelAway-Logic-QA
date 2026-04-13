@@ -83,3 +83,39 @@
 ### Test Coverage
 - E2E: e2e/07-navigation.spec.ts
 - Unit: src/__tests__/api.test.js, src/__tests__/hooks.test.js
+
+---
+
+## US-NAV-006: Vision Impaired Accessibility
+
+**As a** user who relies on a screen reader, keyboard navigation, or high
+contrast settings
+**I want to** use every phase of the pipeline without a pointer and hear
+meaningful labels for every control
+**So that** I can complete the full Scout to Complete workflow using assistive
+technology
+
+### Acceptance Criteria
+- [ ] AC1: Every image has meaningful alt text or is explicitly marked
+  decorative; SVG icons used as content have `role="img"` and an `aria-label`
+- [ ] AC2: Every button and link has an accessible name, either from visible
+  text or an `aria-label`
+- [ ] AC3: Every form control (inputs, textareas, checkboxes) has a label or
+  `aria-label` that identifies its purpose
+- [ ] AC4: The ProgressStepper exposes the active step via `aria-current="step"`
+  and each clickable dot is a native `<button>` with a descriptive label
+- [ ] AC5: The workspace connection modal exposes `role="dialog"`,
+  `aria-modal="true"`, and `aria-labelledby` pointing at its heading; Escape
+  closes it
+- [ ] AC6: All interactive elements are reachable by keyboard in a logical
+  order; focus is visible; no element traps focus
+- [ ] AC7: Text passes WCAG 1.4.3 contrast ratio (4.5:1 for normal text, 3:1
+  for large text) against its background
+- [ ] AC8: Removing any of the above (ARIA, alt, label, keyboard handler)
+  must be flagged by `scripts/hci-audit.js` as an accessibility regression
+
+### Test Coverage
+- Unit: src/__tests__/accessibility.test.jsx (jest-axe, covers AC1 through AC5 at the component level)
+- E2E: e2e/09-accessibility.spec.ts (@axe-core/playwright, covers AC6 and AC7 in a real browser)
+- Static: scripts/hci-audit.js (AC8, regex scan of removed lines)
+- Governance: docs/hci-audit/README.md

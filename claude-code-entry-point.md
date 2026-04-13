@@ -30,6 +30,9 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
 | Testing (Unit) | Jest + @testing-library/react,  tests across  suites |
 | Testing (E2E) | @playwright/test, 52 tests across 6 specs (Chromium) |
+| Accessibility (Unit) | jest-axe, vision impaired rules (alt, button/link/label names, ARIA, SVG) |
+| Accessibility (E2E) | @axe-core/playwright, color contrast (WCAG 1.4.3), focus, landmarks |
+| HCI Governance | `scripts/hci-audit.js`, skill at `.claude/skills/hci-audit/`, flags at `docs/hci-audit/flags/` |
 
 ### One Rule That Applies Everywhere
 
@@ -266,9 +269,39 @@ CI=true npm test
 
 # Build production bundle (output to build/)
 npm run build
+
+# Run HCI governance audit (pre-commit, after tests pass)
+npm run hci-audit
 ```
 
 The dev server reads `.env` automatically via CRA's dotenv integration. No manual sourcing needed.
+
+### HCI Governance Audit
+
+After `npm test` passes and before committing any change that touches user
+facing surface, run `npm run hci-audit`. The script scans the diff against
+`origin/main`, classifies each changed file by HCI impact tier, and emits a
+GREEN, YELLOW, or RED verdict. YELLOW and RED write a flag file at
+`docs/hci-audit/flags/` listing affected user stories and suggested UAT
+scenarios. The gate warns loudly but never blocks. See
+`docs/hci-audit/README.md` for tier definitions and the sign off workflow,
+and `.claude/skills/hci-audit/SKILL.md` for the Claude Code skill that wraps
+it.
+
+### Accessibility Tests
+
+Vision impaired accessibility is covered by two suites:
+
+- `src/__tests__/accessibility.test.jsx` runs `jest-axe` at the component
+  level (image alt, button/link/label names, ARIA validity, SVG labeling,
+  dialog semantics, aria-current on the pipeline stepper)
+- `e2e/09-accessibility.spec.ts` runs `@axe-core/playwright` in a real
+  browser for color contrast, focus order, landmark regions, and keyboard
+  reachability
+
+Both suites run as part of `npm test` and `npm run test:e2e`. If the HCI
+audit reports an accessibility regression, the failing behavior should be
+reproducible in one of these suites.
 
 ### E2E Tests (Playwright)
 
@@ -288,11 +321,12 @@ npx playwright show-report
 ```
 
 **E2E directory structure:**
-- `e2e/` contains 7 Playwright spec files covering all pipeline phases
+- `e2e/` contains 8 Playwright spec files covering all pipeline phases plus accessibility
+- `e2e/09-accessibility.spec.ts` runs axe core in Chromium for WCAG 2.1 AA coverage including color contrast
 - `e2e/fixtures/test-helpers.ts` has shared helpers: `loginAsGuest()`, `waitForPhase()`, `mockAnthropicApi()`, `mockSearchApis()`, `goToLanding()`, `dismissBanners()`, `getMockJobResults()`
 - All external APIs (Anthropic Claude, Adzuna, JSearch, RSS feeds) are mocked via `page.route()` in test-helpers.ts, so tests run offline with deterministic data and zero API costs
 
-**User stories:** `docs/user-stories/` contains user stories with acceptance criteria across 6 files, providing requirements traceability from story to E2E spec to unit test.
+**User stories:** `docs/user-stories/` contains user stories with acceptance criteria across 7 files, providing requirements traceability from story to E2E spec to unit test. `06-cross-cutting.md` includes `US-NAV-006: Vision Impaired Accessibility` which is the traceability anchor for both a11y test suites and the HCI audit's a11y regression signal.
 
 **API mocking pattern:** E2E tests intercept network requests using Playwright's `page.route()` API. Mocks live in `e2e/fixtures/test-helpers.ts` and cover:
 - `**/api.anthropic.com/v1/messages` (Anthropic Claude API)

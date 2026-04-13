@@ -44,8 +44,9 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 
 PeelAway Logic uses a two-tier testing approach driven by user stories with acceptance criteria:
 
-- **Unit/Component tests:** Jest + React Testing Library validate individual functions, components, and integration points. 451 tests across 16 suites, all passing.
-- **E2E tests:** Microsoft Playwright validates complete user workflows through the 4-phase pipeline in a real Chromium browser. 62 tests across 7 spec files (42 passing, 20 pending via `test.fixme()` awaiting full pipeline data seeding).
+- **Unit/Component tests:** Jest + React Testing Library validate individual functions, components, and integration points. 451 tests across 17 suites, all passing.
+- **E2E tests:** Microsoft Playwright validates complete user workflows through the 4-phase pipeline in a real Chromium browser. 62 tests across 8 spec files (42 passing, 20 pending via `test.fixme()` awaiting full pipeline data seeding).
+- **Accessibility tests:** `jest-axe` covers vision impaired rules (image alt, button/link/label names, ARIA validity, SVG labeling, list structure) at the unit level. `@axe-core/playwright` covers color contrast and focus/landmark rules that need a real browser. See `docs/hci-audit/README.md` for the governance process.
 - **All external APIs mocked:** Tests are deterministic and free to run. E2E tests mock Anthropic, Adzuna, JSearch, and RSS feeds via `page.route()`. Jest tests use standard mocks. Zero API costs.
 - **User stories with acceptance criteria** in `docs/user-stories/` drive test coverage across both E2E and unit tests.
 
@@ -53,9 +54,11 @@ PeelAway Logic uses a two-tier testing approach driven by user stories with acce
 
 | Layer | Framework | Files | Tests | Status |
 |-------|-----------|-------|-------|--------|
-| Unit/Component | Jest + RTL | 16 | 451 | All passing |
-| E2E | Playwright | 7 | 42 passing, 20 pending | Active |
-| User Stories | -- | 7 | Acceptance criteria | Documented |
+| Unit/Component | Jest + RTL | 17 | 451 | All passing |
+| Accessibility (unit) | jest-axe | 1 | Vision impaired rules | Active |
+| E2E | Playwright | 8 | 42 passing, 20 pending | Active |
+| Accessibility (E2E) | @axe-core/playwright | 1 | Color contrast, focus order, landmarks | Active |
+| User Stories | n/a | 7 | Acceptance criteria | Documented |
 
 ### Running Tests
 
@@ -119,8 +122,10 @@ For design decisions behind the Azure integration, see the ADRs in [docs/archite
 - Clickable header logo to return to Landing from any phase
 - Mobile-responsive layout
 - Graceful cancellation at any phase
+- HCI governance audit: pre-commit impact analyzer that classifies changes by user facing tier and flags UAT re-test cycles (`npm run hci-audit`, skill at `.claude/skills/hci-audit/`)
+- Accessibility test coverage for vision impaired users via `jest-axe` and `@axe-core/playwright` (alt text, ARIA, labels, color contrast)
 -  unit and component tests across  suites (Jest + React Testing Library)
-- 62 E2E tests across 7 Playwright specs validating full user workflows
+- 62 E2E tests across 8 Playwright specs validating full user workflows
 
 ## Setup
 
@@ -151,7 +156,7 @@ npm start
 
 All tests live in the QA environment only. Tests are not included in the production folder.
 
-**Jest (Unit/Component):** 451 tests across 16 suites
+**Jest (Unit/Component):** 451 tests across 17 suites
 
 ```bash
 npm test                        # Interactive watch mode
@@ -174,8 +179,9 @@ CI=true npm test                # Headless (CI)
 - **storage.test.js** - localStorage wrapper tests
 - **hooks.test.js** - Custom hook tests
 - **azureSearchService.test.js** - Azure AI Search REST client tests
+- **accessibility.test.jsx** - Vision impaired accessibility tests via `jest-axe` (image alt, button/link/label names, ARIA validity, SVG labeling, dialog semantics, aria-current on pipeline stepper)
 
-**Playwright (E2E):** 62 tests across 7 spec files
+**Playwright (E2E):** 62 tests across 8 spec files
 
 ```bash
 npm run test:e2e                # Headless
@@ -191,6 +197,7 @@ npx playwright show-report      # View HTML report
 - **05-complete.spec.ts** (14 tests) - Document generation, status tracking, downloads, applied tracking, localStorage persistence (11 pending pipeline data)
 - **07-navigation.spec.ts** (9 tests) - ProgressStepper (4 phases), Header, GuideBar, responsive layout, phase guards, logo navigation
 - **08-demo-mode.spec.ts** (7 tests) - Demo Mode toggle, hint text, logo-click-to-Landing navigation
+- **09-accessibility.spec.ts** (5 tests) - Full-page axe scan, vision impaired critical rules, color contrast, `aria-current` verification, keyboard reachability
 
 ### CI/CD Integration
 
