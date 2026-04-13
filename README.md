@@ -122,7 +122,7 @@ For design decisions behind the Azure integration, see the ADRs in [docs/archite
 - HCI governance audit: pre-commit impact analyzer that classifies changes by user facing tier and flags UAT re-test cycles (`npm run hci-audit`, skill at `.claude/skills/hci-audit/`)
 - Accessibility test coverage for vision impaired users via `jest-axe` and `@axe-core/playwright` (alt text, ARIA, labels, color contrast)
 - Documentation sync: `npm run docs-sync` keeps the README and entry point test file lists, per spec counts, and structural tables aligned with the actual `src/__tests__/` and `e2e/` inventory; same script also runs in CI via `.github/workflows/update-docs.yml`
-- 445 unit and component tests across 17 suites (Jest + React Testing Library)
+-  unit and component tests across  suites (Jest + React Testing Library)
 - 70 E2E tests across 8 Playwright specs validating full user workflows
 
 ## Setup
