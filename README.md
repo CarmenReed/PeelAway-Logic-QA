@@ -119,7 +119,7 @@ For design decisions behind the Azure integration, see the ADRs in [docs/archite
 - Clickable header logo to return to Landing from any phase
 - Mobile-responsive layout
 - Graceful cancellation at any phase
-- 451 unit and component tests across 16 suites (Jest + React Testing Library)
+-  unit and component tests across  suites (Jest + React Testing Library)
 - 62 E2E tests across 7 Playwright specs validating full user workflows
 
 ## Setup

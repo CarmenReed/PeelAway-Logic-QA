@@ -28,7 +28,7 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | PDF extraction | pdf.js 3.11.174 (loaded from CDN at runtime) |
 | Persistence | localStorage (4 keys, all prefixed `jsp-`) |
 | Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
-| Testing (Unit) | Jest + @testing-library/react, 436 tests across 16 suites |
+| Testing (Unit) | Jest + @testing-library/react,  tests across  suites |
 | Testing (E2E) | @playwright/test, 52 tests across 6 specs (Chromium) |
 
 ### One Rule That Applies Everywhere
@@ -553,7 +553,7 @@ src/
     useWindowWidth.js   Responsive breakpoint hook (MOBILE_BP = 640)
   services/
     azureSearchService.js  Azure AI Search REST client (index, batch index, search, delete)
-  __tests__/             436 tests across 16 suites
+  __tests__/              tests across  suites
     pipelineUtils.test.js       Utility function tests (JSON, dedup, titles, prompts)
     utilsKeywordPreFilter.test.js Dynamic pre-filter tests (profile-driven)
     profileExtractor.test.js    Resume parser tests (skills, name, levels, queries)
