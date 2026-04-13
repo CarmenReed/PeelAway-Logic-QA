@@ -28,6 +28,8 @@
 
   "envReplacementFileTypes": ["*.md", "*.js", "*.jsx", "*.ts", "*.tsx", "*.json", "*.yml", "*.yaml", "*.html"],
 
+  "envAuditExclusions": [".promotion.json", "CLAUDE.md"],
+
   "envAuditPatterns": [
     { "pattern": "PeelAway-Logic-QA", "flags": "i", "label": "PeelAway-Logic-QA" },
     { "pattern": "\\bQA repo\\b", "flags": "i", "label": "QA repo" },
