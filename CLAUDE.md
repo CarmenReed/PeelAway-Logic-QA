@@ -19,30 +19,27 @@ The script reads `.promotion.json` in THIS repo for all rules. **When you add ne
 Everything except items listed in `.promotion.json` under `neverPromote`. The script discovers the repo structure dynamically -- new directories and files are automatically included.
 
 ### What does NOT get promoted
-- `.env`, `.claude/`, `node_modules/`, `build/`, `playwright-report/`, `test-results/`
-- `claude-code-entry-point.md`, `POST_RESKIN_DECOMPOSITION_PLAN.md`
-- `fix-failing-tests.ps1`, `prod-update-docs.yml`, `MASTER_PLAN_*`, `*sprint-plan*`
-- Root `.ps1` files
+See `neverPromote` in `.promotion.json` for the full exclusion list (dirs, files, and root file extensions).
 
 ### PROD-preserved files
-Files listed in `preserveProdVersions` in `.promotion.json` will NOT be overwritten during promotion. PROD maintains its own version. Currently: `docs/GITHUB-KNOWLEDGE-BASE.md`.
+Files listed in `preserveProdVersions` in `.promotion.json` will NOT be overwritten during promotion. PROD maintains its own version.
 
 ### Environment replacements
-After copying, the promotion script replaces QA-specific text across all configured file types (`.md`, `.js`, `.jsx`, `.json`, `.yml`, `.html`). Patterns are defined in `envReplacements` in `.promotion.json`. If you introduce a new QA-specific term that would be wrong in PROD, add it to both `envReplacements` and `envAuditPatterns`.
+After copying, the promotion script replaces QA-specific text across all file types listed in `envReplacementFileTypes` in `.promotion.json`. Patterns are defined in `envReplacements`. If you introduce a new QA-specific term that would be wrong in PROD, add it to both `envReplacements` and `envAuditPatterns`.
 
 ## Documentation Rules
 
 - **Never use em-dashes** (U+2014, `--`, `---` outside YAML frontmatter/code blocks/table separators). Use commas, semicolons, or restructure sentences. `doc-lint.js` enforces this.
 - Run `node scripts/doc-lint.js` after any documentation changes.
-- The `/update-docs` custom command (`.claude/commands/update-docs.md`) has rules for when and how to update docs. Follow its tiered approach.
+- `update-docs.yml` CI workflow auto-updates test counts in README after source changes.
 
 ## Testing
 
-- 451 Jest tests (unit + component) in `src/__tests__/`
-- 62 Playwright E2E tests in `e2e/` (42 passing, 20 pending via `test.fixme()`)
+- Jest tests (unit + component) in `src/__tests__/`, Playwright E2E tests in `e2e/`
+- Get current counts: `CI=true npx react-scripts test --watchAll=false 2>&1 | tail -3`
 - All tests must pass before promotion: `CI=true npm test`
 - E2E tests: `npm run test:e2e`
-- Tests are deterministic -- all external APIs mocked. Zero API costs.
+- Tests are deterministic; all external APIs mocked. Zero API costs.
 - User stories with acceptance criteria live in `docs/user-stories/`.
 
 ## Architecture
@@ -51,19 +48,13 @@ After copying, the promotion script replaces QA-specific text across all configu
 - 4-phase pipeline: Scout, Review (with Human Gate), Complete (with document generation)
 - Phase orchestration in `JobSearchPipeline.jsx`, step locking enforced
 - `JobSearchPipelineV4.jsx` is a legacy monolith -- do not add features to it
-- Anthropic Claude API: `claude-sonnet-4-6` for tailoring, `claude-haiku-4-5` for scoring
+- Anthropic Claude API; model IDs are in `src/constants.js` (single source of truth for all magic numbers, timing values)
 - All API calls go through `src/api.js` with retry logic
-- All prompts in `src/prompts.js` -- anti-hallucination enforced at prompt layer
-- `src/constants.js` holds all magic numbers, model IDs, timing values
+- All prompts in `src/prompts.js`; anti-hallucination enforced at prompt layer
 
 ## QA-Specific Files (Do Not Promote)
 
-- `claude-code-entry-point.md` -- Claude Code session primer, QA-only context
-- `POST_RESKIN_DECOMPOSITION_PLAN.md` -- internal refactor roadmap
-- `fix-failing-tests.ps1` -- one-off debug scripts
-- `prod-update-docs.yml` -- workflow template draft
-
-These are listed in `.promotion.json` under `neverPromote.files` and in `.gitignore`.
+Files and directories excluded from promotion are listed in `.promotion.json` under `neverPromote`. When adding new QA-only files, add them there (and to `.gitignore` if they shouldn't be tracked).
 
 ## Package.json
 
