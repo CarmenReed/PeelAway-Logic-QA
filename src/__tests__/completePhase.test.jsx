@@ -99,9 +99,9 @@ describe("CompletePhase — initial render", () => {
     expect(screen.queryByText("Mark Applied")).not.toBeInTheDocument();
   });
 
-  it("renders New Search button", () => {
+  it("does not render New Search button (use Start Over instead)", () => {
     renderComplete();
-    expect(screen.getByText(/New Search/i)).toBeInTheDocument();
+    expect(screen.queryByText(/New Search/i)).not.toBeInTheDocument();
   });
 
   it("renders download format selector", () => {
@@ -203,17 +203,8 @@ describe("CompletePhase — multiple results", () => {
 });
 
 // ============================================================
-// New Search button
+// Navigation (New Search removed; Start Over in GuideBar is the path)
 // ============================================================
-
-describe("CompletePhase — navigation", () => {
-  it("calls onRunAgain when New Search is clicked", async () => {
-    const user = userEvent.setup();
-    const { onRunAgain } = renderComplete();
-    await user.click(screen.getByText(/New Search/i));
-    expect(onRunAgain).toHaveBeenCalledTimes(1);
-  });
-});
 
 // ============================================================
 // AppliedTracker integration

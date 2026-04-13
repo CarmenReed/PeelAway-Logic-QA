@@ -9,7 +9,7 @@ import Spinner from "../components/Spinner";
 import AppliedTracker from "../components/AppliedTracker";
 import GuideBar from "../components/GuideBar";
 
-function CompletePhase({ approvedJobs, profileText, extractedProfile, appliedList, onAddApplied, onRemoveApplied, onClearApplied, onRunAgain, cloudConnected, onStartOver }) {
+function CompletePhase({ approvedJobs, profileText, extractedProfile, appliedList, onAddApplied, onRemoveApplied, onClearApplied, cloudConnected, onStartOver }) {
   const [downloadFormat, setDownloadFormat] = useState("txt");
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [copiedType, setCopiedType] = useState(null);
@@ -157,9 +157,6 @@ function CompletePhase({ approvedJobs, profileText, extractedProfile, appliedLis
         <GuideBar emoji={"\uD83C\uDF89"} text="Generate tailored documents, download, apply, and track your progress!" onStartOver={onStartOver} />
         <p className="text-p">No jobs were approved. Go back to Review to select jobs.</p>
         <AppliedTracker appliedList={appliedList} onRemove={onRemoveApplied} onClear={onClearApplied} />
-        <div className="flex-gap mt-16">
-          <button className="btn primary" onClick={onRunAgain}>{"\uD83D\uDD04"} New Search</button>
-        </div>
       </div>
     );
   }
@@ -262,10 +259,6 @@ function CompletePhase({ approvedJobs, profileText, extractedProfile, appliedLis
       <div className="progress-bar">{doneCount} of {approvedJobs.length} complete {doneCount < approvedJobs.length ? "- generate documents above" : "- all done!"}</div>
 
       <AppliedTracker appliedList={appliedList} onRemove={onRemoveApplied} onClear={onClearApplied} />
-
-      <div className="flex-gap mt-16">
-        <button className="btn primary" onClick={onRunAgain}>{"\uD83D\uDD04"} New Search</button>
-      </div>
     </div>
   );
 }

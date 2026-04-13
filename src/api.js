@@ -5,12 +5,19 @@ import { MODEL, API_URL, API_HEADERS_BASE } from "./constants";
 import { extractJson } from "./utils";
 
 export async function withRetry(fn, maxAttempts = 3) {
-  for (let i = 0; i < maxAttempts; i++) {
+  const is429 = (err) => err?.message?.includes("429");
+  const effectiveMax = (err) => is429(err) ? 6 : maxAttempts;
+  for (let i = 0; ; i++) {
     try { return await fn(); }
     catch (err) {
       if (err.name === "AbortError") throw err;
-      if (i === maxAttempts - 1) throw err;
-      const waitMs = err?.message?.includes("429") ? 20000 : 2000 * Math.pow(2, i);
+      if (i >= effectiveMax(err) - 1) {
+        if (is429(err)) {
+          throw new Error("Rate limit: too many tokens per minute. Please wait about a minute, then try again.");
+        }
+        throw err;
+      }
+      const waitMs = is429(err) ? 30000 + 15000 * i : 2000 * Math.pow(2, i);
       await new Promise(r => setTimeout(r, waitMs));
     }
   }
