@@ -40,18 +40,33 @@ export default function CloudConnector({ show, onClose, onConnectionChange }) {
 
   if (!show) return null;
 
+  const handleOverlayKeyDown = (e) => {
+    if (e.key === "Escape") onClose();
+  };
+
   return (
-    <div className="cloud-overlay" onClick={onClose}>
-      <div className="cloud-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="cloud-overlay"
+      onClick={onClose}
+      onKeyDown={handleOverlayKeyDown}
+      role="presentation"
+    >
+      <div
+        className="cloud-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cloud-modal-title"
+      >
         <div className="cloud-modal-header">
-          <h3 className="cloud-modal-title">Connect Your Workspace</h3>
-          <button className="cloud-close-btn" onClick={onClose}>&times;</button>
+          <h3 className="cloud-modal-title" id="cloud-modal-title">Connect Your Workspace</h3>
+          <button className="cloud-close-btn" onClick={onClose} aria-label="Close workspace dialog">&times;</button>
         </div>
 
         <div className="cloud-provider-card">
           <div className="cloud-provider-header">
             <div className="cloud-provider-icon">
-              <svg viewBox="0 0 24 24" width="32" height="32" fill="none">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" role="img" aria-label="Dropbox logo">
                 <path d="M6.5 7.5L12 11l-5.5 3.5L1 11l5.5-3.5zM17.5 7.5L12 11l5.5 3.5L23 11l-5.5-3.5zM6.5 14.5L12 18l5.5-3.5L12 11l-5.5 3.5zM12 4l5.5 3.5L12 11 6.5 7.5 12 4z" fill="#0061FF"/>
               </svg>
             </div>

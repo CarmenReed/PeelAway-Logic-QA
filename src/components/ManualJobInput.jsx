@@ -88,9 +88,25 @@ function ManualJobInput({ profileText, extractedProfile, apiKey, onJobScored, sc
         <button className={`tab-btn${mode === "paste" ? " active" : ""}`} onClick={() => { setMode("paste"); setInputVal(""); setResult(null); setError(null); }}>Paste JD Text</button>
       </div>
       {mode === "url" ? (
-        <input type="url" placeholder="https://jobs.lever.co/company/job-id" value={inputVal} onChange={(e) => setInputVal(e.target.value)} className="form-input mb-10" disabled={status === "running"} />
+        <input
+          type="url"
+          aria-label="Job posting URL"
+          placeholder="https://jobs.lever.co/company/job-id"
+          value={inputVal}
+          onChange={(e) => setInputVal(e.target.value)}
+          className="form-input mb-10"
+          disabled={status === "running"}
+        />
       ) : (
-        <textarea placeholder="Paste the full job description here..." value={inputVal} onChange={(e) => setInputVal(e.target.value)} rows={6} className="form-textarea mb-10" disabled={status === "running"} />
+        <textarea
+          aria-label="Job description text"
+          placeholder="Paste the full job description here..."
+          value={inputVal}
+          onChange={(e) => setInputVal(e.target.value)}
+          rows={6}
+          className="form-textarea mb-10"
+          disabled={status === "running"}
+        />
       )}
       <div className="flex-gap">
         <button className="btn primary" disabled={status === "running" || !inputVal.trim()} onClick={handleScore}>

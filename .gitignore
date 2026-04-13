@@ -1,5 +1,6 @@
-# Claude Code internals — never commit
-.claude/
+# Claude Code internals, never commit except for shared skills
+.claude/*
+!.claude/skills/
 
 # dependencies
 node_modules/

@@ -14,29 +14,45 @@ export default function ProgressStepper({ current, maxVisited, onTabClick }) {
     );
   }
   return (
-    <div className="progress" data-testid="progress-stepper">
-      <div className="progress-track">
+    <nav className="progress" data-testid="progress-stepper" aria-label="Pipeline progress">
+      <ol className="progress-track">
         {PHASES.map((name, i) => {
           const cls = i === current ? "current" : i < current ? "done" : "future";
           const clickable = i <= maxVisited;
+          const ariaCurrent = i === current ? "step" : undefined;
+          const ariaLabel = `Step ${i + 1} of ${PHASES.length}: ${name}${i === current ? " (current)" : i < current ? " (completed)" : ""}`;
           return (
-            <span key={name} style={{ display: "contents" }}>
-              <div
-                className={`step-dot ${cls}${!clickable ? " no-click" : ""}`}
-                onClick={clickable ? () => onTabClick(i) : undefined}
-              >
-                {i < current ? "\u2713" : i + 1}
-              </div>
-              {i < PHASES.length - 1 && <div className={`step-line ${i < current ? "done" : "future"}`} />}
-            </span>
+            <li key={name} className="progress-step" style={{ display: "contents" }}>
+              {clickable ? (
+                <button
+                  type="button"
+                  className={`step-dot ${cls}`}
+                  onClick={() => onTabClick(i)}
+                  aria-current={ariaCurrent}
+                  aria-label={ariaLabel}
+                >
+                  {i < current ? "\u2713" : i + 1}
+                </button>
+              ) : (
+                <div
+                  className={`step-dot ${cls} no-click`}
+                  aria-current={ariaCurrent}
+                  aria-label={ariaLabel}
+                  role="img"
+                >
+                  {i < current ? "\u2713" : i + 1}
+                </div>
+              )}
+              {i < PHASES.length - 1 && <div className={`step-line ${i < current ? "done" : "future"}`} aria-hidden="true" />}
+            </li>
           );
         })}
-      </div>
-      <div className="step-labels">
+      </ol>
+      <div className="step-labels" aria-hidden="true">
         {PHASES.map((name, i) => (
           <span key={name} className={`step-label${i === current ? " current-label" : ""}`}>{name}</span>
         ))}
       </div>
-    </div>
+    </nav>
   );
 }
