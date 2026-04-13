@@ -38,7 +38,6 @@ describe("JobSearchPipelineV4", () => {
     await user.click(screen.getByText("Start as Guest", { exact: false }));
     expect(screen.getAllByText(/Scout/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Review/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/Tailor/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Complete")).toBeInTheDocument();
   });
 });
@@ -46,6 +45,53 @@ describe("JobSearchPipelineV4", () => {
 // ============================================================
 // Scout Phase - Layer Buttons
 // ============================================================
+
+// ============================================================
+// Logo navigation & Demo mode pipeline integration
+// ============================================================
+
+describe("Pipeline — logo navigation", () => {
+  it("clicking logo in header returns to Landing when confirmed", async () => {
+    const user = userEvent.setup();
+    window.confirm = jest.fn(() => true);
+    render(<JobSearchPipelineV4 />);
+    await user.click(screen.getByText("Start as Guest", { exact: false }));
+    // Should be in Scout phase now
+    expect(screen.getByText("Upload Resume (PDF or TXT)")).toBeInTheDocument();
+    // Click the header logo
+    await user.click(screen.getByTestId("header-logo"));
+    // Confirm dialog should have been called
+    expect(window.confirm).toHaveBeenCalledWith("Return to start? Progress will be lost.");
+    // Should be back to Landing
+    expect(screen.getByText("Start as Guest", { exact: false })).toBeInTheDocument();
+  });
+
+  it("clicking logo does not navigate when cancelled", async () => {
+    const user = userEvent.setup();
+    window.confirm = jest.fn(() => false);
+    render(<JobSearchPipelineV4 />);
+    await user.click(screen.getByText("Start as Guest", { exact: false }));
+    await user.click(screen.getByTestId("header-logo"));
+    // Should still be in Scout phase
+    expect(screen.getByText("Upload Resume (PDF or TXT)")).toBeInTheDocument();
+  });
+});
+
+describe("Pipeline — demo mode toggle", () => {
+  it("demo toggle is visible on Landing and defaults to OFF", () => {
+    render(<JobSearchPipelineV4 />);
+    const checkbox = screen.getByTestId("demo-toggle-checkbox");
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it("toggling demo mode ON shows hint text", async () => {
+    const user = userEvent.setup();
+    render(<JobSearchPipelineV4 />);
+    await user.click(screen.getByTestId("demo-toggle-checkbox"));
+    expect(screen.getByText("Demo: 1 result per search, scores floored at 80%")).toBeInTheDocument();
+  });
+});
 
 describe("Scout Phase UI", () => {
   async function startPipeline() {

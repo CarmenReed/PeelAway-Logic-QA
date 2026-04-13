@@ -273,6 +273,38 @@ describe("LandingScreen", () => {
     render(<LandingScreen onStart={jest.fn()} />);
     expect(screen.getByAltText("PeelAway Logic")).toBeInTheDocument();
   });
+
+  it("renders Demo Mode toggle defaulting to OFF", () => {
+    render(<LandingScreen onStart={jest.fn()} demoMode={false} onDemoModeChange={jest.fn()} />);
+    const checkbox = screen.getByTestId("demo-toggle-checkbox");
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it("renders Demo Mode toggle as ON when demoMode is true", () => {
+    render(<LandingScreen onStart={jest.fn()} demoMode={true} onDemoModeChange={jest.fn()} />);
+    const checkbox = screen.getByTestId("demo-toggle-checkbox");
+    expect(checkbox).toBeChecked();
+  });
+
+  it("calls onDemoModeChange when toggle is clicked", async () => {
+    const onDemoModeChange = jest.fn();
+    const user = userEvent.setup();
+    render(<LandingScreen onStart={jest.fn()} demoMode={false} onDemoModeChange={onDemoModeChange} />);
+    await user.click(screen.getByTestId("demo-toggle-checkbox"));
+    expect(onDemoModeChange).toHaveBeenCalledWith(true);
+  });
+
+  it("shows hint text when demo mode is ON", () => {
+    render(<LandingScreen onStart={jest.fn()} demoMode={true} onDemoModeChange={jest.fn()} />);
+    expect(screen.getByTestId("demo-toggle-hint")).toBeInTheDocument();
+    expect(screen.getByText("Demo: 1 result per search, scores floored at 80%")).toBeInTheDocument();
+  });
+
+  it("does not show hint text when demo mode is OFF", () => {
+    render(<LandingScreen onStart={jest.fn()} demoMode={false} onDemoModeChange={jest.fn()} />);
+    expect(screen.queryByTestId("demo-toggle-hint")).not.toBeInTheDocument();
+  });
 });
 
 // ============================================================
@@ -294,6 +326,26 @@ describe("Header", () => {
   it("has header class on container", () => {
     const { container } = render(<Header />);
     expect(container.firstChild).toHaveClass("header");
+  });
+
+  it("logo has pointer cursor when onLogoClick is provided", () => {
+    render(<Header onLogoClick={jest.fn()} />);
+    const logo = screen.getByTestId("header-logo");
+    expect(logo).toHaveStyle({ cursor: "pointer" });
+  });
+
+  it("calls onLogoClick when logo is clicked", async () => {
+    const onLogoClick = jest.fn();
+    const user = userEvent.setup();
+    render(<Header onLogoClick={onLogoClick} />);
+    await user.click(screen.getByTestId("header-logo"));
+    expect(onLogoClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("logo does not have pointer cursor when no onLogoClick", () => {
+    render(<Header />);
+    const logo = screen.getByTestId("header-logo");
+    expect(logo).not.toHaveStyle({ cursor: "pointer" });
   });
 });
 

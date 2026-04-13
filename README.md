@@ -24,7 +24,7 @@ This folder serves as the staging ground for all iterative work on PeelAway Logi
 
 ## What It Does
 
-This is the QA copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in five phases:
+This is the QA copy of the AI-powered job search automation tool built with React and the Anthropic Claude API. It runs a full PeelAway Logic in four phases:
 
 1. **Scout** - Upload your resume (PDF or TXT) or paste text. The app extracts skills, experience level, location, and generates search queries automatically via regex-based profile extraction. Configure search filters (work type, date posted, employment type, US zip code + radius) then run three independent search layers:
    - **Layer 1:** Job boards (Adzuna + JSearch) - aggregator APIs searched in parallel, US-only
@@ -34,13 +34,47 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
    - Each layer runs independently with disable flow (one at a time, completed layers stay disabled until Start Over).
    - When ready, click "Score & Review" to deduplicate, pre-filter, score, fetch full JDs, and re-score.
 
-2. **Review** - Discovered roles organized into tiers (Strong Match 8-10, Possible 6-7, Weak 3-5, Rejected 0-2). Sort by score, date posted (newest first), or company. Fresh postings (within 7 days) display a green date badge; stale or unverifiable dates show an orange warning.
+2. **Review** - Discovered roles organized into tiers (Strong Match 8-10, Possible 6-7, Weak 3-5, Rejected 0-2). Sort by score, date posted (newest first), or company. Fresh postings (within 7 days) display a green date badge; stale or unverifiable dates show an orange warning. Select which roles to move forward with via the Human Gate - no document generation API calls are made until you explicitly approve.
 
-3. **Human Gate** - Select which roles to move forward with. No tailoring API calls are made until you explicitly approve.
+3. **Complete** - Each approved role displays as a card with a clickable link to the original job posting and two independent buttons: "Create Resume" and "Create Cover Letter." Each document is one click, one API call. Nothing generates automatically. Download, copy, or regenerate any document individually. Mark jobs as applied. Applied jobs are tracked across sessions and automatically excluded from future scout runs.
 
-4. **Tailor** - Each approved role displays as a card with two independent buttons: "Create Resume" and "Create Cover Letter." Each document is one click, one API call. Nothing generates automatically. Download, copy, or regenerate any document individually.
+## Testing & Quality
 
-5. **Complete** - Download or copy your tailored documents per role. Mark jobs as applied. Applied jobs are tracked across sessions and automatically excluded from future scout runs.
+### Testing Strategy
+
+PeelAway Logic uses a two-tier testing approach driven by user stories with acceptance criteria:
+
+- **Unit/Component tests:** Jest + React Testing Library validate individual functions, components, and integration points. 451 tests across 16 suites, all passing.
+- **E2E tests:** Microsoft Playwright validates complete user workflows through the 4-phase pipeline in a real Chromium browser. 62 tests across 7 spec files (42 passing, 20 pending via `test.fixme()` awaiting full pipeline data seeding).
+- **All external APIs mocked:** Tests are deterministic and free to run. E2E tests mock Anthropic, Adzuna, JSearch, and RSS feeds via `page.route()`. Jest tests use standard mocks. Zero API costs.
+- **User stories with acceptance criteria** in `docs/user-stories/` drive test coverage across both E2E and unit tests.
+
+### Test Coverage
+
+| Layer | Framework | Files | Tests | Status |
+|-------|-----------|-------|-------|--------|
+| Unit/Component | Jest + RTL | 16 | 451 | All passing |
+| E2E | Playwright | 7 | 42 passing, 20 pending | Active |
+| User Stories | -- | 7 | Acceptance criteria | Documented |
+
+### Running Tests
+
+```bash
+npm test                        # Jest interactive watch mode
+CI=true npm test                # Jest headless (CI)
+npm run test:e2e                # Playwright headless
+npm run test:e2e:ui             # Playwright interactive UI mode
+npm run test:e2e:headed         # Playwright headed browser
+npx playwright show-report      # View HTML test report
+```
+
+### User Story Traceability
+
+Requirements are defined as user stories with acceptance criteria in [`docs/user-stories/`](docs/user-stories/). Each story maps to specific E2E specs and unit test files, providing full traceability from requirement to test.
+
+### Environment Strategy
+
+All tests live in the QA environment only. The production repo ships clean artifacts, and QA validates before promotion.
 
 ## Tech Stack
 
@@ -49,6 +83,8 @@ This is the QA copy of the AI-powered job search automation tool built with Reac
 - PDF.js v3.11.174 (CDN, pinned) for resume text extraction
 - Google Fonts (Fredoka for brand header)
 - localStorage for applied job tracking across sessions
+- @playwright/test (E2E browser testing, Microsoft)
+- wait-on (CI server readiness check)
 
 ## Azure Integration
 
@@ -79,9 +115,12 @@ For design decisions behind the Azure integration, see the ADRs in [docs/archite
 - Separate resume and cover letter generation (one API call each, on demand)
 - ATS-proof output formatting
 - Applied jobs tracker with persistent storage
+- Demo Mode toggle on the Landing page for streamlined live demos (1 result per search, scores floored at 80%)
+- Clickable header logo to return to Landing from any phase
 - Mobile-responsive layout
 - Graceful cancellation at any phase
--  unit and component tests across  suites
+- 451 unit and component tests across 16 suites (Jest + React Testing Library)
+- 62 E2E tests across 7 Playwright specs validating full user workflows
 
 ## Setup
 
@@ -112,11 +151,13 @@ npm start
 
 All tests live in the QA environment only. Tests are not included in the production folder.
 
+**Jest (Unit/Component):** 451 tests across 16 suites
+
 ```bash
-npm test
+npm test                        # Interactive watch mode
+CI=true npm test                # Headless (CI)
 ```
 
- tests across  suites:
 - **pipelineUtils.test.js** - Unit tests for pure utility functions (JSON extraction, deduplication, title normalization, pre-filtering, prompt builders)
 - **utilsKeywordPreFilter.test.js** - Dynamic keyword pre-filter tests with profile-driven level and location filtering
 - **profileExtractor.test.js** - Resume parsing tests (name, skills, experience, levels, location, search queries)
@@ -125,13 +166,40 @@ npm test
 - **components.test.jsx** - Pipeline layout and integration tests
 - **manualJobInput.test.jsx** - Quick Score component tests (tab switching, scoring flow, add to queue)
 - **reviewPhase.test.jsx** - Review phase tier display and selection tests
-- **completePhase.test.jsx** - Complete phase download and apply tracking tests
-- **progressStepper.test.jsx** - Phase navigation stepper tests
-- **tailorPhase.test.js** - Tailor phase component tests
-- **tailorPersistence.test.js** - Persistence layer tests for tailor phase data
+- **completePhase.test.jsx** - Complete phase render, document generation, download, and apply tracking tests
+- **progressStepper.test.jsx** - Phase navigation stepper tests (4 phases)
+- **tailorPhase.test.js** - Document generation component tests (session restore, persistence, cancel, error handling)
+- **tailorPersistence.test.js** - Persistence layer tests for document generation data
 - **api.test.js** - API wrapper and retry logic tests
 - **storage.test.js** - localStorage wrapper tests
 - **hooks.test.js** - Custom hook tests
+- **azureSearchService.test.js** - Azure AI Search REST client tests
+
+**Playwright (E2E):** 62 tests across 7 spec files
+
+```bash
+npm run test:e2e                # Headless
+npm run test:e2e:ui             # Interactive UI mode
+npm run test:e2e:headed         # Headed browser
+npx playwright show-report      # View HTML report
+```
+
+- **01-landing.spec.ts** (8 tests) - Landing page branding, guest entry, navigation to Scout, demo mode toggle
+- **02-scout.spec.ts** (10 tests) - Resume upload/paste, profile extraction, search layer UI, Quick Score
+- **03-review.spec.ts** (8 tests) - Tier tabs, sort controls, structural checks (5 pending scored data)
+- **04-human-gate.spec.ts** (6 tests) - Job selection, advance controls, human intent enforcement (6 pending scored data)
+- **05-complete.spec.ts** (14 tests) - Document generation, status tracking, downloads, applied tracking, localStorage persistence (11 pending pipeline data)
+- **07-navigation.spec.ts** (9 tests) - ProgressStepper (4 phases), Header, GuideBar, responsive layout, phase guards, logo navigation
+- **08-demo-mode.spec.ts** (7 tests) - Demo Mode toggle, hint text, logo-click-to-Landing navigation
+
+### CI/CD Integration
+
+GitHub Actions (`deploy.yml`) runs both test tiers on every push to main:
+
+1. `CI=true npm test` runs all 425 Jest tests
+2. `npx playwright install --with-deps chromium` installs browser binaries
+3. `npm start` + `wait-on` + `npx playwright test` runs all E2E tests
+4. Failed tests block the build and deployment
 
 ## Usage Notes
 
@@ -142,7 +210,7 @@ npm test
 - Use Quick Score (Step 3) to paste a specific job URL or description for immediate scoring
 - "Score & Review" handles deduplication, pre-filtering, scoring, JD fetching, and re-scoring in one pass
 - Only Strong Match (8-10) and Possible (6-7) roles advance to the Human Gate
-- In the Tailor phase, generate resume and cover letter independently per role
+- In the Complete phase, generate resume and cover letter independently per role
 - Previously applied roles are automatically excluded from future scout runs
 
 ## Project Background

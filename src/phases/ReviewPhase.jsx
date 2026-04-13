@@ -11,7 +11,20 @@ const TIER_CONFIG = [
   { label: "Weak", emoji: "\u26A0\uFE0F", key: "weak", tabClass: "weak-tab" },
 ];
 
-function ReviewPhase({ scoutResults, appliedList, onAdvance, onStartOver }) {
+function applyDemoScoreFloor(tiers) {
+  const floored = {};
+  for (const [key, jobs] of Object.entries(tiers)) {
+    floored[key] = jobs.map(job => {
+      if (job.total_score < 8) {
+        return { ...job, total_score: 8 };
+      }
+      return job;
+    });
+  }
+  return floored;
+}
+
+function ReviewPhase({ scoutResults, appliedList, demoMode, onAdvance, onStartOver }) {
   const [activeTab, setActiveTab] = useState("strong_match");
   const [sortBy, setSortBy] = useState("score");
   const [selected, setSelected] = useState([]);
@@ -56,7 +69,8 @@ function ReviewPhase({ scoutResults, appliedList, onAdvance, onStartOver }) {
     }, 400);
   }, [azureEndpoint, azureKey]);
 
-  const tiers = scoutResults?.tiers ?? {};
+  const rawTiers = scoutResults?.tiers ?? {};
+  const tiers = demoMode ? applyDemoScoreFloor(rawTiers) : rawTiers;
   const isSelected = (job) => selected.some(s => jobKey(s) === jobKey(job));
   const toggle = (job) => setSelected(prev =>
     isSelected(job) ? prev.filter(j => jobKey(j) !== jobKey(job)) : [...prev, job]
@@ -88,7 +102,7 @@ function ReviewPhase({ scoutResults, appliedList, onAdvance, onStartOver }) {
     azureMatchSet.has(`${(job.title || "").toLowerCase()}|${(job.company || "").toLowerCase()}`);
 
   return (
-    <div className="content">
+    <div className="content" data-testid="review-phase">
       <GuideBar emoji={"\uD83C\uDFAF"} text="Select jobs for tailored documents, then advance." onStartOver={onStartOver} />
 
       {/* Azure AI Search (optional, collapsible) */}
@@ -153,17 +167,17 @@ function ReviewPhase({ scoutResults, appliedList, onAdvance, onStartOver }) {
           {activeTab === "strong_match" && (
             <button className="btn ghost sm" onClick={selectAllStrong}>Select All ({(tiers.strong_match ?? []).length})</button>
           )}
-          <p className="text-hint mt-8">{selected.length} job{selected.length !== 1 ? "s" : ""} selected for tailoring</p>
+          <p className="text-hint mt-8">{selected.length} job{selected.length !== 1 ? "s" : ""} selected</p>
         </div>
       )}
 
       <div className="flex-end mt-12">
-        <button className="btn glow-btn" disabled={selected.length === 0} onClick={() => {
+        <button className="btn glow-btn" data-testid="review-advance-btn" disabled={selected.length === 0} onClick={() => {
           const allCandidates = [...(tiers.strong_match ?? []), ...(tiers.possible ?? [])];
           allCandidates.filter(j => !isSelected(j)).forEach(j => saveDismissedJob(j));
           onAdvance(selected);
         }}>
-          Advance to Tailor ({selected.length})
+          Advance to Complete ({selected.length})
         </button>
       </div>
     </div>
@@ -171,7 +185,7 @@ function ReviewPhase({ scoutResults, appliedList, onAdvance, onStartOver }) {
 }
 
 // ============================================================
-// TAILOR PHASE (on-demand per job)
+// COMPLETE PHASE (on-demand per job)
 // ============================================================
 
 

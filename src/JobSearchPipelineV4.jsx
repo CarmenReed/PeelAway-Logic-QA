@@ -1128,10 +1128,17 @@ function Spinner() {
   return <span className="jsp-spinner" />;
 }
 
-function Header() {
+function Header({ onLogoClick }) {
   return (
-    <div className="header">
-      <img src={`${process.env.PUBLIC_URL}/PeelAwayLogicLogo.png`} alt="PeelAway Logic" className="header-logo" />
+    <div className="header" data-testid="header">
+      <img
+        src={`${process.env.PUBLIC_URL}/PeelAwayLogicLogo.png`}
+        alt="PeelAway Logic"
+        className="header-logo"
+        onClick={onLogoClick}
+        style={onLogoClick ? { cursor: "pointer" } : undefined}
+        data-testid="header-logo"
+      />
       <div>
         <div className="header-brand">PeelAway Logic</div>
         <div className="header-title">PeelAway Logic</div>
@@ -1187,11 +1194,27 @@ function GuideBar({ emoji, text }) {
   );
 }
 
-function LandingScreen({ onStart }) {
+function LandingScreen({ onStart, demoMode, onDemoModeChange }) {
   return (
     <div className="landing">
       <img src={`${process.env.PUBLIC_URL}/PeelAwayLogicLogoText.png`} alt="PeelAway Logic" className="landing-logo" />
       <p className="landing-tagline">AI-powered job search pipeline for busy professionals.</p>
+      <div className="demo-toggle" data-testid="demo-toggle">
+        <label className="demo-toggle-label">
+          <input
+            type="checkbox"
+            checked={demoMode || false}
+            onChange={(e) => onDemoModeChange && onDemoModeChange(e.target.checked)}
+            data-testid="demo-toggle-checkbox"
+          />
+          <span className="demo-toggle-text">Demo Mode</span>
+        </label>
+        {demoMode && (
+          <span className="demo-toggle-hint" data-testid="demo-toggle-hint">
+            Demo: 1 result per search, scores floored at 80%
+          </span>
+        )}
+      </div>
       <div className="landing-buttons">
         <button className="btn primary" onClick={onStart}>
           {"\uD83D\uDE80"} Start as Guest
@@ -2182,6 +2205,7 @@ function CompletePhase({ tailorResults, appliedList, onAddApplied, onRemoveAppli
 
 export default function JobSearchPipelineV4() {
   const [started, setStarted] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [profileText, setProfileText] = useState("");
   const [phase, setPhase] = useState(0);
   const [scoutResults, setScoutResults] = useState(null);
@@ -2240,17 +2264,29 @@ export default function JobSearchPipelineV4() {
     setScoutKey(k => k + 1);
   }, [tailorResults]);
 
+  const handleLogoClick = useCallback(() => {
+    if (!window.confirm("Return to start? Progress will be lost.")) return;
+    setScoutResults(null);
+    setApprovedJobs([]);
+    setProfileText("");
+    setExtractedProfile(null);
+    setPhase(0);
+    setMaxVisited(0);
+    setScoutKey(k => k + 1);
+    setStarted(false);
+  }, []);
+
   if (!started) {
     return (
       <div className="jsp-app">
-        <LandingScreen onStart={() => setStarted(true)} />
+        <LandingScreen onStart={() => setStarted(true)} demoMode={demoMode} onDemoModeChange={setDemoMode} />
       </div>
     );
   }
 
   return (
     <div className="jsp-app">
-      <Header />
+      <Header onLogoClick={handleLogoClick} />
       <ProgressStepper current={phase} maxVisited={maxVisited} onTabClick={setPhase} />
 
       {maxVisited > 0 && (
@@ -2337,6 +2373,5 @@ export {
   clearTailorResults,
   TAILOR_RESULTS_KEY,
   TAILOR_DELAY_MS,
-  TailorPhase,
   callAnthropic,
 };

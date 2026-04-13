@@ -13,10 +13,9 @@ import ProgressStepper from "./components/ProgressStepper";
 import ScoutPhase from "./phases/ScoutPhase";
 import SearchPhase from "./phases/SearchPhase";
 import ReviewPhase from "./phases/ReviewPhase";
-import TailorPhase from "./phases/TailorPhase";
 import CompletePhase from "./phases/CompletePhase";
 
-// Phase indices: 0=Scout, 1=Search, 2=Review, 3=Tailor, 4=Complete
+// Phase indices: 0=Scout, 1=Search, 2=Review, 3=Complete
 
 // Debounced cloud sync: saves to Dropbox after data changes settle
 let syncTimer = null;
@@ -32,6 +31,7 @@ function scheduleCloudSync() {
 
 export default function JobSearchPipeline() {
   const [started, setStarted] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [profileText, setProfileText] = useState("");
   const [phase, setPhase] = useState(0);
   const [scoutResults, setScoutResults] = useState(null);
@@ -68,12 +68,6 @@ export default function JobSearchPipeline() {
     localStorage.removeItem(SCOUT_STORAGE_KEY);
   }, []);
 
-  const handleTailorComplete = useCallback((results) => {
-    setTailorResults(results);
-    advanceTo(4);
-    scheduleCloudSync();
-  }, [advanceTo]);
-
   const handleRunAgain = useCallback(() => {
     setScoutResults(null);
     setApprovedJobs([]);
@@ -97,27 +91,40 @@ export default function JobSearchPipeline() {
     setSearchKey(k => k + 1);
   }, [tailorResults]);
 
+  const handleLogoClick = useCallback(() => {
+    if (!window.confirm("Return to start? Progress will be lost.")) return;
+    setScoutResults(null);
+    setApprovedJobs([]);
+    setProfileText("");
+    setExtractedProfile(null);
+    setPhase(0);
+    setMaxVisited(0);
+    setScoutKey(k => k + 1);
+    setSearchKey(k => k + 1);
+    setStarted(false);
+  }, []);
+
   // Whether a PDF/text has been loaded (controls Start Over visibility)
   const hasProfile = profileText.trim().length > 50;
 
   if (!started) {
     return (
       <div className="jsp-app">
-        <LandingScreen onStart={() => setStarted(true)} />
+        <LandingScreen onStart={() => setStarted(true)} demoMode={demoMode} onDemoModeChange={setDemoMode} />
       </div>
     );
   }
 
   return (
     <div className="jsp-app">
-      <Header />
+      <Header onLogoClick={handleLogoClick} />
       <ProgressStepper current={phase} maxVisited={maxVisited} onTabClick={setPhase} />
 
       {phase === 0 && tailorResults.length > 0 && (
         <div className="saved-notice">
-          <p className="saved-notice-text">You have {tailorResults.length} saved tailor result(s) from a previous session.</p>
+          <p className="saved-notice-text">You have {tailorResults.length} saved result(s) from a previous session.</p>
           <div className="flex-gap">
-            <button className="btn primary sm" onClick={() => advanceTo(4)}>View Results</button>
+            <button className="btn primary sm" onClick={() => advanceTo(3)}>View Results</button>
             <button className="btn default sm" onClick={() => { clearTailorResults(); setTailorResults([]); }}>Dismiss</button>
           </div>
         </div>
@@ -142,6 +149,7 @@ export default function JobSearchPipeline() {
           extractedProfile={extractedProfile}
           appliedList={appliedJobs}
           locked={maxVisited > 1 && phase !== maxVisited}
+          demoMode={demoMode}
           onComplete={(data) => { setScoutResults(data); advanceTo(2); }}
           onStartOver={hasProfile ? handleStartOver : undefined}
         />
@@ -151,25 +159,17 @@ export default function JobSearchPipeline() {
         <ReviewPhase
           scoutResults={scoutResults}
           appliedList={appliedJobs}
+          demoMode={demoMode}
           onAdvance={(jobs) => { setApprovedJobs(jobs); advanceTo(3); }}
           onStartOver={hasProfile ? handleStartOver : undefined}
         />
       )}
 
       {phase === 3 && (
-        <TailorPhase
+        <CompletePhase
           approvedJobs={approvedJobs}
           profileText={profileText}
           extractedProfile={extractedProfile}
-          onComplete={handleTailorComplete}
-          cloudConnected={cloudConn?.connected}
-          onStartOver={hasProfile ? handleStartOver : undefined}
-        />
-      )}
-
-      {phase === 4 && (
-        <CompletePhase
-          tailorResults={tailorResults}
           appliedList={appliedJobs}
           onAddApplied={addAppliedJob}
           onRemoveApplied={removeAppliedJob}

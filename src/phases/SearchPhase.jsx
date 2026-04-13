@@ -439,7 +439,7 @@ async function runJdFetchAndRescore(apiKey, profileText, results, signal, onStat
   return { ...results };
 }
 
-function SearchPhase({ profileText, extractedProfile, appliedList, locked, onComplete, onStartOver }) {
+function SearchPhase({ profileText, extractedProfile, appliedList, locked, demoMode, onComplete, onStartOver }) {
   const [status, setStatus] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState(null);
@@ -499,10 +499,11 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, onCom
     try {
       const adzunaQueries = extractedProfile?.searchQueries?.adzuna || ["Software Engineer"];
       const jsearchQueries = extractedProfile?.searchQueries?.jsearch || ["Software Engineer remote"];
-      const [adzuna, jsearch] = await Promise.allSettled([
+      let [adzuna, jsearch] = await Promise.allSettled([
         fetchAdzunaJobs(adzunaQueries, searchFilters, abort1Ref.current.signal),
         fetchJSearchJobs(jsearchQueries, searchFilters, abort1Ref.current.signal),
       ]).then(r => r.map(x => x.status === "fulfilled" ? x.value : []));
+      if (demoMode) { adzuna = adzuna.slice(0, 1); jsearch = jsearch.slice(0, 1); }
       const combined = [...adzuna, ...jsearch].map(j => ({ ...j, source_layer: "job_boards" }));
       setAccumulatedRaw(prev => mergeRawJobs(prev, combined));
       setLayer1Msg(`Done. Found ${combined.length} listings from Adzuna and JSearch.`);
@@ -522,7 +523,8 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, onCom
     setLayer2Status("running");
     setLayer2Msg("Searching RSS feeds (WeWorkRemotely, Remotive, RemoteOK, Stack Overflow)...");
     try {
-      const rss = await fetchRssJobs(abort2Ref.current.signal, (msg) => setLayer2Msg(msg));
+      let rss = await fetchRssJobs(abort2Ref.current.signal, (msg) => setLayer2Msg(msg));
+      if (demoMode) rss = rss.slice(0, 1);
       const combined = rss.map(j => ({ ...j, source_layer: "rss" }));
       setAccumulatedRaw(prev => mergeRawJobs(prev, combined));
       setLayer2Msg(`Done. Found ${combined.length} listings from RSS feeds.`);
@@ -542,7 +544,8 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, onCom
     setLayer3Status("running");
     setLayer3Msg("Searching ATS boards (Greenhouse, Lever, Workday)...");
     try {
-      const ats = await fetchAtsJobs(ANTHROPIC_API_KEY, profileText.trim(), extractedProfile?.targetLevel, searchFilters, abort3Ref.current.signal);
+      let ats = await fetchAtsJobs(ANTHROPIC_API_KEY, profileText.trim(), extractedProfile?.targetLevel, searchFilters, abort3Ref.current.signal);
+      if (demoMode) ats = ats.slice(0, 1);
       const combined = ats.map(j => ({ ...j, source_layer: "ats" }));
       setAccumulatedRaw(prev => mergeRawJobs(prev, combined));
       setLayer3Msg(`Done. Found ${combined.length} listings from ATS boards.`);

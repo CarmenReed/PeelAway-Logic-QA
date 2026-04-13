@@ -46,11 +46,12 @@ const EMPTY_SCOUT_RESULTS = {
   tiers: { strong_match: [], possible: [], weak: [], rejected: [] },
 };
 
-function renderReview({ scoutResults = SCOUT_RESULTS, appliedList = [], onAdvance = jest.fn() } = {}) {
+function renderReview({ scoutResults = SCOUT_RESULTS, appliedList = [], onAdvance = jest.fn(), demoMode = false } = {}) {
   return render(
     <ReviewPhase
       scoutResults={scoutResults}
       appliedList={appliedList}
+      demoMode={demoMode}
       onAdvance={onAdvance}
     />
   );
@@ -139,7 +140,7 @@ describe("ReviewPhase — empty tier", () => {
 describe("ReviewPhase — job selection", () => {
   it("Advance button is disabled when nothing selected", () => {
     renderReview();
-    expect(screen.getByText(/Advance to Tailor/i)).toBeDisabled();
+    expect(screen.getByText(/Advance to Complete/i)).toBeDisabled();
   });
 
   it("Advance button is enabled after selecting a job", async () => {
@@ -147,7 +148,7 @@ describe("ReviewPhase — job selection", () => {
     renderReview();
     const checkbox = screen.getByRole("checkbox", { name: /Select Senior Engineer/i });
     await user.click(checkbox);
-    expect(screen.getByText(/Advance to Tailor \(1\)/i)).not.toBeDisabled();
+    expect(screen.getByText(/Advance to Complete \(1\)/i)).not.toBeDisabled();
   });
 
   it("Advance button shows selected count", async () => {
@@ -155,7 +156,7 @@ describe("ReviewPhase — job selection", () => {
     renderReview();
     const checkbox = screen.getByRole("checkbox", { name: /Select Senior Engineer/i });
     await user.click(checkbox);
-    expect(screen.getByText(/Advance to Tailor \(1\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Advance to Complete \(1\)/i)).toBeInTheDocument();
   });
 
   it("clicking Advance calls onAdvance with selected jobs", async () => {
@@ -164,7 +165,7 @@ describe("ReviewPhase — job selection", () => {
     renderReview({ onAdvance });
     const checkbox = screen.getByRole("checkbox", { name: /Select Senior Engineer/i });
     await user.click(checkbox);
-    await user.click(screen.getByText(/Advance to Tailor/i));
+    await user.click(screen.getByText(/Advance to Complete/i));
     expect(onAdvance).toHaveBeenCalledWith([STRONG_JOB]);
   });
 
@@ -174,7 +175,7 @@ describe("ReviewPhase — job selection", () => {
     const checkbox = screen.getByRole("checkbox", { name: /Select Senior Engineer/i });
     await user.click(checkbox); // select
     await user.click(checkbox); // deselect
-    expect(screen.getByText(/Advance to Tailor \(0\)/i)).toBeDisabled();
+    expect(screen.getByText(/Advance to Complete \(0\)/i)).toBeDisabled();
   });
 });
 
@@ -202,7 +203,7 @@ describe("ReviewPhase — Select All", () => {
     };
     renderReview({ scoutResults: twoStrong });
     await user.click(screen.getByText(/Select All/i));
-    expect(screen.getByText(/Advance to Tailor \(2\)/i)).not.toBeDisabled();
+    expect(screen.getByText(/Advance to Complete \(2\)/i)).not.toBeDisabled();
   });
 });
 
@@ -221,5 +222,49 @@ describe("ReviewPhase — sort dropdown", () => {
     expect(screen.getByRole("option", { name: "Score" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: /Date Posted/i })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Company" })).toBeInTheDocument();
+  });
+});
+
+// ============================================================
+// Demo mode score flooring
+// ============================================================
+
+describe("ReviewPhase — demo mode score flooring", () => {
+  const LOW_SCORE_JOB = makeJob({ title: "Low Score Dev", company: "TestCo", url: "https://test.com/1", total_score: 4 });
+  const HIGH_SCORE_JOB = makeJob({ title: "High Score Dev", company: "HighCo", url: "https://high.com/1", total_score: 9 });
+
+  const DEMO_SCOUT_RESULTS = {
+    summary: "Found 2 jobs",
+    tiers: {
+      strong_match: [HIGH_SCORE_JOB],
+      possible: [],
+      weak: [LOW_SCORE_JOB],
+      rejected: [],
+    },
+  };
+
+  it("demo ON + score < 80%: score is floored to 8 (80%)", async () => {
+    const user = userEvent.setup();
+    renderReview({ scoutResults: DEMO_SCOUT_RESULTS, demoMode: true });
+    // Switch to Weak tab to see the low-score job
+    await user.click(screen.getByText(/Weak/i));
+    // The job card should show 80% (floored from 40%)
+    expect(screen.getByText("80%")).toBeInTheDocument();
+  });
+
+  it("demo ON + score >= 80%: score is unchanged", () => {
+    renderReview({ scoutResults: DEMO_SCOUT_RESULTS, demoMode: true });
+    // Strong tab is default, high score job should show 90%
+    expect(screen.getByText("90%")).toBeInTheDocument();
+  });
+
+  it("demo OFF: all scores unchanged regardless of value", async () => {
+    const user = userEvent.setup();
+    renderReview({ scoutResults: DEMO_SCOUT_RESULTS, demoMode: false });
+    // Strong tab shows 90%
+    expect(screen.getByText("90%")).toBeInTheDocument();
+    // Weak tab shows 40% (not floored)
+    await user.click(screen.getByText(/Weak/i));
+    expect(screen.getByText("40%")).toBeInTheDocument();
   });
 });
