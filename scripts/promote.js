@@ -871,7 +871,7 @@ function generateManifestMarkdown({ added, modified, removed, byCategory, envPre
   if (pkgChanges.length > 0) {
     md += `## package.json Changes\n\n`;
     for (const c of pkgChanges) {
-      md += `- \`${c.action}\` ${c.field}${c.value ? `: ${c.value}` : ''}\n`;
+      md += `- \`${c.action}\` ${c.field}${c.value ? `: \`${c.value}\`` : ''}\n`;
     }
     md += '\n';
   }
