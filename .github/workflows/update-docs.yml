@@ -90,16 +90,19 @@ jobs:
           sed -i "s/[0-9]\+ unit and component tests across [0-9]\+ suites/$TESTS unit and component tests across $SUITES suites/" README.md
           sed -i "s/[0-9]\+ tests across [0-9]\+ suites:/$TESTS tests across $SUITES suites:/" README.md
 
-          # Update claude-code-entry-point.md test count
-          sed -i "s/@testing-library\/react, [0-9]\+ tests across [0-9]\+ suites/@testing-library\/react, $TESTS tests across $SUITES suites/" claude-code-entry-point.md
-          sed -i "s/# Run all [0-9]\+ tests/# Run all $TESTS tests/" claude-code-entry-point.md
-          sed -i "s/[0-9]\+ tests across [0-9]\+ suites$/$TESTS tests across $SUITES suites/" claude-code-entry-point.md
+          # Update claude-code-entry-point.md test count (QA only, may not exist in PROD)
+          if [ -f claude-code-entry-point.md ]; then
+            sed -i "s/@testing-library\/react, [0-9]\+ tests across [0-9]\+ suites/@testing-library\/react, $TESTS tests across $SUITES suites/" claude-code-entry-point.md
+            sed -i "s/# Run all [0-9]\+ tests/# Run all $TESTS tests/" claude-code-entry-point.md
+            sed -i "s/[0-9]\+ tests across [0-9]\+ suites$/$TESTS tests across $SUITES suites/" claude-code-entry-point.md
+          fi
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md claude-code-entry-point.md
+          git add README.md
+          [ -f claude-code-entry-point.md ] && git add claude-code-entry-point.md
           if git diff --cached --quiet; then
             echo "No documentation changes needed"
           else
