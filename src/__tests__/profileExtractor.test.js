@@ -188,6 +188,18 @@ describe("extractProfile — location", () => {
     expect(result.location).toContain("San Francisco, CA");
   });
 
+  it("does not grab preceding words from job titles as city name", () => {
+    // "Systems Engineer | Tampa, FL" should yield "Tampa, FL", not "Systems Tampa, FL"
+    const result = extractProfile("John Doe\nSystems Engineer | Tampa, FL\n5 years of experience in JavaScript and React");
+    expect(result.location).toContain("Tampa, FL");
+    expect(result.location).not.toContain("Systems Tampa, FL");
+  });
+
+  it("extracts City, ST after common separators", () => {
+    const result = extractProfile("Jane Smith\nSolutions Architect - Orlando, FL\n8 years of experience");
+    expect(result.location).toContain("Orlando, FL");
+  });
+
   it("does not extract City, ST from deep in resume body", () => {
     // Location buried far below header in an old job should not be picked up
     const lines = ["John Doe", "Senior Engineer", "10 years of experience in JavaScript"];

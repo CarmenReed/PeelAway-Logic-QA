@@ -1,7 +1,6 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { jobKey } from "../utils";
 import { saveDismissedJob } from "../storage";
-import { createJobIndex, indexJobs, searchJobs } from "../services/azureSearchService";
 import JobCard from "../components/JobCard";
 import GuideBar from "../components/GuideBar";
 
@@ -29,46 +28,6 @@ function ReviewPhase({ scoutResults, appliedList, demoMode, onAdvance, onStartOv
   const [sortBy, setSortBy] = useState("score");
   const [selected, setSelected] = useState([]);
 
-  // Azure AI Search state
-  const [azureExpanded, setAzureExpanded] = useState(false);
-  const [azureEndpoint, setAzureEndpoint] = useState("");
-  const [azureKey, setAzureKey] = useState("");
-  const [azureStatus, setAzureStatus] = useState("");
-  const [azureIndexed, setAzureIndexed] = useState(false);
-  const [azureIndexing, setAzureIndexing] = useState(false);
-  const [azureSearchText, setAzureSearchText] = useState("");
-  const [azureResults, setAzureResults] = useState(null);
-  const searchTimerRef = useRef(null);
-
-  const handleAzureIndex = useCallback(async () => {
-    if (!azureEndpoint || !azureKey) { setAzureStatus("Please enter endpoint and key."); return; }
-    setAzureIndexing(true);
-    setAzureStatus("Creating index...");
-    const createRes = await createJobIndex(azureEndpoint, azureKey);
-    if (!createRes.success) { setAzureStatus(createRes.message); setAzureIndexing(false); return; }
-
-    setAzureStatus("Indexing jobs...");
-    const allJobs = Object.values(scoutResults?.tiers ?? {}).flat();
-    const indexRes = await indexJobs(azureEndpoint, azureKey, allJobs);
-    setAzureIndexing(false);
-    if (indexRes.errors.length > 0) {
-      setAzureStatus(`${indexRes.indexed} jobs indexed. Errors: ${indexRes.errors[0]}`);
-    } else {
-      setAzureStatus(`${indexRes.indexed} jobs indexed to Azure AI Search`);
-    }
-    if (indexRes.indexed > 0) setAzureIndexed(true);
-  }, [azureEndpoint, azureKey, scoutResults]);
-
-  const handleAzureSearch = useCallback((text) => {
-    setAzureSearchText(text);
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    if (!text.trim()) { setAzureResults(null); return; }
-    searchTimerRef.current = setTimeout(async () => {
-      const results = await searchJobs(azureEndpoint, azureKey, text);
-      setAzureResults(results);
-    }, 400);
-  }, [azureEndpoint, azureKey]);
-
   const rawTiers = scoutResults?.tiers ?? {};
   const tiers = demoMode ? applyDemoScoreFloor(rawTiers) : rawTiers;
   const isSelected = (job) => selected.some(s => jobKey(s) === jobKey(job));
@@ -91,50 +50,11 @@ function ReviewPhase({ scoutResults, appliedList, demoMode, onAdvance, onStartOv
     return a.company.localeCompare(b.company);
   });
 
-  const totalJobs = Object.values(tiers).reduce((s, a) => s + (a?.length || 0), 0);
-
-  // Azure search highlight set (match by title+company)
-  const azureMatchSet = new Set(
-    (azureResults || []).map((r) => `${(r.title || "").toLowerCase()}|${(r.company || "").toLowerCase()}`)
-  );
-  const isAzureMatch = (job) =>
-    azureResults && azureResults.length > 0 &&
-    azureMatchSet.has(`${(job.title || "").toLowerCase()}|${(job.company || "").toLowerCase()}`);
+  const totalJobs = (tiers.strong_match?.length || 0) + (tiers.possible?.length || 0) + (tiers.weak?.length || 0);
 
   return (
     <div className="content" data-testid="review-phase">
       <GuideBar emoji={"\uD83C\uDFAF"} text="Select jobs for tailored documents, then advance." onStartOver={onStartOver} />
-
-      {/* Azure AI Search (optional, collapsible) */}
-      <div className="mb-12">
-        {!azureExpanded ? (
-          <button className="btn ghost sm" onClick={() => setAzureExpanded(true)} style={{ opacity: 0.7, fontSize: "0.85rem" }}>
-            Connect Azure AI Search (optional)
-          </button>
-        ) : (
-          <details open style={{ border: "1px solid var(--border, #333)", borderRadius: 8, padding: 12, marginBottom: 8 }}>
-            <summary style={{ cursor: "pointer", fontWeight: 600, marginBottom: 8 }} onClick={(e) => { e.preventDefault(); setAzureExpanded(false); }}>
-              Azure AI Search
-            </summary>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <input className="form-input" type="text" placeholder="Search Endpoint (e.g. mysearch.search.windows.net)" value={azureEndpoint} onChange={(e) => setAzureEndpoint(e.target.value)} />
-              <input className="form-input" type="password" placeholder="Admin Key" value={azureKey} onChange={(e) => setAzureKey(e.target.value)} />
-              <button className="btn sm" onClick={handleAzureIndex} disabled={azureIndexing || !azureEndpoint || !azureKey}>
-                {azureIndexing ? "Indexing..." : "Connect & Index Jobs"}
-              </button>
-              {azureStatus && <p className="text-hint" style={{ margin: 0 }}>{azureStatus}</p>}
-              {azureIndexed && (
-                <input className="form-input" type="text" placeholder="Search indexed jobs..." value={azureSearchText} onChange={(e) => handleAzureSearch(e.target.value)} />
-              )}
-              {azureResults && azureResults.length > 0 && (
-                <div style={{ fontSize: "0.85rem", opacity: 0.8 }}>
-                  {azureResults.length} result{azureResults.length !== 1 ? "s" : ""} found
-                </div>
-              )}
-            </div>
-          </details>
-        )}
-      </div>
 
       <div className="text-p mb-12">{scoutResults?.summary} ({totalJobs} total)</div>
 
@@ -158,7 +78,7 @@ function ReviewPhase({ scoutResults, appliedList, demoMode, onAdvance, onStartOv
       {jobs.length === 0
         ? <p className="text-p">No jobs in this tier.</p>
         : jobs.map((job, i) => (
-          <JobCard key={i} job={job} selectable={activeTab === "strong_match" || activeTab === "possible"} selected={isSelected(job)} onToggle={toggle} highlight={isAzureMatch(job)} />
+          <JobCard key={i} job={job} selectable={activeTab === "strong_match" || activeTab === "possible"} selected={isSelected(job)} onToggle={toggle} />
         ))
       }
 

@@ -295,13 +295,16 @@ function extractLocation(text) {
   // Check for "remote" mentions in header or current job
   if (/\bremote\b/i.test(searchableText)) locations.add("remote");
 
-  // Check for US state + city patterns (City, ST) — only in header/current job
-  const cityStatePattern = /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)?),\s*([A-Z]{2})\b/g;
+  // Check for US state + city patterns (City, ST) — only in header/current job.
+  // The lookbehind requires a separator (|, -, ·, tab) or start-of-line before the
+  // city name so we don't accidentally grab preceding words from job titles
+  // (e.g. "Systems Engineer | Tampa, FL" should yield "Tampa, FL" not "Systems Tampa, FL").
+  const cityStatePattern = /(?:^|[|\-·\t]\s*)([A-Z][a-z]+(?:\s[A-Z][a-z]+)?),\s*([A-Z]{2})\b/gm;
   let match;
   while ((match = cityStatePattern.exec(searchableText)) !== null) {
     // Validate the two-letter code is a real US state abbreviation
     if (US_STATES.has(match[2])) {
-      locations.add(`${match[1]}, ${match[2]}`);
+      locations.add(`${match[1].trim()}, ${match[2]}`);
     }
   }
 

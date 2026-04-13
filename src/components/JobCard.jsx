@@ -1,8 +1,8 @@
-export default function JobCard({ job, selectable, selected, onToggle, highlight }) {
+export default function JobCard({ job, selectable, selected, onToggle }) {
   const { title, company, location, total_score, skills_fit, level_fit, reasoning, key_tech_stack, status, salary_range, url, jd_text } = job;
   const scorePercent = Math.round(total_score * 10);
   return (
-    <div className={`card job-row${selected ? " selected" : ""}${highlight ? " azure-highlight" : ""}`} data-testid="job-card">
+    <div className={`card job-row${selected ? " selected" : ""}`} data-testid="job-card">
       {selectable && (
         <input
           type="checkbox"

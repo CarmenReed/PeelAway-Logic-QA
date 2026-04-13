@@ -585,7 +585,12 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, demoM
         ANTHROPIC_API_KEY, profileText.trim(), extractedProfile, passed, abortRef.current.signal,
         (msg) => setProgressMsg(msg)
       );
-      const allScored = [...scored, ...preRejected];
+      let allScored = [...scored, ...preRejected];
+
+      // In demo mode, bump any job below 80% up to 80% so it lands in a visible tier
+      if (demoMode) {
+        allScored = allScored.map(job => job.total_score < 8 ? { ...job, total_score: 8 } : job);
+      }
 
       const allTiers = { strong_match: [], possible: [], weak: [], rejected: [] };
       for (const job of allScored) {
@@ -603,7 +608,7 @@ function SearchPhase({ profileText, extractedProfile, appliedList, locked, demoM
           filteredTiers[tier] = filteredTiers[tier].filter(j => !isDismissed(j, dismissed));
         }
       }
-      const totalFound = Object.values(filteredTiers).reduce((s, a) => s + a.length, 0);
+      const totalFound = (filteredTiers.strong_match?.length || 0) + (filteredTiers.possible?.length || 0) + (filteredTiers.weak?.length || 0);
       setRunSummary({
         total: accumulatedRaw.length,
         deduped: deduped.length,

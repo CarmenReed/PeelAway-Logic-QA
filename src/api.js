@@ -100,7 +100,7 @@ export async function callAnthropic({ apiKey, system, messages, maxTokens = 4000
 
 export async function callAnthropicWithLoop({
   apiKey, system, userMessage, maxTokens = 16000, tools, signal, maxTurns = 20, onTurn,
-  turnDelayMs = 0,
+  turnDelayMs = 0, model,
 }) {
   const messages = [{ role: "user", content: userMessage }];
 
@@ -112,7 +112,7 @@ export async function callAnthropicWithLoop({
     }
 
     const data = await withRetry(() =>
-      callAnthropic({ apiKey, system, messages, maxTokens, tools, signal })
+      callAnthropic({ apiKey, system, messages, maxTokens, tools, signal, model })
     );
 
     messages.push({ role: "assistant", content: data.content });

@@ -3,6 +3,7 @@
 
 import { useState, useRef } from "react";
 import { callAnthropicWithLoop } from "../api";
+import { SCORING_MODEL } from "../constants";
 import Spinner from "./Spinner";
 
 function ManualJobInput({ profileText, extractedProfile, apiKey, onJobScored, scoreRawJobs }) {
@@ -32,12 +33,13 @@ function ManualJobInput({ profileText, extractedProfile, apiKey, onJobScored, sc
         // Use web search to fetch JD from URL
         const fetchData = await callAnthropicWithLoop({
           apiKey,
+          model: SCORING_MODEL,
           system: "You are a job description fetcher. Return valid JSON only. No preamble, no markdown.",
           userMessage: `Fetch the job description from this URL: ${url}\nReturn JSON: { "title": "job title", "company": "company name", "jd_text": "full job description text" }`,
-          maxTokens: 3000,
+          maxTokens: 2000,
           tools: [{ type: "web_search_20250305", name: "web_search" }],
           signal: abortRef.current.signal,
-          maxTurns: 5,
+          maxTurns: 3,
         });
         jdText = fetchData.jd_text || "";
         jobTitle = fetchData.title || "Manual Entry";

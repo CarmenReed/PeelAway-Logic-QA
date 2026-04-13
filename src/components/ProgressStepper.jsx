@@ -1,7 +1,7 @@
 import useWindowWidth from "../hooks/useWindowWidth";
 import { MOBILE_BP } from "../constants";
 
-const PHASES = ["Scout", "Search", "Review", "Complete"];
+const PHASES = ["Scout", "Search/Score", "Review", "Complete"];
 
 export default function ProgressStepper({ current, maxVisited, onTabClick }) {
   const isMobile = useWindowWidth() < MOBILE_BP;

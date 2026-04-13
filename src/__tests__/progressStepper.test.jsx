@@ -24,7 +24,7 @@ describe("ProgressStepper — desktop", () => {
   it("renders all 4 phase labels", () => {
     renderDesktop();
     expect(screen.getByText("Scout")).toBeInTheDocument();
-    expect(screen.getByText("Search")).toBeInTheDocument();
+    expect(screen.getByText("Search/Score")).toBeInTheDocument();
     expect(screen.getByText("Review")).toBeInTheDocument();
     expect(screen.getByText("Complete")).toBeInTheDocument();
   });
@@ -129,7 +129,7 @@ describe("ProgressStepper — mobile", () => {
   });
 
   it("shows correct phase name for each step", () => {
-    const phases = ["Scout", "Search", "Review", "Complete"];
+    const phases = ["Scout", "Search/Score", "Review", "Complete"];
     phases.forEach((name, i) => {
       const { unmount } = renderMobile({ current: i });
       expect(screen.getByText(`Step ${i + 1} of 4: ${name}`)).toBeInTheDocument();
