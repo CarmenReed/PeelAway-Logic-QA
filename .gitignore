@@ -20,7 +20,6 @@ Thumbs.db
 ._*
 
 # Sprint artifacts (keep out of PROD - copy carefully)
-MASTER_PLAN_*
 AZURE_INTEGRATION_PLAN.md
 *sprint-plan*
 
