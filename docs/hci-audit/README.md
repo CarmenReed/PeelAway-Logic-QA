@@ -98,6 +98,35 @@ To clear a flag before promotion:
 
 Flags are never promoted to PROD. They are excluded in `.promotion.json`.
 
+## Accessibility test coverage
+
+The HCI audit's accessibility signal (ARIA removals, alt text drops,
+keyboard handler removals) is a static heuristic. It is paired with two
+dynamic test suites that actually render the app and run axe core against
+it:
+
+- **Unit level (`src/__tests__/accessibility.test.jsx`)** uses `jest-axe`
+  inside jsdom. It covers the full component surface for rule categories
+  that do not need layout: image alt text, button names, link names, form
+  labels, ARIA validity, SVG labeling, and list structure. Every component
+  on the Scout to Complete journey is expected to pass.
+- **Browser level (`e2e/09-accessibility.spec.ts`)** uses
+  `@axe-core/playwright` inside a real Chromium instance. It covers rules
+  that require layout: color contrast (WCAG 1.4.3), focus visibility,
+  landmark regions, heading order, and keyboard reachability. It also
+  asserts that `aria-current="step"` is exposed on the active pipeline
+  step.
+
+Vision impaired users are the primary target of both suites. Color
+contrast specifically is only checkable in the Playwright suite because
+jsdom has no layout engine.
+
+If the HCI audit reports an accessibility regression in its flag file,
+the regression should be reproducible in one of these two suites. If it
+is not, either the heuristic is too lax (extend `A11Y_MARKERS` in
+`scripts/hci-audit.js`) or the test suite is missing coverage (add a new
+case to the relevant spec).
+
 ## Running the audit manually
 
 ```bash
