@@ -28,7 +28,7 @@ The app is a React 18 single-page application. It calls the Anthropic API direct
 | PDF extraction | pdf.js 3.11.174 (loaded from CDN at runtime) |
 | Persistence | localStorage (4 keys, all prefixed `jsp-`) |
 | Styling | Plain CSS in `src/App.css`, Google Fonts (Fredoka for brand header) |
-| Testing (Unit) | Jest + @testing-library/react, 446 tests across 17 suites |
+| Testing (Unit) | Jest + @testing-library/react,  tests across  suites |
 | Testing (E2E) | @playwright/test, 70 tests across 8 specs (Chromium) |
 | Accessibility (Unit) | jest-axe, vision impaired rules (alt, button/link/label names, ARIA, SVG) |
 | Accessibility (E2E) | @axe-core/playwright, color contrast (WCAG 1.4.3), focus, landmarks |
