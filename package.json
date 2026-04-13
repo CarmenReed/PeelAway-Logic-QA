@@ -16,7 +16,8 @@
     "hci-audit": "node scripts/hci-audit.js",
     "docs-sync": "node scripts/docs-sync.js",
     "promote": "node scripts/promote.js",
-    "promote:apply": "node scripts/promote.js --apply"
+    "promote:apply": "node scripts/promote.js --apply",
+    "promote:ship": "node scripts/promote.js --apply --commit --push"
   },
   "dependencies": {
     "core-js-pure": "^3.37.1",

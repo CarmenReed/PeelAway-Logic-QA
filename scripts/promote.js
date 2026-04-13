@@ -14,7 +14,9 @@
  * Usage:
  *   node scripts/promote.js                          # preview (no changes)
  *   node scripts/promote.js --apply                  # copy + validate
- *   node scripts/promote.js --prod-path ../Other     # custom PROD path
+ *   node scripts/promote.js --apply --commit         # + commit in PROD
+ *   node scripts/promote.js --apply --commit --push  # + push PROD to GitHub
+ *   npm run promote:ship                             # shortcut for all of the above
  *
  * Run from EITHER repo. The script auto-detects which repo it's in
  * and resolves the other one.
@@ -28,6 +30,8 @@ const { execSync } = require('child_process');
 // ── CLI args ─────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const APPLY    = args.includes('--apply');
+const COMMIT   = args.includes('--commit');
+const PUSH     = args.includes('--push');
 const VERBOSE  = args.includes('--verbose');
 const prodFlag = args.find(a => a.startsWith('--prod-path='));
 const qaFlag   = args.find(a => a.startsWith('--qa-path='));
@@ -821,20 +825,52 @@ heading('Promotion Complete');
 info('Staging changes in PROD...');
 execSync('git add -A', { cwd: prodRoot, stdio: 'inherit' });
 
-console.log(`\n  ${GREEN}${BOLD}Promotion applied successfully.${RESET}`);
-console.log(`  Review the staged changes, then commit:\n`);
-console.log(`    cd ${prodRoot}`);
-console.log(`    git diff --cached --stat`);
-console.log(`    git commit -m "chore: promote QA to PROD"`);
-console.log(`    git push origin main\n`);
-
 // Show doc reconciliation reminders
 if (docReconciliation.length > 0) {
-  console.log(`  ${YELLOW}${BOLD}Doc reconciliation reminders:${RESET}`);
+  console.log(`\n  ${YELLOW}${BOLD}Doc reconciliation reminders:${RESET}`);
   for (const rec of docReconciliation) {
     console.log(`    ${rec.severity === 'STALE' ? RED : YELLOW}[${rec.severity}]${RESET} ${rec.section}: ${rec.action}`);
   }
   console.log('');
+}
+
+// Step M: Commit in PROD (if requested)
+if (COMMIT) {
+  info('Committing in PROD...');
+  const now = new Date().toISOString().split('T')[0];
+  const commitMsg = `chore: promote QA to PROD (${now})\n\n` +
+    `+${added.length} added, ~${modified.length} modified, -${removed.length} removed\n` +
+    `Categories: ${Object.keys(byCategory).join(', ')}`;
+  try {
+    execSync(`git commit -m "${commitMsg.replace(/"/g, '\\"')}"`, { cwd: prodRoot, stdio: 'inherit' });
+    good('PROD commit created.');
+  } catch {
+    err('Git commit failed in PROD. Review manually.');
+    process.exit(1);
+  }
+} else {
+  console.log(`\n  ${GREEN}${BOLD}Promotion applied and staged.${RESET}`);
+  console.log(`  To finish manually:\n`);
+  console.log(`    cd ${prodRoot}`);
+  console.log(`    git diff --cached --stat`);
+  console.log(`    git commit -m "chore: promote QA to PROD"`);
+  console.log(`    git push origin main\n`);
+}
+
+// Step N: Push PROD to GitHub (if requested)
+if (COMMIT && PUSH) {
+  info('Pushing PROD to GitHub...');
+  try {
+    execSync('git push origin main', { cwd: prodRoot, stdio: 'inherit' });
+    good('PROD pushed to GitHub.');
+  } catch {
+    err('Git push failed. Push manually from PROD.');
+    process.exit(1);
+  }
+  console.log(`\n  ${GREEN}${BOLD}Promotion complete. PROD is live.${RESET}\n`);
+} else if (COMMIT) {
+  console.log(`\n  ${GREEN}${BOLD}Committed but not pushed.${RESET}`);
+  console.log(`  To push: cd ${prodRoot} && git push origin main\n`);
 }
 
 // ── Manifest generator ───────────────────────────────────────────────────
