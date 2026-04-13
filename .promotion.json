@@ -3,9 +3,11 @@
 
   "neverPromote": {
     "dirs": [".git", ".claude", "node_modules", ".venv", "__pycache__", "build", "playwright-report", "test-results", "PeelAway Logic"],
-    "files": [".env", "claude-code-entry-point.md", "fix-failing-tests.ps1", "prod-update-docs.yml", "MASTER_PLAN_*", "*sprint-plan*"],
+    "files": [".env", "claude-code-entry-point.md", "fix-failing-tests.ps1", "prod-update-docs.yml", "MASTER_PLAN_*", "*sprint-plan*", "POST_RESKIN_DECOMPOSITION_PLAN.md"],
     "rootFileExtensions": [".ps1"]
   },
+
+  "preserveProdVersions": ["docs/GITHUB-KNOWLEDGE-BASE.md"],
 
   "alwaysExcludeFromCopy": {
     "filePatterns": ["*.pyc", "*.bak", "*.tmp", "*.orig", "*.old", ".DS_Store", "Thumbs.db"]
