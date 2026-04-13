@@ -1,0 +1,48 @@
+{
+  "_comment": "Promotion config — read by PROD scripts to understand QA structure. Update this file when QA changes.",
+
+  "neverPromote": {
+    "dirs": [".git", ".claude", "node_modules", ".venv", "__pycache__", "build", "playwright-report", "test-results", "PeelAway Logic"],
+    "files": [".env", "claude-code-entry-point.md", "fix-failing-tests.ps1", "prod-update-docs.yml", "MASTER_PLAN_*", "*sprint-plan*"],
+    "rootFileExtensions": [".ps1"]
+  },
+
+  "alwaysExcludeFromCopy": {
+    "filePatterns": ["*.pyc", "*.bak", "*.tmp", "*.orig", "*.old", ".DS_Store", "Thumbs.db"]
+  },
+
+  "envReplacements": {
+    "PeelAway-Logic-QA": "PeelAway-Logic",
+    "the QA repo": "this repository",
+    "QA repo": "this repository",
+    "QA branch": "main branch",
+    "QA environment": "production environment"
+  },
+
+  "envReplacementFileTypes": ["*.md", "*.js", "*.jsx", "*.ts", "*.tsx", "*.json", "*.yml", "*.yaml", "*.html"],
+
+  "envAuditPatterns": [
+    { "pattern": "PeelAway-Logic-QA", "flags": "i", "label": "PeelAway-Logic-QA" },
+    { "pattern": "\\bQA repo\\b", "flags": "i", "label": "QA repo" },
+    { "pattern": "\\bQA branch\\b", "flags": "i", "label": "QA branch" },
+    { "pattern": "\\bQA environment\\b", "flags": "i", "label": "QA environment" }
+  ],
+
+  "packageJson": {
+    "preserveFromProd": ["homepage"]
+  },
+
+  "prePromotionChecks": [
+    "npm test",
+    "node scripts/doc-lint.js"
+  ],
+
+  "cleanupHints": {
+    "emptyDirs": true,
+    "buildArtifacts": ["build", "playwright-report", "test-results"],
+    "staleOneOffScripts": ["fix-failing-tests.ps1", "prod-update-docs.yml"],
+    "relocate": {
+      "POST_RESKIN_DECOMPOSITION_PLAN.md": "docs/architecture/DECOMPOSITION_PLAN.md"
+    }
+  }
+}
