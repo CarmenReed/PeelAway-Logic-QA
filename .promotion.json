@@ -2,7 +2,7 @@
   "_comment": "Promotion config — read by PROD scripts to understand QA structure. Update this file when QA changes.",
 
   "neverPromote": {
-    "dirs": [".git", ".claude", "node_modules", ".venv", "__pycache__", "build", "playwright-report", "test-results", "PeelAway Logic"],
+    "dirs": [".git", ".claude", "node_modules", ".venv", "__pycache__", "build", "playwright-report", "test-results", "PeelAway Logic", "docs/hci-audit/flags"],
     "files": [".env", "claude-code-entry-point.md", "fix-failing-tests.ps1", "prod-update-docs.yml", "MASTER_PLAN_*", "*sprint-plan*", "POST_RESKIN_DECOMPOSITION_PLAN.md"],
     "rootFileExtensions": [".ps1"]
   },

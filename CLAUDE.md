@@ -33,6 +33,26 @@ After copying, the promotion script replaces QA-specific text across all file ty
 - Run `node scripts/doc-lint.js` after any documentation changes.
 - `update-docs.yml` CI workflow auto-updates test counts in README after source changes.
 
+## HCI Governance
+
+Before committing any change that touches user facing surface, run the HCI
+audit after tests pass:
+
+```bash
+npm run hci-audit
+```
+
+The script scans the diff against `origin/main`, classifies each changed
+file by HCI impact tier, and emits a GREEN, YELLOW, or RED verdict. YELLOW
+and RED verdicts write a flag file under `docs/hci-audit/flags/` listing
+the affected user stories and recommended UAT scenarios. The gate warns
+loudly but never blocks; surface the flag to the user and let them decide
+whether to proceed, spot check, or run a full UAT cycle before committing.
+
+See `docs/hci-audit/README.md` for tier definitions and the sign off
+workflow. The skill definition lives at `.claude/skills/hci-audit/SKILL.md`
+and is also invocable as `/hci-audit`.
+
 ## Testing
 
 - Jest tests (unit + component) in `src/__tests__/`, Playwright E2E tests in `e2e/`
