@@ -1,6 +1,8 @@
 # Claude Code internals, never commit except for shared skills
 .claude/*
 !.claude/skills/
+# Local promotion skill (not committed)
+.claude/skills/promote-ship/
 
 # dependencies
 node_modules/
@@ -40,3 +42,6 @@ prod-update-docs.yml
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Generated files
+REPO_MAP.md
