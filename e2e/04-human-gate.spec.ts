@@ -9,7 +9,7 @@ import {
 } from "./fixtures/test-helpers";
 
 /**
- * Human Gate E2E tests — Review phase job selection and advance controls.
+ * Human Gate E2E tests: Review phase job selection and advance controls.
  * User stories: US-GATE-001 through US-GATE-005.
  *
  * The Human Gate is the core design principle of PeelAway Logic: nothing
@@ -23,7 +23,7 @@ import {
  * test.fixme() with clear descriptions of what they verify.
  */
 
-test.describe("Human Gate — Review Phase (US-GATE-001 to US-GATE-005)", () => {
+test.describe("Human Gate: Review Phase (US-GATE-001 to US-GATE-005)", () => {
   test.beforeEach(async ({ page }) => {
     await goToLanding(page);
     await dismissBanners(page);
@@ -158,7 +158,7 @@ test.describe("Human Gate — Review Phase (US-GATE-001 to US-GATE-005)", () => 
         route.continue();
       });
 
-      // Select a job — should NOT trigger any API calls
+      // Select a job: should NOT trigger any API calls
       const firstCheckbox = page
         .locator(".job-card input[type='checkbox'], .job-card [role='checkbox']")
         .first();

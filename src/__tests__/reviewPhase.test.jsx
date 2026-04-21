@@ -65,7 +65,7 @@ beforeEach(() => {
 // Tier tabs render
 // ============================================================
 
-describe("ReviewPhase — tier tabs", () => {
+describe("ReviewPhase: tier tabs", () => {
   it("renders all 3 tier tab buttons", () => {
     renderReview();
     expect(screen.getByText(/Strong/i)).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe("ReviewPhase — tier tabs", () => {
 // Tab switching
 // ============================================================
 
-describe("ReviewPhase — tab switching", () => {
+describe("ReviewPhase: tab switching", () => {
   it("clicking Possible tab shows possible jobs", async () => {
     const user = userEvent.setup();
     renderReview();
@@ -125,7 +125,7 @@ describe("ReviewPhase — tab switching", () => {
 // Empty tier
 // ============================================================
 
-describe("ReviewPhase — empty tier", () => {
+describe("ReviewPhase: empty tier", () => {
   it("shows empty message when active tier has no jobs", async () => {
     const user = userEvent.setup();
     renderReview({ scoutResults: EMPTY_SCOUT_RESULTS });
@@ -137,7 +137,7 @@ describe("ReviewPhase — empty tier", () => {
 // Selection and Advance button
 // ============================================================
 
-describe("ReviewPhase — job selection", () => {
+describe("ReviewPhase: job selection", () => {
   it("Advance button is disabled when nothing selected", () => {
     renderReview();
     expect(screen.getByText(/Advance to Complete/i)).toBeDisabled();
@@ -183,7 +183,7 @@ describe("ReviewPhase — job selection", () => {
 // Select All
 // ============================================================
 
-describe("ReviewPhase — Select All", () => {
+describe("ReviewPhase: Select All", () => {
   it("shows Select All button on Strong Match tab", () => {
     renderReview();
     expect(screen.getByText(/Select All/i)).toBeInTheDocument();
@@ -211,7 +211,7 @@ describe("ReviewPhase — Select All", () => {
 // Sort dropdown
 // ============================================================
 
-describe("ReviewPhase — sort dropdown", () => {
+describe("ReviewPhase: sort dropdown", () => {
   it("renders sort dropdown", () => {
     renderReview();
     expect(screen.getByRole("combobox")).toBeInTheDocument();
@@ -229,7 +229,7 @@ describe("ReviewPhase — sort dropdown", () => {
 // Demo mode score flooring
 // ============================================================
 
-describe("ReviewPhase — demo mode score flooring", () => {
+describe("ReviewPhase: demo mode score flooring", () => {
   const LOW_SCORE_JOB = makeJob({ title: "Low Score Dev", company: "TestCo", url: "https://test.com/1", total_score: 4 });
   const HIGH_SCORE_JOB = makeJob({ title: "High Score Dev", company: "HighCo", url: "https://high.com/1", total_score: 9 });
 

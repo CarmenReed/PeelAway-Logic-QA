@@ -219,7 +219,7 @@ test.describe("Navigation & UI Chrome (US-NAV-001 to US-NAV-005)", () => {
       const reviewLabel = page.locator(".step-label", { hasText: "Review" });
       await expect(reviewLabel).toBeVisible();
 
-      // Click near the Review label/dot area — it should be non-interactive
+      // Click near the Review label/dot area: it should be non-interactive
       const reviewDotGeneral = page.locator(
         ".step-dot:near(.step-label:has-text('Review'))",
       ).first();
@@ -229,7 +229,7 @@ test.describe("Navigation & UI Chrome (US-NAV-001 to US-NAV-005)", () => {
         await reviewDotGeneral.click({ force: true });
       }
 
-      // Verify we are still on Scout — the current label has not changed
+      // Verify we are still on Scout: the current label has not changed
       const currentLabel = page.locator(".step-label.current-label");
       await expect(currentLabel).toContainText("Scout");
     });

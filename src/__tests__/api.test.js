@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 // ============================================================
-// withRetry — use real timers but mock delays via instant-resolving fns
+// withRetry: use real timers but mock delays via instant-resolving fns
 // ============================================================
 
 describe("withRetry", () => {

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import ScoutPhase from "../phases/ScoutPhase";
 
-// Mock API — no network calls
+// Mock API: no network calls
 jest.mock("../api", () => ({
   extractTextFromPdf: jest.fn(),
 }));
@@ -29,7 +29,7 @@ function renderScout({ profileText = "", setProfileText = jest.fn(), extractedPr
 // Initial render
 // ============================================================
 
-describe("ScoutPhase — initial render", () => {
+describe("ScoutPhase: initial render", () => {
   it("renders the upload resume button", () => {
     renderScout();
     expect(screen.getByText("Upload Resume (PDF or TXT)")).toBeInTheDocument();
@@ -42,10 +42,10 @@ describe("ScoutPhase — initial render", () => {
 });
 
 // ============================================================
-// Tab toggle — upload vs paste
+// Tab toggle: upload vs paste
 // ============================================================
 
-describe("ScoutPhase — resume input tabs", () => {
+describe("ScoutPhase: resume input tabs", () => {
   it("shows Upload PDF/TXT tab by default", () => {
     renderScout();
     expect(screen.getByText("Upload PDF/TXT")).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe("ScoutPhase — resume input tabs", () => {
 // Extracted profile display
 // ============================================================
 
-describe("ScoutPhase — extracted profile", () => {
+describe("ScoutPhase: extracted profile", () => {
   const mockProfile = {
     name: "Jane Doe",
     skills: ["React", "Node.js", "Python"],
@@ -121,7 +121,7 @@ describe("ScoutPhase — extracted profile", () => {
 // Locked state
 // ============================================================
 
-describe("ScoutPhase — locked state", () => {
+describe("ScoutPhase: locked state", () => {
   const mockProfile = {
     name: "Jane Doe",
     skills: ["React", "Node.js"],

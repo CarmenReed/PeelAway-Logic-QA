@@ -50,7 +50,7 @@ describe("JobSearchPipelineV4", () => {
 // Logo navigation & Demo mode pipeline integration
 // ============================================================
 
-describe("Pipeline — logo navigation", () => {
+describe("Pipeline: logo navigation", () => {
   it("clicking logo in header returns to Landing when confirmed", async () => {
     const user = userEvent.setup();
     window.confirm = jest.fn(() => true);
@@ -77,7 +77,7 @@ describe("Pipeline — logo navigation", () => {
   });
 });
 
-describe("Pipeline — demo mode toggle", () => {
+describe("Pipeline: demo mode toggle", () => {
   it("demo toggle is visible on Landing and defaults to OFF", () => {
     render(<JobSearchPipelineV4 />);
     const checkbox = screen.getByTestId("demo-toggle-checkbox");

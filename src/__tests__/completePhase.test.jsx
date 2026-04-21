@@ -72,7 +72,7 @@ beforeEach(() => {
 // Initial render (no documents generated yet)
 // ============================================================
 
-describe("CompletePhase — initial render", () => {
+describe("CompletePhase: initial render", () => {
   it("renders the guide banner", () => {
     renderComplete();
     expect(screen.getByText(/Generate tailored documents/i)).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe("CompletePhase — initial render", () => {
 // With restored documents (from localStorage)
 // ============================================================
 
-describe("CompletePhase — with restored documents", () => {
+describe("CompletePhase: with restored documents", () => {
   beforeEach(() => {
     saveTailorResult({
       job_title: "Senior Engineer",
@@ -156,7 +156,7 @@ describe("CompletePhase — with restored documents", () => {
 // Applied state
 // ============================================================
 
-describe("CompletePhase — applied state", () => {
+describe("CompletePhase: applied state", () => {
   beforeEach(() => {
     saveTailorResult({
       job_title: "Senior Engineer",
@@ -194,7 +194,7 @@ describe("CompletePhase — applied state", () => {
 // Multiple results
 // ============================================================
 
-describe("CompletePhase — multiple results", () => {
+describe("CompletePhase: multiple results", () => {
   it("renders a card for each approved job", () => {
     renderComplete({ approvedJobs: [APPROVED_JOB, APPROVED_JOB_NO_URL] });
     expect(screen.getByText("Senior Engineer")).toBeInTheDocument();
@@ -210,7 +210,7 @@ describe("CompletePhase — multiple results", () => {
 // AppliedTracker integration
 // ============================================================
 
-describe("CompletePhase — AppliedTracker", () => {
+describe("CompletePhase: AppliedTracker", () => {
   it("renders Applied Tracker section", () => {
     renderComplete();
     expect(screen.getByText(/Applied Tracker/i)).toBeInTheDocument();
@@ -245,7 +245,7 @@ describe("CompletePhase — AppliedTracker", () => {
 // Download
 // ============================================================
 
-describe("CompletePhase — download", () => {
+describe("CompletePhase: download", () => {
   it("download format selector defaults to Plain Text", () => {
     renderComplete();
     const select = screen.getByRole("combobox");
@@ -257,7 +257,7 @@ describe("CompletePhase — download", () => {
 // Phase progression: Review -> Complete (no Tailor phase)
 // ============================================================
 
-describe("CompletePhase — phase progression", () => {
+describe("CompletePhase: phase progression", () => {
   it("shows Pending status for jobs without documents", () => {
     renderComplete();
     expect(screen.getByText("Pending")).toBeInTheDocument();

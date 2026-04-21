@@ -8,7 +8,7 @@ const makeJob = (title, location, url = "https://example.com") => ({
 // Dynamic profile-based filtering
 // ============================================================
 
-describe("keywordPreFilter (utils.js) — profile-driven", () => {
+describe("keywordPreFilter (utils.js): profile-driven", () => {
   const seniorProfile = {
     targetLevel: ["Senior", "Lead", "Architect"],
     location: ["remote"],

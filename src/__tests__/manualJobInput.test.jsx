@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ManualJobInput from "../components/ManualJobInput";
 
-// Mock the api module — ManualJobInput calls callAnthropicWithLoop directly for URL mode
+// Mock the api module: ManualJobInput calls callAnthropicWithLoop directly for URL mode
 jest.mock("../api", () => ({
   callAnthropicWithLoop: jest.fn(),
 }));
@@ -56,7 +56,7 @@ beforeEach(() => {
 // Tab switching
 // ============================================================
 
-describe("ManualJobInput — tab switching", () => {
+describe("ManualJobInput: tab switching", () => {
   it("defaults to URL tab with url input visible", () => {
     renderComponent();
     expect(screen.getByText("Paste URL")).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe("ManualJobInput — tab switching", () => {
 // Button disabled states
 // ============================================================
 
-describe("ManualJobInput — button disabled state", () => {
+describe("ManualJobInput: button disabled state", () => {
   it("Score button is disabled when URL input is empty", () => {
     renderComponent();
     expect(screen.getByText("Score This Job")).toBeDisabled();
@@ -116,7 +116,7 @@ describe("ManualJobInput — button disabled state", () => {
 // API key guard
 // ============================================================
 
-describe("ManualJobInput — API key guard", () => {
+describe("ManualJobInput: API key guard", () => {
   it("shows error when scoring attempted with empty apiKey", async () => {
     const user = userEvent.setup();
     renderComponent({ apiKey: "" });
@@ -127,10 +127,10 @@ describe("ManualJobInput — API key guard", () => {
 });
 
 // ============================================================
-// Scoring flow — URL mode
+// Scoring flow: URL mode
 // ============================================================
 
-describe("ManualJobInput — scoring flow (URL mode)", () => {
+describe("ManualJobInput: scoring flow (URL mode)", () => {
   it("calls callAnthropicWithLoop and scoreRawJobs on Score click", async () => {
     callAnthropicWithLoop.mockResolvedValue({
       title: "Senior Engineer",
@@ -184,10 +184,10 @@ describe("ManualJobInput — scoring flow (URL mode)", () => {
 });
 
 // ============================================================
-// Scoring flow — paste JD mode
+// Scoring flow: paste JD mode
 // ============================================================
 
-describe("ManualJobInput — scoring flow (JD paste mode)", () => {
+describe("ManualJobInput: scoring flow (JD paste mode)", () => {
   it("scores pasted JD text without calling callAnthropicWithLoop", async () => {
     mockScoreRawJobs.mockResolvedValue(MOCK_SCORE_RESULT);
 
@@ -208,7 +208,7 @@ describe("ManualJobInput — scoring flow (JD paste mode)", () => {
 // Add to Queue
 // ============================================================
 
-describe("ManualJobInput — Add to Queue", () => {
+describe("ManualJobInput: Add to Queue", () => {
   it("calls onJobScored when Add to Scout Queue is clicked", async () => {
     callAnthropicWithLoop.mockResolvedValue({
       title: "Senior Engineer",

@@ -8,7 +8,7 @@ PeelAway Logic is an AI-powered job search pipeline built as a React 18 single-p
 
 ```mermaid
 C4Context
-    title PeelAway Logic — System Context (C4 Level 1)
+    title PeelAway Logic: System Context (C4 Level 1)
 
     Person(user, "Job Seeker", "Uploads resume, reviews scored jobs, exports tailored applications")
 
@@ -34,7 +34,7 @@ C4Context
 
 ```mermaid
 C4Container
-    title PeelAway Logic — Container Diagram (C4 Level 2)
+    title PeelAway Logic: Container Diagram (C4 Level 2)
 
     Person(user, "Job Seeker")
 
@@ -174,7 +174,7 @@ flowchart TB
     SKApp -->|"currently using"| OpenAI
     SKApp -.->|"swap-ready"| AzureOpenAI
 
-    note1["⚠️ Azure OpenAI: swap-ready,<br/>currently using OpenAI fallback.<br/>Config change only — no code changes needed."]
+    note1["⚠️ Azure OpenAI: swap-ready,<br/>currently using OpenAI fallback.<br/>Config change only, no code changes needed."]
 
     classDef react fill:#61DAFB,stroke:#21A0C4,color:#000,stroke-width:2px
     classDef azure fill:#0078D4,stroke:#004B7A,color:#fff,stroke-width:2px
@@ -193,26 +193,26 @@ flowchart TB
 
 ```mermaid
 timeline
-    title PeelAway Logic — Evolution Timeline
+    title PeelAway Logic: Evolution Timeline
 
-    section v0 — Gemini Gems
+    section v0: Gemini Gems
         Origin : 5 disconnected Gemini Gems prompts
                : Manual copy-paste between steps
                : No orchestration or state
 
-    section v1 — Claude Code + React SPA
+    section v1: Claude Code + React SPA
         Unified Pipeline : Claude Code builds React 18 SPA (Create React App)
                          : 4-phase pipeline (Scout → Search → Review → Complete)
                          : localStorage for pipeline state
                          : Client-side Claude API (claude-sonnet)
 
-    section v2 — Tests + CI/CD + GitHub Pages
+    section v2: Tests + CI/CD + GitHub Pages
         Production Ready : 453 tests across 16 suites (Jest + RTL)
                          : 62 E2E tests (Microsoft Playwright + Chromium)
                          : GitHub Actions CI/CD pipeline
                          : Deployed to GitHub Pages
 
-    section v3 — Azure AI Search + Semantic Kernel (Current Sprint)
+    section v3: Azure AI Search + Semantic Kernel (Current Sprint)
         Azure Integration : Azure AI Search (peelaway-search, F0)
                           : azureSearchService.js (REST, no SDK)
                           : Semantic Kernel demo (Python, standalone)

@@ -8,7 +8,7 @@ import {
 } from "./fixtures/test-helpers";
 
 /**
- * Complete Phase E2E tests — document generation, downloads, applied-job tracking, reset.
+ * Complete Phase E2E tests: document generation, downloads, applied-job tracking, reset.
  * User stories: US-COMP-001 through US-COMP-005 (includes former US-TAIL stories).
  *
  * The Complete phase is the final stage of the PeelAway Logic pipeline.

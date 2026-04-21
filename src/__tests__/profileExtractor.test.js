@@ -4,7 +4,7 @@ import { extractProfile } from "../profileExtractor";
 // Basic extraction
 // ============================================================
 
-describe("extractProfile — basic", () => {
+describe("extractProfile: basic", () => {
   it("returns null for empty text", () => {
     expect(extractProfile("")).toBeNull();
     expect(extractProfile(null)).toBeNull();
@@ -26,7 +26,7 @@ describe("extractProfile — basic", () => {
 // Name extraction
 // ============================================================
 
-describe("extractProfile — name extraction", () => {
+describe("extractProfile: name extraction", () => {
   it("extracts a simple two-word name", () => {
     const result = extractProfile("Jane Smith\nSenior Developer with 5 years experience in JavaScript and React");
     expect(result.name).toBe("Jane Smith");
@@ -57,7 +57,7 @@ describe("extractProfile — name extraction", () => {
 // Skills extraction
 // ============================================================
 
-describe("extractProfile — skills extraction", () => {
+describe("extractProfile: skills extraction", () => {
   it("extracts common programming languages", () => {
     const result = extractProfile("John Doe\nExperienced developer proficient in JavaScript, Python, and Java with 5 years experience");
     expect(result.skills).toContain("JavaScript");
@@ -110,7 +110,7 @@ describe("extractProfile — skills extraction", () => {
 // Years of experience
 // ============================================================
 
-describe("extractProfile — years of experience", () => {
+describe("extractProfile: years of experience", () => {
   it("extracts 'X years of experience' pattern", () => {
     const result = extractProfile("John Doe\nSoftware engineer with 12 years of experience in full-stack development and cloud architecture");
     expect(result.yearsExperience).toBe(12);
@@ -141,7 +141,7 @@ describe("extractProfile — years of experience", () => {
 // Target level inference
 // ============================================================
 
-describe("extractProfile — target level", () => {
+describe("extractProfile: target level", () => {
   it("detects Senior from resume text", () => {
     const result = extractProfile("John Doe\nSenior Software Engineer at Google with 10 years of experience in distributed systems");
     expect(result.targetLevel).toContain("Senior");
@@ -172,7 +172,7 @@ describe("extractProfile — target level", () => {
 // Location extraction
 // ============================================================
 
-describe("extractProfile — location", () => {
+describe("extractProfile: location", () => {
   it("detects remote", () => {
     const result = extractProfile("John Doe\nRemote software engineer with 5 years of experience in JavaScript, React, and Node.js development");
     expect(result.location).toContain("remote");
@@ -215,7 +215,7 @@ describe("extractProfile — location", () => {
 // Search query generation
 // ============================================================
 
-describe("extractProfile — search queries", () => {
+describe("extractProfile: search queries", () => {
   it("generates adzuna and jsearch query arrays", () => {
     const result = extractProfile("John Doe\nSenior React Developer with 8 years of experience in JavaScript, React, Node.js, and AWS");
     expect(result.searchQueries).toHaveProperty("adzuna");

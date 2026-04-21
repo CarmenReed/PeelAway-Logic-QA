@@ -20,7 +20,7 @@ function renderMobile({ current = 0, maxVisited = 0, onTabClick = jest.fn() } = 
 // Desktop view
 // ============================================================
 
-describe("ProgressStepper — desktop", () => {
+describe("ProgressStepper: desktop", () => {
   it("renders all 4 phase labels", () => {
     renderDesktop();
     expect(screen.getByText("Scout")).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe("ProgressStepper — desktop", () => {
 // Mobile view
 // ============================================================
 
-describe("ProgressStepper — mobile", () => {
+describe("ProgressStepper: mobile", () => {
   it("renders 'Step X of 4: PhaseName' format", () => {
     renderMobile({ current: 0 });
     expect(screen.getByText("Step 1 of 4: Scout")).toBeInTheDocument();
